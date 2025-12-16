@@ -1,11 +1,8 @@
-import { UserList } from './pages/UserList';
+import './App.css';
+import { AppRouter } from './core/router/AppRouter';
 
 function App() {
-  return (
-    <main className="max-w-3xl mx-auto py-6 space-y-4">
-      <UserList />
-    </main>
-  );
+  return <AppRouter />;
 }
 
 export default App;

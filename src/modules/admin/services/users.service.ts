@@ -1,5 +1,5 @@
-import { User } from '../../types/user';
-import { api } from '../api/http-client';
+import { api } from "../../../core/api/http-client";
+import { User } from "../../../core/types/user";
 
 const USERS_ENDPOINT = '/users';
 

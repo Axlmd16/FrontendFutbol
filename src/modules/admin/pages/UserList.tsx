@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useFetch } from '../hooks/useFetch';
-import type { User } from '../types/user';
-import { getUsers, getUsersByFilter } from '../core/services/users.service';
+import { useFetch } from '../../../core/hooks/useFetch';
+import type { User } from '../../../core/types/user';
+import { getUsers, getUsersByFilter } from '../services/users.service';
 
 export function UserList() {
   const [roleFilter, setRoleFilter] = useState<string | undefined>(undefined);
