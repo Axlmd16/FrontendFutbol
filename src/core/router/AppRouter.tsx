@@ -5,7 +5,7 @@ import { AssessmentsRoutes } from '../../modules/assessments/routes';
 import { AthletesRoutes } from '../../modules/athletes/routes';
 import { AttendanceRoutes } from '../../modules/attendance/routes';
 import { AuthRoutes } from '../../modules/auth/routes';
-import { LandingPage } from '../../shared/pages/Home/LandingPage';
+import LandingPage from '../../shared/pages/Home/LandingPage';
 
 export const AppRouter = () => {
     const status: string = 'not-authenticated';
@@ -19,7 +19,6 @@ export const AppRouter = () => {
             <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth/*" element={<AuthRoutes />} />
-
                 <Route path="/admin/*" element={withAuth(<AdminRoutes />)} />
                 <Route path="/attendance/*" element={withAuth(<AttendanceRoutes />)} />
                 <Route path="/athletes/*" element={withAuth(<AthletesRoutes />)} />

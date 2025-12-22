@@ -24,9 +24,9 @@ export function UserList() {
           onChange={(e) => setRoleFilter(e.target.value || undefined)}
         >
           <option value="">Todos</option>
-          <option value="admin">Admin</option>
-          <option value="editor">Editor</option>
-          <option value="viewer">Viewer</option>
+          <option value="Administrator">Administrator</option>
+          <option value="Coach">Coach</option>
+          <option value="Intern">Intern</option>
         </select>
       </header>
 
@@ -40,10 +40,12 @@ export function UserList() {
             className="flex items-center justify-between rounded border p-3"
           >
             <div>
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <p className="font-semibold">{user.full_name}</p>
+              <p className="text-sm text-gray-500">{user.account?.email ?? '—'}</p>
             </div>
-            <span className="badge badge-neutral badge-sm">{user.role}</span>
+            <span className="badge badge-neutral badge-sm">
+              {user.account?.role ?? user.role ?? '—'}
+            </span>
           </article>
         ))}
       </div>
