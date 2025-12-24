@@ -67,14 +67,14 @@ const LandingPage = () => {
 							</p>
 
 							<div className="flex flex-wrap gap-4">
-								<a href="/auth/login" className="btn btn-primary btn-lg shadow-lg hover:shadow-xl gap-2">
+								<Link to="/auth/login" className="btn btn-primary btn-lg shadow-lg hover:shadow-xl gap-2">
 									Iniciar sesión
 									<ChevronRight className="h-5 w-5" />
-								</a>
-								<a href="#features" className="btn btn-outline btn-lg gap-2">
-									Ver características
+								</Link>
+								<Link to="/app" className="btn btn-outline btn-lg gap-2">
+									Ir al Dashboard
 									<BarChart3 className="h-5 w-5" />
-								</a>
+								</Link>
 							</div>
 
 							<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-6">

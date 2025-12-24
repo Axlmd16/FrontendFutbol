@@ -1,42 +1,34 @@
 import NavbarPublic from '../../components/navbarPublic';
 import LoginForm from '../../../modules/auth/pages/LoginForm';
-import { BarChart3, Shield, Users } from 'lucide-react';
 
-const LoginPage = () => {
+function LoginPage() {
     return (
-        <div className="min-h-screen bg-linear-to-br from-base-200 via-base-300 to-base-200">
+        <div className="min-h-screen bg-base-200">
             <NavbarPublic />
 
-            <div className="hero min-h-[calc(100vh-4rem)] py-8">
-                <div className="hero-content flex-col lg:flex-row-reverse w-full max-w-6xl gap-12">
-                    <div className="card bg-base-100 w-full max-w-md shadow-2xl border border-base-300">
-                        <div className="card-body p-8">
-                            <h2 className="card-title text-2xl font-bold mb-2">Iniciar Sesión</h2>
-                            <p className="text-base-content/60 mb-6">
-                                Ingresa tus credenciales para continuar
-                            </p>
+            <div className="hero">
+                <div className="hero-content flex-col lg:flex-row-reverse w-full">
+                    <div className="text-center lg:text-left max-w-xl">
+                        <h1 className="text-4xl lg:text-5xl font-bold">Inicia sesión</h1>
+                        <p className="py-6 text-base-content/70">
+                            Accede al panel para gestionar atletas, asistencia y evaluaciones.
+                        </p>
+                    </div>
 
+                    <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+                        <div className="card-body">
                             <LoginForm
                                 onSubmit={async (values) => {
+                                    // TODO: conectar con endpoint real de autenticación
                                     console.log('login', values);
-                                    await new Promise(resolve => setTimeout(resolve, 2000));
                                 }}
                             />
-
-                            <div className="divider text-sm text-base-content/50">o</div>
-
-                            <p className="text-center text-sm text-base-content/60">
-                                ¿No tienes cuenta?{' '}
-                                <a className="link link-primary font-medium">
-                                    Contacta al administrador
-                                </a>
-                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
-};
+}
 
-export default LoginPage;
+export default LoginPage

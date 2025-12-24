@@ -1,6 +1,12 @@
 import { Mail, Lock, ChevronRight } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+type LoginFormValues = {
+    email: string;
+    password: string;
+    remember: boolean;
+};
+
 type LoginFormProps = {
     onSubmit?: (values: LoginFormValues) => void | Promise<void>;
     isSubmittingExternal?: boolean;
