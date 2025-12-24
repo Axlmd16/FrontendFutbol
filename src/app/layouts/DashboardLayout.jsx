@@ -4,13 +4,15 @@
  */
 
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import useAuth from '@/features/auth/hooks/useAuth';
 import { getRoleLabel, getSidebarItems, NAV_ICONS } from '@/app/config/navigation.jsx';
+import { ROUTES } from '@/app/config/constants';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -19,6 +21,11 @@ const DashboardLayout = () => {
   const items = getSidebarItems(role);
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-64';
+
+  const goToProfile = () => {
+    navigate(ROUTES.PROFILE);
+    if (mobileOpen) setMobileOpen(false);
+  };
 
   /** Contenido del sidebar (reutilizado en desktop y mobile) */
   const SidebarContent = ({ isMobile = false }) => (
@@ -63,26 +70,32 @@ const DashboardLayout = () => {
       {(!collapsed || isMobile) && (
         <div className="border-b border-base-300 px-4 py-6 bg-base-200/30">
           <div className="flex flex-col items-center gap-3">
-            {/* Profile Photo */}
-            <div className="relative">
+            {/* Profile Photo - Clickeable */}
+            <button
+              type="button"
+              onClick={goToProfile}
+              className="relative group cursor-pointer focus:outline-none"
+              title="Ver mi perfil"
+            >
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
                   alt={user.name || user.email || 'Usuario'}
-                  className="size-24 object-cover border-4 border-base-100 shadow-lg"
+                  className="size-24 object-cover border-4 border-base-100 shadow-lg group-hover:border-primary transition-colors"
                   style={{ borderRadius: '50%' }}
                 />
               ) : (
-                <div className="flex size-24 items-center justify-center bg-neutral text-neutral-content border-4 border-base-100 shadow-lg font-bold text-3xl"
+                <div className="flex size-24 items-center justify-center bg-neutral text-neutral-content border-4 border-base-100 shadow-lg font-bold text-3xl group-hover:border-primary transition-colors"
                      style={{ borderRadius: '50%' }}>
                   {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
                 </div>
               )}
-              {/* Status indicator */}
-              <div className="absolute bottom-1 right-1 size-4 bg-success border-2 border-base-100"
-                   style={{ borderRadius: '50%' }}
-                   title="En línea"></div>
-            </div>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                   style={{ borderRadius: '50%' }}>
+                <span className="text-white text-xs font-medium">Ver perfil</span>
+              </div>
+            </button>
 
             {/* User info */}
             <div className="text-center w-full">
@@ -139,16 +152,21 @@ const DashboardLayout = () => {
         {/* Profile button - Solo cuando está colapsado */}
         {collapsed && !isMobile && (
           <div className="mb-2 flex justify-center">
-            <div className="relative group cursor-pointer" title={user?.name || user?.email || 'Perfil'}>
+            <button
+              type="button"
+              onClick={goToProfile}
+              className="relative group cursor-pointer focus:outline-none"
+              title={user?.name || user?.email || 'Ver mi perfil'}
+            >
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
                   alt={user.name || user.email || 'Usuario'}
-                  className="size-10 object-cover border-2 border-base-300 hover:border-primary transition-colors"
+                  className="size-10 object-cover border-2 border-base-300 group-hover:border-primary transition-colors"
                   style={{ borderRadius: '50%' }}
                 />
               ) : (
-                <div className="flex size-10 items-center justify-center bg-neutral text-neutral-content border-2 border-base-300 hover:border-primary transition-colors font-bold text-sm"
+                <div className="flex size-10 items-center justify-center bg-neutral text-neutral-content border-2 border-base-300 group-hover:border-primary transition-colors font-bold text-sm"
                      style={{ borderRadius: '50%' }}>
                   {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
                 </div>
@@ -156,7 +174,7 @@ const DashboardLayout = () => {
               {/* Status indicator */}
               <div className="absolute bottom-0 right-0 size-3 bg-success border-2 border-base-100"
                    style={{ borderRadius: '50%' }}></div>
-            </div>
+            </button>
           </div>
         )}
 

@@ -2,8 +2,7 @@
  * Proveedor de Autenticación - Kallpa UNL
  * 
  * Context Provider que maneja el estado global de autenticación.
- * Proporciona acceso al usuario actual y funciones de auth
- * a través de toda la aplicación.
+ * Da acceso sobre el usuario actual y funciiones de authetificacion a trabes de toda la app.
  */
 
 import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
@@ -29,7 +28,6 @@ const AuthProvider = ({ children }) => {
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-
   /**
    * Efecto para verificar sesión existente al cargar la app
    * Intenta recuperar datos del usuario desde localStorage
@@ -61,10 +59,7 @@ const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
   
-  // ================================x==============
   // FUNCIONES DE AUTENTICACIÓN
-  // ==============================================
-  
   /**
    * Guarda los datos de autenticación en el estado y localStorage
    * @param {string} token - Token JWT
@@ -108,10 +103,7 @@ const AuthProvider = ({ children }) => {
     setUser(updatedUser);
   }, [user]);
   
-  // ==============================================
   // VALOR DEL CONTEXTO
-  // ==============================================
-  
   /**
    * Valor memoizado del contexto
    * Incluye estado y funciones de autenticación
@@ -132,10 +124,7 @@ const AuthProvider = ({ children }) => {
     hasAnyRole: (roles) => roles.includes(user?.role) || roles.includes(user?.rol),
   }), [user, isLoading, isAuthenticated, saveAuthData, clearAuthData, updateUser]);
   
-  // ==============================================
   // RENDER
-  // ==============================================
-  
   return (
     <AuthContext.Provider value={contextValue}>
       {children}

@@ -17,7 +17,6 @@ export const USER_DATA_KEY = 'kallpa_user_data';
  */
 export const USER_PREFERENCES_KEY = 'kallpa_preferences';
 
-// ==============================================
 // RUTAS DE LA APLICACIÓN
 
 export const ROUTES = {
@@ -47,7 +46,7 @@ export const ROUTES = {
   USERS_CREATE: '/users/create',
   USERS_EDIT: '/users/edit/:id',
   
-//   Inscripción
+// //   Inscripción
 //   INSCRIPTION: '/inscription',
 //   INSCRIPTION_DEPORTISTA: '/inscription/deportista',
 //   INSCRIPTION_MENOR: '/inscription/menor',
@@ -56,6 +55,7 @@ export const ROUTES = {
   SEGUIMIENTO: '/seguimiento',
   EVALUATIONS: '/seguimiento/evaluations',
   STATISTICS: '/seguimiento/statistics',
+  ATTENDANCE: '/seguimiento/attendance',
   REPORTS: '/seguimiento/reports',
   
   // Perfil y configuración
@@ -105,7 +105,6 @@ export const MESSAGES = {
   },
 };
 
-// ==============================================
 // CONFIGURACIÓN DE VALIDACIONES
 
 export const VALIDATION = {
@@ -117,7 +116,6 @@ export const VALIDATION = {
   CI_PATTERN: /^[0-9]{10}$/,
 };
 
-// ==============================================
 // ESTADOS Y OPCIONES
 
 /**
@@ -233,4 +231,5 @@ export const API_ENDPOINTS = {
     BASE: '/attendance',
     BY_DATE: (date) => `/attendance/date/${date}`,
   },
+  
 };

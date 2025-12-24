@@ -63,7 +63,7 @@ const RoleRoute = ({ allowedRoles = [] }) => {
       />
     );
     
-    //  Mostrar componente de acceso denegado (Preguntar a ver que tal)
+    //Todo:  Mostrar componente de acceso denegado (Preguntar a ver que tal)
     // return <AccessDeniedPage />;
   }
   

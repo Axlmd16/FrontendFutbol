@@ -1,20 +1,15 @@
 /**
  * Configuración de Roles y Permisos
- * 
  * Define los roles del sistema y sus permisos asociados.
  */
 
 /**
  * Enumeración de roles disponibles en el sistema
- * Usar estas constantes en lugar de strings para evitar errores de tipeo
  */
 export const ROLES = {
   ADMIN: 'admin',
   ENTRENADOR: 'entrenador',
   PASANTE: 'pasante',
-  DEPORTISTA: 'deportista',
-  REPRESENTANTE: 'representante',
-  INVITADO: 'invitado',
 };
 
 /**
@@ -43,51 +38,24 @@ export const ROLE_PERMISSIONS = {
     canViewStatistics: true,
     canExportData: true,
     canManageSettings: false,
+    canTakeAttendance: true,
+    canEditAttendance: true,
+    canViewAttendance: true,
   },
   [ROLES.PASANTE]: {
     canManageUsers: false,
     canManageInscriptions: false,
     canViewReports: true,
-    canCreateEvaluations: false,
-    canEditEvaluations: false,
+    canCreateEvaluations: true,
+    canEditEvaluations: true,
     canDeleteEvaluations: false,
     canViewStatistics: true,
     canExportData: true,
     canManageSettings: false,
-  },
-  [ROLES.DEPORTISTA]: {
-    canManageUsers: false,
-    canManageInscriptions: false,
-    canViewReports: true,
-    canCreateEvaluations: false,
-    canEditEvaluations: false,
-    canDeleteEvaluations: false,
-    canViewStatistics: true,
-    canExportData: false,
-    canManageSettings: false,
-  },
-  [ROLES.REPRESENTANTE]: {
-    canManageUsers: false,
-    canManageInscriptions: true,
-    canViewReports: true,
-    canCreateEvaluations: false,
-    canEditEvaluations: false,
-    canDeleteEvaluations: false,
-    canViewStatistics: true,
-    canExportData: true,
-    canManageSettings: false,
-  },
-  [ROLES.INVITADO]: {
-    canManageUsers: false,
-    canManageInscriptions: false,
-    canViewReports: false,
-    canCreateEvaluations: false,
-    canEditEvaluations: false,
-    canDeleteEvaluations: false,
-    canViewStatistics: false,
-    canExportData: false,
-    canManageSettings: false,
-  },
+    canTakeAttendance: true,
+    canEditAttendance: true,
+    canViewAttendance: true,
+  }
 };
 
 /**
@@ -118,28 +86,15 @@ export const ROLE_ROUTES = {
     '/seguimiento/evaluations',
     '/seguimiento/statistics',
     '/seguimiento/reports',
+    '/seguimiento/attendance',
   ],
   [ROLES.PASANTE]: [
     '/dashboard',
     '/seguimiento/statistics',
     '/seguimiento/reports',
-  ],
-  [ROLES.DEPORTISTA]: [
-    '/dashboard',
-    '/profile',
-    '/seguimiento/statistics',
-    '/seguimiento/reports',
-  ],
-  [ROLES.REPRESENTANTE]: [
-    '/dashboard',
-    '/inscription',
-    '/inscription/menor',
-    '/seguimiento/statistics',
-    '/seguimiento/reports',
-  ],
-  [ROLES.INVITADO]: [
-    '/dashboard',
-  ],
+    '/seguimiento/evaluations',
+    '/seguimiento/attendance',
+  ]
 };
 
 /**
@@ -174,7 +129,4 @@ export const ROLE_OPTIONS = [
   { value: ROLES.ADMIN, label: 'Administrador' },
   { value: ROLES.ENTRENADOR, label: 'Entrenador' },
   { value: ROLES.PASANTE, label: 'Pasante' },
-  { value: ROLES.DEPORTISTA, label: 'Deportista' },
-  { value: ROLES.REPRESENTANTE, label: 'Representante' },
-  { value: ROLES.INVITADO, label: 'Invitado' },
 ];

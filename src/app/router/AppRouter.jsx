@@ -41,9 +41,13 @@ import RegisterMenorPage from '@/features/inscription/pages/RegisterMenorPage';
 import EvaluationsPage from '@/features/seguimiento/pages/EvaluationsPage';
 import StatisticsPage from '@/features/seguimiento/pages/StatisticsPage';
 import ReportsPage from '@/features/seguimiento/pages/ReportsPage';
+import AttendancePage from '@/features/seguimiento/pages/AttendancePage';
 
 // Dashboards por rol
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
+
+// Perfil de usuario
+import ProfilePage from '@/features/profile/pages/ProfilePage';
 
 /**
  * Componente principal del Router
@@ -105,15 +109,19 @@ const AppRouter = () => {
             {/* RUTAS DE SEGUIMIENTO */}
 
             {/* Evaluaciones - Todos los autenticados */}
-            <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR, ROLES.PASANTE]} />}>
-              <Route path={ROUTES.EVALUATIONS} element={<EvaluationsPage />} />
-            </Route>
+            <Route path={ROUTES.EVALUATIONS} element={<EvaluationsPage />} />
           
             {/* Estadísticas - Todos los autenticados */}
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
           
             {/* Reportes - Todos los autenticados*/}
             <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
+
+            {/* Asistencia - Todos los autenticados */}
+            <Route path={ROUTES.ATTENDANCE} element={<AttendancePage />} />
+
+            {/* Perfil - Todos los autenticados */}
+            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           </Route>
         </Route>
         

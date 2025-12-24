@@ -2,7 +2,7 @@
  * Navegación (Sidebar) por rol
  */
 
-import { ChartNoAxesCombined, FileText, LayoutGrid, LogOut, NotepadText, UserPlus2, Users2 } from 'lucide-react';
+import { ChartNoAxesCombined, ClockCheck, FileText, LayoutGrid, LogOut, NotepadText, UserPlus2, Users2 } from 'lucide-react';
 import { ROUTES } from './constants';
 import { ROLES } from './roles';
 
@@ -23,7 +23,7 @@ export const getRoleLabel = (role) => {
   }
 };
 
-/** Iconos SVG inline para el sidebar */
+/** Iconos para el sidebar */
 export const NAV_ICONS = {
   dashboard: (
     <LayoutGrid size={16} />
@@ -43,6 +43,9 @@ export const NAV_ICONS = {
   reports: (
     <FileText size={16} />
   ),
+  attendance: (
+    <ClockCheck size={16} />
+  ),
   logout: (
     <LogOut size={16} />
   ),
@@ -52,8 +55,10 @@ const baseItems = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: 'dashboard' },
 ];
 
+/**
+ * Define que links se va a mostrarr, cambiar en el archivo "Constants" (Ppor si acaso) y se protegen en RoleRouter
+ */
 export const getSidebarItems = (role) => {
-  // Nota: esto define qué links se muestran; las rutas igual se protegen con RoleRoute.
   if (role === ROLES.ADMIN) {
     return [
       ...baseItems,
@@ -69,6 +74,7 @@ export const getSidebarItems = (role) => {
     return [
       ...baseItems,
       { label: 'Inscripciones', to: ROUTES.INSCRIPTION_DEPORTISTA, icon: 'inscription' },
+      { label: 'Asistencias', to: ROUTES.ATTENDANCE, icon: 'attendance' },
       { label: 'Evaluaciones', to: ROUTES.EVALUATIONS, icon: 'evaluations' },
       { label: 'Estadísticas', to: ROUTES.STATISTICS, icon: 'statistics' },
       { label: 'Reportes', to: ROUTES.REPORTS, icon: 'reports' },
@@ -78,23 +84,8 @@ export const getSidebarItems = (role) => {
   if (role === ROLES.PASANTE) {
     return [
       ...baseItems,
-      { label: 'Estadísticas', to: ROUTES.STATISTICS, icon: 'statistics' },
-      { label: 'Reportes', to: ROUTES.REPORTS, icon: 'reports' },
-    ];
-  }
-
-  if (role === ROLES.REPRESENTANTE) {
-    return [
-      ...baseItems,
-      { label: 'Inscripciones', to: ROUTES.INSCRIPTION_MENOR, icon: 'inscription' },
-      { label: 'Estadísticas', to: ROUTES.STATISTICS, icon: 'statistics' },
-      { label: 'Reportes', to: ROUTES.REPORTS, icon: 'reports' },
-    ];
-  }
-
-  if (role === ROLES.DEPORTISTA) {
-    return [
-      ...baseItems,
+      { label: 'Asistencias', to: ROUTES.ATTENDANCE, icon: 'attendance' },
+      { label: 'Evaluaciones', to: ROUTES.EVALUATIONS, icon: 'evaluations' },
       { label: 'Estadísticas', to: ROUTES.STATISTICS, icon: 'statistics' },
       { label: 'Reportes', to: ROUTES.REPORTS, icon: 'reports' },
     ];
