@@ -1,22 +1,13 @@
 /**
- * ==============================================
- * API de Usuarios - Kallpa UNL
- * ==============================================
+ * API de Usuarios
  * 
  * Servicio que encapsula todas las llamadas HTTP
  * relacionadas con la gestión de usuarios.
- * 
- * @author Kallpa UNL Team
- * @version 1.0.0
  */
 
 import http from '@/app/config/http';
 import { API_ENDPOINTS } from '@/app/config/constants';
 
-/**
- * Servicio de usuarios
- * Contiene todos los métodos para gestionar usuarios
- */
 const usersApi = {
   /**
    * Obtiene la lista de usuarios con paginación y filtros
@@ -60,16 +51,6 @@ const usersApi = {
    */
   update: async (id, userData) => {
     const response = await http.put(API_ENDPOINTS.USERS.BY_ID(id), userData);
-    return response.data;
-  },
-  
-  /**
-   * Elimina un usuario
-   * @param {string|number} id - ID del usuario
-   * @returns {Promise<Object>} Confirmación de eliminación
-   */
-  delete: async (id) => {
-    const response = await http.delete(API_ENDPOINTS.USERS.BY_ID(id));
     return response.data;
   },
   

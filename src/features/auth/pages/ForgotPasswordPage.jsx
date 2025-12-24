@@ -1,74 +1,45 @@
-/**
- * ==============================================
- * Página de Recuperar Contraseña - Kallpa UNL
- * ==============================================
- * 
- * Permite solicitar el envío de un email para
- * restablecer la contraseña olvidada.
- * 
- * @author Kallpa UNL Team
- * @version 1.0.0
- */
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Input from "@/shared/components/Input";
+import Button from "@/shared/components/Button";
+import useAuth from "../hooks/useAuth";
+import { ROUTES } from "@/app/config/constants";
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Input from '@/shared/components/Input';
-import Button from '@/shared/components/Button';
-import useAuth from '../hooks/useAuth';
-import { ROUTES } from '@/app/config/constants';
-
-/**
- * ForgotPasswordPage - Página para solicitar recuperación de contraseña
- * 
- * @returns {JSX.Element} Página de recuperación de contraseña
- */
 const ForgotPasswordPage = () => {
-  // ==============================================
   // ESTADO
-  // ==============================================
-  
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  
+
   // Hook de autenticación
   const { forgotPassword, loading, error, clearError } = useAuth();
-  
-  // ==============================================
-  // VALIDACIÓN
-  // ==============================================
-  
+
   /**
    * Valida el email ingresado
-   * @returns {boolean} true si es válido
    */
   const validateEmail = () => {
     if (!email.trim()) {
-      setEmailError('El email es requerido');
+      setEmailError("El email es requerido");
       return false;
     }
-    
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Ingresa un email válido');
+      setEmailError("Ingresa un email válido");
       return false;
     }
-    
-    setEmailError('');
+
+    setEmailError("");
     return true;
   };
-  
-  // ==============================================
-  // MANEJADORES
-  // ==============================================
-  
+
   /**
    * Maneja el envío del formulario
-   * @param {Event} e - Evento de submit
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearError();
-    
+
     if (validateEmail()) {
       const success = await forgotPassword(email);
       if (success) {
@@ -76,20 +47,15 @@ const ForgotPasswordPage = () => {
       }
     }
   };
-  
+
   /**
    * Maneja cambios en el input de email
-   * @param {Event} e - Evento de cambio
    */
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
-    if (emailError) setEmailError('');
+    if (emailError) setEmailError("");
   };
-  
-  // ==============================================
-  // RENDER - ESTADO DE ÉXITO
-  // ==============================================
-  
+
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4">
@@ -111,16 +77,16 @@ const ForgotPasswordPage = () => {
                 />
               </svg>
             </div>
-            
+
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               ¡Revisa tu correo!
             </h2>
-            
+
             <p className="text-gray-600 mb-6">
-              Si existe una cuenta con el email <strong>{email}</strong>, 
+              Si existe una cuenta con el email <strong>{email}</strong>,
               recibirás instrucciones para restablecer tu contraseña.
             </p>
-            
+
             <Link
               to={ROUTES.LOGIN}
               className="text-blue-600 hover:text-blue-500 font-medium"
@@ -132,11 +98,11 @@ const ForgotPasswordPage = () => {
       </div>
     );
   }
-  
+
   // ==============================================
   // RENDER - FORMULARIO
   // ==============================================
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-md w-full">
@@ -158,7 +124,7 @@ const ForgotPasswordPage = () => {
                 />
               </svg>
             </div>
-            
+
             <h1 className="text-2xl font-bold text-gray-900">
               ¿Olvidaste tu contraseña?
             </h1>
@@ -166,7 +132,7 @@ const ForgotPasswordPage = () => {
               Ingresa tu email y te enviaremos instrucciones para recuperarla.
             </p>
           </div>
-          
+
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error del servidor */}
@@ -175,7 +141,7 @@ const ForgotPasswordPage = () => {
                 <p className="text-sm">{error}</p>
               </div>
             )}
-            
+
             {/* Campo de email */}
             <Input
               label="Correo electrónico"
@@ -189,7 +155,7 @@ const ForgotPasswordPage = () => {
               required
               autoComplete="email"
             />
-            
+
             {/* Botón de envío */}
             <Button
               type="submit"
@@ -200,7 +166,7 @@ const ForgotPasswordPage = () => {
             >
               Enviar instrucciones
             </Button>
-            
+
             {/* Link para volver */}
             <div className="text-center">
               <Link

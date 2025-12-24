@@ -1,73 +1,67 @@
-import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import Input from '@/shared/components/Input';
-import Button from '@/shared/components/Button';
-import { ROUTES } from '@/app/config/constants';
-
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
+import Input from "@/shared/components/Input";
+import Button from "@/shared/components/Button";
+import { ROUTES } from "@/app/config/constants";
 
 const LoginForm = ({ onSubmit, loading = false, error = null }) => {
-  
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  
+
   const [formErrors, setFormErrors] = useState({});
   const [touched, setTouched] = useState({});
-  
 
   const validateField = (name, value) => {
     switch (name) {
-      case 'email':
-        if (!value.trim()) return 'El email es requerido';
+      case "email":
+        if (!value.trim()) return "El email es requerido";
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          return 'Ingresa un email válido';
+          return "Ingresa un email válido";
         }
-        return '';
-        
-      case 'password':
-        if (!value) return 'La contraseña es requerida';
-        if (value.length < 6) return 'Mínimo 6 caracteres';
-        return '';
-        
+        return "";
+
+      case "password":
+        if (!value) return "La contraseña es requerida";
+        if (value.length < 6) return "Mínimo 6 caracteres";
+        return "";
+
       default:
-        return '';
+        return "";
     }
   };
-  
+
   /**
    * Valida todo el formulario
    * @returns {boolean} true si es válido
    */
   const validateForm = () => {
     const errors = {};
-    
+
     Object.keys(formData).forEach((field) => {
       const error = validateField(field, formData[field]);
       if (error) errors[field] = error;
     });
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
-  // ==============================================
+
   // MANEJADORES DE EVENTOS
-  // ==============================================
-  
+
   /**
    * Maneja cambios en los inputs
-   * @param {Event} e - Evento de cambio
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    
+
     // Validar campo si ya fue tocado
     if (touched[name]) {
       setFormErrors((prev) => ({
@@ -76,48 +70,48 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
       }));
     }
   };
-  
+
   /**
    * Maneja cuando un campo pierde el foco
    * @param {Event} e - Evento de blur
    */
   const handleBlur = (e) => {
     const { name, value } = e.target;
-    
+
     setTouched((prev) => ({
       ...prev,
       [name]: true,
     }));
-    
+
     setFormErrors((prev) => ({
       ...prev,
       [name]: validateField(name, value),
     }));
   };
-  
+
   /**
    * Maneja el envío del formulario
    * @param {Event} e - Evento de submit
    */
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Marcar todos los campos como tocados
     setTouched({
       email: true,
       password: true,
     });
-    
+
     // Validar formulario completo
     if (validateForm()) {
       onSubmit(formData);
     }
   };
-  
+
   // ==============================================
   // RENDER
   // ==============================================
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Mensaje de error del servidor */}
@@ -126,7 +120,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
           <p className="text-sm">{error}</p>
         </div>
       )}
-      
+
       {/* Campo de email */}
       <Input
         label="Correo electrónico"
@@ -141,7 +135,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
         required
         autoComplete="email"
       />
-      
+
       {/* Campo de contraseña */}
       <Input
         label="Contraseña"
@@ -156,7 +150,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
         required
         autoComplete="current-password"
       />
-      
+
       {/* Opciones adicionales */}
       <div className="flex items-center justify-between">
         <label className="flex items-center">
@@ -166,7 +160,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
           />
           <span className="ml-2 text-sm text-gray-600">Recordarme</span>
         </label>
-        
+
         <Link
           to={ROUTES.FORGOT_PASSWORD}
           className="text-sm text-blue-600 hover:text-blue-500 font-medium"
@@ -174,7 +168,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
-      
+
       {/* Botón de envío */}
       <Button
         type="submit"

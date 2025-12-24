@@ -1,19 +1,16 @@
 /**
- * Hook de Autenticación - Kallpa UNL
- * 
- * Hook personalizado que expone todas las funcionalidades
- * de autenticación con manejo de estado y errores.
+ * Hook de Autenticación
  */
 
-import { useState, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import authApi from '../services/auth.api';
-import { AuthContext } from '@/app/providers/AuthProvider';
-import { ROUTES, MESSAGES } from '@/app/config/constants';
+import { useState, useCallback, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import authApi from "../services/auth.api";
+import { AuthContext } from "@/app/providers/AuthProvider";
+import { ROUTES, MESSAGES } from "@/app/config/constants";
 
 /**
  * useAuth - Hook principal de autenticación
- * 
+ *
  * Proporciona:
  * - login: Función para iniciar sesión
  * - logout: Función para cerrar sesión
@@ -22,98 +19,90 @@ import { ROUTES, MESSAGES } from '@/app/config/constants';
  * - loading: Estado de carga
  * - error: Mensaje de error actual
  * - clearError: Función para limpiar errores
- * 
+ *
  * @returns {Object} Objeto con funciones y estado de auth
- * 
+ *
  * @example
  * const { login, loading, error } = useAuth();
- * 
+ *
  * const handleSubmit = async (data) => {
  *   const success = await login(data);
  *   if (success) navigate('/dashboard');
  * };
  */
 const useAuth = () => {
-  // ESTADO LOCAL
-
   // Estado de carga para operaciones async
   const [loading, setLoading] = useState(false);
-  
+
   // Estado de error
   const [error, setError] = useState(null);
-  
-  // CONTEXTO Y NAVEGACIÓN
+
   // Obtener funciones del contexto de autenticación
-  const { saveAuthData, clearAuthData, user, isAuthenticated } = useContext(AuthContext);
+  const { saveAuthData, clearAuthData, user, isAuthenticated } =
+    useContext(AuthContext);
 
   // Hook de navegación
   const navigate = useNavigate();
-  
+
   // FUNCIÓN HELPER REUTILIZABLE
   /**
    * Ejecuta una operación async con manejo de loading y errores
    * Función interna reutilizable para evitar duplicación de try/catch
-   * 
-   * @param {Function} operation - Función async a ejecutar
-   * @param {Object} options - Opciones adicionales
-   * @param {string} options.successMessage - Mensaje en caso de éxito
-   * @param {Function} options.onSuccess - Callback en caso de éxito
-   * @returns {Promise<Object|null>} Resultado de la operación o null si hay error
    */
   const executeOperation = useCallback(async (operation, options = {}) => {
     const { successMessage, onSuccess } = options;
-    
+
     setError(null);
     setLoading(true);
-    
+
     try {
       const result = await operation();
-      
+
       if (successMessage) {
-        console.log('[Auth Success]:', successMessage);
-        // TODO: Integrar con sistema de notificaciones (toast)
+        console.log("[Auth Success]:", successMessage);
+        // TODO: Integrar con sistema de notificaciones (toast) (Pregintar por si acaso)
       }
-      
+
       if (onSuccess) {
         onSuccess(result);
       }
-      
+
       return result;
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
       setError(errorMessage);
-      console.error('[Auth Error]:', errorMessage);
-      
+      console.error("[Auth Error]:", errorMessage);
+
       return null;
     } finally {
       setLoading(false);
     }
   }, []);
-  
+
   // FUNCIONES DE AUTENTICACIÓN
   /**
    * Inicia sesión con las credenciales proporcionadas
    * @param {Object} credentials - Email/username y password
    * @returns {Promise<boolean>} true si el login fue exitoso
    */
-  const login = useCallback(async (credentials) => {
-    const result = await executeOperation(
-      () => authApi.login(credentials),
-      {
+  const login = useCallback(
+    async (credentials) => {
+      const result = await executeOperation(() => authApi.login(credentials), {
         successMessage: MESSAGES.SUCCESS.LOGIN,
         onSuccess: (data) => {
           // Guardar token y datos del usuario
           saveAuthData(data.access_token || data.token, data.user);
-          
+
           // Navegar al dashboard
           navigate(ROUTES.DASHBOARD, { replace: true });
         },
-      }
-    );
-    
-    return result !== null;
-  }, [executeOperation, saveAuthData, navigate]);
-  
+      });
+
+      return result !== null;
+    },
+    [executeOperation, saveAuthData, navigate]
+  );
+
   /**
    * Cierra la sesión del usuario actual
    * @returns {Promise<boolean>} true si el logout fue exitoso
@@ -125,8 +114,10 @@ const useAuth = () => {
         try {
           await authApi.logout();
         } catch {
-          // Continuar con logout local incluso si falla el servidor
-          console.warn('[Auth] Server logout failed, proceeding with local logout');
+          // Continuar incluso si falla el logout en el servidor
+          console.warn(
+            "[Auth] Server logout failed, proceeding with local logout"
+          );
         }
         return true;
       },
@@ -135,77 +126,82 @@ const useAuth = () => {
         onSuccess: () => {
           // Limpiar datos de autenticación
           clearAuthData();
-          
+
           // Navegar al login
           navigate(ROUTES.LOGIN, { replace: true });
         },
       }
     );
-    
+
     return result !== null;
   }, [executeOperation, clearAuthData, navigate]);
-  
+
   /**
    * Solicita recuperación de contraseña
    * @param {string} email - Email del usuario
    * @returns {Promise<boolean>} true si la solicitud fue exitosa
    */
-  const forgotPassword = useCallback(async (email) => {
-    const result = await executeOperation(
-      () => authApi.forgotPassword(email),
-      {
-        successMessage: MESSAGES.SUCCESS.PASSWORD_RESET_SENT,
-      }
-    );
-    
-    return result !== null;
-  }, [executeOperation]);
-  
+  const forgotPassword = useCallback(
+    async (email) => {
+      const result = await executeOperation(
+        () => authApi.forgotPassword(email),
+        {
+          successMessage: MESSAGES.SUCCESS.PASSWORD_RESET_SENT,
+        }
+      );
+
+      return result !== null;
+    },
+    [executeOperation]
+  );
+
   /**
    * Restablece la contraseña con un token
    * @param {Object} data - Token, password y confirmación
    * @returns {Promise<boolean>} true si se restableció correctamente
    */
-  const resetPassword = useCallback(async (data) => {
-    const result = await executeOperation(
-      () => authApi.resetPassword(data),
-      {
+  const resetPassword = useCallback(
+    async (data) => {
+      const result = await executeOperation(() => authApi.resetPassword(data), {
         successMessage: MESSAGES.SUCCESS.PASSWORD_CHANGED,
         onSuccess: () => {
           // Navegar al login después de cambiar contraseña
-          navigate(ROUTES.LOGIN, { 
+          navigate(ROUTES.LOGIN, {
             replace: true,
-            state: { message: 'Contraseña actualizada. Por favor, inicia sesión.' }
+            state: {
+              message: "Contraseña actualizada. Por favor, inicia sesión.",
+            },
           });
         },
-      }
-    );
-    
-    return result !== null;
-  }, [executeOperation, navigate]);
-  
+      });
+
+      return result !== null;
+    },
+    [executeOperation, navigate]
+  );
+
   /**
    * Limpia el estado de error
    */
   const clearError = useCallback(() => {
     setError(null);
   }, []);
-  
+
   // RETORNO DEL HOOK
-  
+
   return {
     // Funciones de autenticación
     login,
     logout,
     forgotPassword,
     resetPassword,
-    
+
     // Estado
     loading,
     error,
     user,
     isAuthenticated,
-    
+
     // Helpers
     clearError,
   };

@@ -3,12 +3,16 @@
  * Diseño profesional y minimalista
  */
 
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import useAuth from '@/features/auth/hooks/useAuth';
-import { getRoleLabel, getSidebarItems, NAV_ICONS } from '@/app/config/navigation.jsx';
-import { ROUTES } from '@/app/config/constants';
+import { useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import useAuth from "@/features/auth/hooks/useAuth";
+import {
+  getRoleLabel,
+  getSidebarItems,
+  NAV_ICONS,
+} from "@/app/config/navigation.jsx";
+import { ROUTES } from "@/app/config/constants";
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -20,7 +24,7 @@ const DashboardLayout = () => {
   const roleLabel = getRoleLabel(role);
   const items = getSidebarItems(role);
 
-  const sidebarWidth = collapsed ? 'w-16' : 'w-64';
+  const sidebarWidth = collapsed ? "w-16" : "w-64";
 
   const goToProfile = () => {
     navigate(ROUTES.PROFILE);
@@ -80,20 +84,26 @@ const DashboardLayout = () => {
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
-                  alt={user.name || user.email || 'Usuario'}
+                  alt={user.name || user.email || "Usuario"}
                   className="size-24 object-cover border-4 border-base-100 shadow-lg group-hover:border-primary transition-colors"
-                  style={{ borderRadius: '50%' }}
+                  style={{ borderRadius: "50%" }}
                 />
               ) : (
-                <div className="flex size-24 items-center justify-center bg-neutral text-neutral-content border-4 border-base-100 shadow-lg font-bold text-3xl group-hover:border-primary transition-colors"
-                     style={{ borderRadius: '50%' }}>
-                  {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+                <div
+                  className="flex size-24 items-center justify-center bg-neutral text-neutral-content border-4 border-base-100 shadow-lg font-bold text-3xl group-hover:border-primary transition-colors"
+                  style={{ borderRadius: "50%" }}
+                >
+                  {(user?.name?.[0] || user?.email?.[0] || "U").toUpperCase()}
                 </div>
               )}
               {/* Hover overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                   style={{ borderRadius: '50%' }}>
-                <span className="text-white text-xs font-medium">Ver perfil</span>
+              <div
+                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderRadius: "50%" }}
+              >
+                <span className="text-white text-xs font-medium">
+                  Ver perfil
+                </span>
               </div>
             </button>
 
@@ -124,18 +134,18 @@ const DashboardLayout = () => {
                 onClick={() => isMobile && setMobileOpen(false)}
                 className={({ isActive }) =>
                   [
-                    'flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors',
-                    'border-l-4',
+                    "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors",
+                    "border-l-4",
                     isActive
-                      ? 'bg-primary/10 text-primary border-primary'
-                      : 'text-base-content/70 hover:text-base-content hover:bg-base-200/50 border-transparent',
-                    collapsed && !isMobile ? 'justify-center px-0' : '',
-                  ].join(' ')
+                      ? "bg-primary/10 text-primary border-primary"
+                      : "text-base-content/70 hover:text-base-content hover:bg-base-200/50 border-transparent",
+                    collapsed && !isMobile ? "justify-center px-0" : "",
+                  ].join(" ")
                 }
-                end={item.to === '/dashboard'}
+                end={item.to === "/dashboard"}
                 title={collapsed && !isMobile ? item.label : undefined}
               >
-                <span className={collapsed && !isMobile ? '' : 'ml-1'}>
+                <span className={collapsed && !isMobile ? "" : "ml-1"}>
                   {NAV_ICONS[item.icon] || NAV_ICONS.dashboard}
                 </span>
                 {(!collapsed || isMobile) && (
@@ -156,24 +166,28 @@ const DashboardLayout = () => {
               type="button"
               onClick={goToProfile}
               className="relative group cursor-pointer focus:outline-none"
-              title={user?.name || user?.email || 'Ver mi perfil'}
+              title={user?.name || user?.email || "Ver mi perfil"}
             >
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
-                  alt={user.name || user.email || 'Usuario'}
+                  alt={user.name || user.email || "Usuario"}
                   className="size-10 object-cover border-2 border-base-300 group-hover:border-primary transition-colors"
-                  style={{ borderRadius: '50%' }}
+                  style={{ borderRadius: "50%" }}
                 />
               ) : (
-                <div className="flex size-10 items-center justify-center bg-neutral text-neutral-content border-2 border-base-300 group-hover:border-primary transition-colors font-bold text-sm"
-                     style={{ borderRadius: '50%' }}>
-                  {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+                <div
+                  className="flex size-10 items-center justify-center bg-neutral text-neutral-content border-2 border-base-300 group-hover:border-primary transition-colors font-bold text-sm"
+                  style={{ borderRadius: "50%" }}
+                >
+                  {(user?.name?.[0] || user?.email?.[0] || "U").toUpperCase()}
                 </div>
               )}
               {/* Status indicator */}
-              <div className="absolute bottom-0 right-0 size-3 bg-success border-2 border-base-100"
-                   style={{ borderRadius: '50%' }}></div>
+              <div
+                className="absolute bottom-0 right-0 size-3 bg-success border-2 border-base-100"
+                style={{ borderRadius: "50%" }}
+              ></div>
             </button>
           </div>
         )}
@@ -182,14 +196,14 @@ const DashboardLayout = () => {
         <button
           type="button"
           onClick={logout}
-          title={collapsed && !isMobile ? 'Cerrar sesión' : undefined}
+          title={collapsed && !isMobile ? "Cerrar sesión" : undefined}
           className={[
-            'flex w-full items-center gap-3 px-3 py-3 text-sm font-medium transition-colors',
-            'text-error hover:bg-error/10 border-l-4 border-transparent hover:border-error',
-            collapsed && !isMobile ? 'justify-center px-0' : '',
-          ].join(' ')}
+            "flex w-full items-center gap-3 px-3 py-3 text-sm font-medium transition-colors",
+            "text-error hover:bg-error/10 border-l-4 border-transparent hover:border-error",
+            collapsed && !isMobile ? "justify-center px-0" : "",
+          ].join(" ")}
         >
-          <span className={collapsed && !isMobile ? '' : 'ml-1'}>
+          <span className={collapsed && !isMobile ? "" : "ml-1"}>
             {NAV_ICONS.logout}
           </span>
           {(!collapsed || isMobile) && (
@@ -232,9 +246,9 @@ const DashboardLayout = () => {
       {/* Mobile drawer */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-50 w-72 bg-base-100 shadow-2xl transition-transform duration-300 lg:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
-        ].join(' ')}
+          "fixed inset-y-0 left-0 z-50 w-72 bg-base-100 shadow-2xl transition-transform duration-300 lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
       >
         <SidebarContent isMobile />
       </aside>
@@ -243,9 +257,9 @@ const DashboardLayout = () => {
         {/* Desktop sidebar */}
         <aside
           className={[
-            'fixed inset-y-0 left-0 z-30 hidden border-r border-base-300 bg-base-100 transition-all duration-300 lg:block',
+            "fixed inset-y-0 left-0 z-30 hidden border-r border-base-300 bg-base-100 transition-all duration-300 lg:block",
             sidebarWidth,
-          ].join(' ')}
+          ].join(" ")}
         >
           <SidebarContent />
 
@@ -254,7 +268,7 @@ const DashboardLayout = () => {
             type="button"
             onClick={() => setCollapsed(!collapsed)}
             className="absolute -right-3 top-24 flex size-6 items-center justify-center border border-base-300 bg-base-100 shadow-md hover:bg-base-200 hover:shadow-lg transition-all"
-            aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+            aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
@@ -263,9 +277,9 @@ const DashboardLayout = () => {
         {/* Main content */}
         <main
           className={[
-            'min-h-screen flex-1 transition-all duration-300',
-            collapsed ? 'lg:ml-16' : 'lg:ml-64',
-          ].join(' ')}
+            "min-h-screen flex-1 transition-all duration-300",
+            collapsed ? "lg:ml-16" : "lg:ml-64",
+          ].join(" ")}
         >
           <div className="p-6 lg:p-8">
             <Outlet />

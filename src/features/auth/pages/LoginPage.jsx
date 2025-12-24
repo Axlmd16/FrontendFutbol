@@ -1,27 +1,17 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import LoginForm from '../components/LoginForm';
-import useAuth from '../hooks/useAuth';
-import { ROUTES } from '@/app/config/constants';
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import LoginForm from "../components/LoginForm";
+import useAuth from "../hooks/useAuth";
+import { ROUTES } from "@/app/config/constants";
 
-/**
- * LoginPage - Página principal de inicio de sesión
- * 
- * Características:
- * - Redirige si ya está autenticado
- * - Muestra mensajes de estado (ej: después de reset password)
- * - Diseño responsivo y moderno
- * 
- * @returns {JSX.Element} Página de login completa
- */
 const LoginPage = () => {
   // HOOKS
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Hook de autenticación
   const { login, loading, error, isAuthenticated, clearError } = useAuth();
-  
+
   useEffect(() => {
     if (isAuthenticated) {
       // Obtener ruta de origen si existe
@@ -29,20 +19,18 @@ const LoginPage = () => {
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location.state?.from]);
-  
-//    Limpiar errores al desmontar
+
+  //    Limpiar errores al desmontar
   useEffect(() => {
     return () => {
       clearError();
     };
   }, [clearError]);
-  
 
   const handleLogin = async (credentials) => {
     await login(credentials);
   };
-  
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
@@ -66,35 +54,22 @@ const LoginPage = () => {
                 />
               </svg>
             </div>
-            
+
             {/* Título */}
-            <h1 className="text-3xl font-bold text-gray-900">
-              Kallpa UNL
-            </h1>
-            <p className="mt-2 text-gray-600">
-              Sistema de Gestión Deportiva
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Kallpa UNL</h1>
+            <p className="mt-2 text-gray-600">Sistema de Gestión Deportiva</p>
           </div>
-          
-          {/* Mensaje de estado (ej: después de reset) */}
+
+          {/* Mensaje de estado  */}
           {location.state?.message && (
             <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
               <p className="text-sm">{location.state.message}</p>
             </div>
           )}
-          
+
           {/* Formulario de login */}
-          <LoginForm
-            onSubmit={handleLogin}
-            loading={loading}
-            error={error}
-          />
+          <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
         </div>
-        
-        {/* Footer */}
-        <p className="mt-6 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} Kallpa UNL. Todos los derechos reservados.
-        </p>
       </div>
     </div>
   );
