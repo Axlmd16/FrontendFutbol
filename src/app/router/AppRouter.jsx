@@ -2,9 +2,6 @@
  * Router Principal - Kallpa UNL
  * 
  * Configuración centralizada de todas las rutas del sistema.
- * Integra rutas públicas, protegidas y basadas en roles.
- * 
- * @version 1.0.0
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -17,10 +14,19 @@ import RoleRoute from './RoleRoute';
 import { ROUTES } from '../config/constants';
 import { ROLES } from '../config/roles';
 
+// Layout privado (con sidebar)
+import DashboardLayout from '@/app/layouts/DashboardLayout';
+
 // Páginas de Autenticación (públicas)
 import LoginPage from '@/features/auth/pages/LoginPage';
 import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
+
+// Páginas públicas (Landing / Registro)
+import LandingPage from '@/features/landing/pages/LandingPage';
+import RegisterChoicePage from '@/features/registration/pages/RegisterChoicePage';
+import RegisterSchoolPage from '@/features/registration/pages/RegisterSchoolPage';
+import RegisterClubPage from '@/features/registration/pages/RegisterClubPage';
 
 // Páginas de Usuarios (admin)
 import UserListPage from '@/features/users/pages/UserListPage';
@@ -36,6 +42,9 @@ import EvaluationsPage from '@/features/seguimiento/pages/EvaluationsPage';
 import StatisticsPage from '@/features/seguimiento/pages/StatisticsPage';
 import ReportsPage from '@/features/seguimiento/pages/ReportsPage';
 
+// Dashboards por rol
+import DashboardPage from '@/features/dashboard/pages/DashboardPage';
+
 /**
  * Componente principal del Router
  * Configura todas las rutas de la aplicación
@@ -44,80 +53,74 @@ const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* RUTAS PÚBLICAS - Sin autenticación requerida */}
+        {/* RUTAS PÚBLICAS*/}
+
+        {/* Landing */}
+        <Route path={ROUTES.LANDING} element={<LandingPage />} />
+
+        {/* Registro público */}
+        <Route path={ROUTES.REGISTER} element={<RegisterChoicePage />} />
+        <Route path={ROUTES.REGISTER_SCHOOL} element={<RegisterSchoolPage />} />
+        <Route path={ROUTES.REGISTER_CLUB} element={<RegisterClubPage />} />
         
-        {/* Página de inicio de sesión */}
+        {/* Pag de iniciar sesion */}
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         
-        {/* Recuperación de contraseña */}
+        {/* Recuperar contraseña */}
         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
         
-        {/* Restablecer contraseña con token */}
+        {/* Restablecer cnotraseña */}
         <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
         
         {/* RUTAS PROTEGIDAS - Requieren autenticación */}
         
         <Route element={<ProtectedRoute />}>
-          {/* Dashboard principal - accesible por todos los usuarios autenticados */}
-          <Route 
-            path={ROUTES.DASHBOARD} 
-            element={<div>Dashboard - En construcción</div>} 
-          />
+          {/* Layout privado con Sidebar */}
+          <Route element={<DashboardLayout />}>
+            {/* Dashboard principal - accesible por todos los usuarios autenticados */}
+            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           
-          {/* RUTAS DE USUARIOS - Solo ADMIN */}
-          <Route 
-            element={
-              <RoleRoute allowedRoles={[ROLES.ADMIN]} />
-            }
-          >
-            <Route path={ROUTES.USERS} element={<UserListPage />} />
-            <Route path={ROUTES.USERS_CREATE} element={<CreateUserPage />} />
-            <Route path={ROUTES.USERS_EDIT} element={<EditUserPage />} />
-          </Route>
+            {/* RUTAS DE USUARIOS - Solo ADMIN */}
+            <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN]} />}>
+              <Route path={ROUTES.USERS} element={<UserListPage />} />
+              <Route path={ROUTES.USERS_CREATE} element={<CreateUserPage />} />
+              <Route path={ROUTES.USERS_EDIT} element={<EditUserPage />} />
+            </Route>
           
-          {/* RUTAS DE INSCRIPCIÓN - ADMIN y ENTRENADOR */}
-          <Route 
-            element={
-              <RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR, ROLES.REPRESENTANTE]} />
-            }
-          >
-            <Route path={ROUTES.INSCRIPTION_DEPORTISTA} element={<RegisterDeportistaPage />} />
-            <Route path={ROUTES.INSCRIPTION_MENOR} element={<RegisterMenorPage />} />
-          </Route>
-          
-          {/* RUTAS DE SEGUIMIENTO */}
-          
-          {/* Evaluaciones - ADMIN y ENTRENADOR */}
-          <Route 
-            element={
-              <RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR]} />
-            }
-          >
-            <Route path={ROUTES.EVALUATIONS} element={<EvaluationsPage />} />
-          </Route>
-          
-          {/* Estadísticas - Todos los autenticados */}
-          <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
-          
-          {/* Reportes - ADMIN, ENTRENADOR, DEPORTISTA */}
-          <Route 
-            element={
-              <RoleRoute 
-                allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR, ROLES.DEPORTISTA, ROLES.REPRESENTANTE]} 
+            {/* RUTAS DE INSCRIPCIÓN - ADMIN y ENTRENADOR */}
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR]}
+                />
+              }
+            >
+              <Route
+                path={ROUTES.INSCRIPTION_DEPORTISTA}
+                element={<RegisterDeportistaPage />}
               />
-            }
-          >
+              <Route path={ROUTES.INSCRIPTION_MENOR} element={<RegisterMenorPage />} />
+            </Route>
+          
+            {/* RUTAS DE SEGUIMIENTO */}
+
+            {/* Evaluaciones - Todos los autenticados */}
+            <Route element={<RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR, ROLES.PASANTE]} />}>
+              <Route path={ROUTES.EVALUATIONS} element={<EvaluationsPage />} />
+            </Route>
+          
+            {/* Estadísticas - Todos los autenticados */}
+            <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
+          
+            {/* Reportes - Todos los autenticados*/}
             <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
           </Route>
         </Route>
         
         {/* REDIRECCIONES Y RUTAS POR DEFECTO */}
-        
-        {/* Ruta raíz redirige al dashboard */}
-        <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-        
-        {/* Cualquier ruta no definida redirige al dashboard */}
-        <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+
+        {/* Cualquier ruta no definida redirige al inicio */}
+        <Route path="*" element={<Navigate to={ROUTES.LANDING} replace />} />
       </Routes>
     </BrowserRouter>
   );

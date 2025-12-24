@@ -21,10 +21,18 @@ export const USER_PREFERENCES_KEY = 'kallpa_preferences';
 // RUTAS DE LA APLICACIÓN
 
 export const ROUTES = {
+  // Landing
+  LANDING: '/',
+
   //? Rutas públicas (sin autenticación)
   LOGIN: '/login',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+
+  // Registro público
+  REGISTER: '/register',
+  REGISTER_SCHOOL: '/register/escuela',
+  REGISTER_CLUB: '/register/club',
 
   // Rutas de registro de atletas para clubes y escuelas
   INSCRIPTION: '/inscription',

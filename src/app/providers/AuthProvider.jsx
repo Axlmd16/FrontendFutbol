@@ -12,27 +12,13 @@ import { AUTH_TOKEN_KEY, USER_DATA_KEY } from '../config/constants';
 
 /**
  * Contexto de autenticación
- * Exportado para usar con useContext en otros componentes
  */
 export const AuthContext = createContext(null);
 
 /**
  * AuthProvider - Componente proveedor del contexto de autenticación
- * 
- * @param {Object} props - Propiedades del componente
- * @param {React.ReactNode} props.children - Componentes hijos
- * @returns {JSX.Element} Provider con el contexto de autenticación
- * 
- * @example
- * // En el componente raíz (App.jsx o main.jsx)
- * <AuthProvider>
- *   <AppRouter />
- * </AuthProvider>
  */
 const AuthProvider = ({ children }) => {
-  // ==============================================
-  // ESTADO
-  // ==============================================
   
   // Estado del usuario actual
   const [user, setUser] = useState(null);
@@ -43,10 +29,7 @@ const AuthProvider = ({ children }) => {
   // Estado de autenticación
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // ==============================================
-  // EFECTOS
-  // ==============================================
-  
+
   /**
    * Efecto para verificar sesión existente al cargar la app
    * Intenta recuperar datos del usuario desde localStorage
@@ -78,7 +61,7 @@ const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
   
-  // ==============================================
+  // ================================x==============
   // FUNCIONES DE AUTENTICACIÓN
   // ==============================================
   

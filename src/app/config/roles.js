@@ -11,7 +11,10 @@
 export const ROLES = {
   ADMIN: 'admin',
   ENTRENADOR: 'entrenador',
+  PASANTE: 'pasante',
   DEPORTISTA: 'deportista',
+  REPRESENTANTE: 'representante',
+  INVITADO: 'invitado',
 };
 
 /**
@@ -41,6 +44,17 @@ export const ROLE_PERMISSIONS = {
     canExportData: true,
     canManageSettings: false,
   },
+  [ROLES.PASANTE]: {
+    canManageUsers: false,
+    canManageInscriptions: false,
+    canViewReports: true,
+    canCreateEvaluations: false,
+    canEditEvaluations: false,
+    canDeleteEvaluations: false,
+    canViewStatistics: true,
+    canExportData: true,
+    canManageSettings: false,
+  },
   [ROLES.DEPORTISTA]: {
     canManageUsers: false,
     canManageInscriptions: false,
@@ -49,6 +63,28 @@ export const ROLE_PERMISSIONS = {
     canEditEvaluations: false,
     canDeleteEvaluations: false,
     canViewStatistics: true,
+    canExportData: false,
+    canManageSettings: false,
+  },
+  [ROLES.REPRESENTANTE]: {
+    canManageUsers: false,
+    canManageInscriptions: true,
+    canViewReports: true,
+    canCreateEvaluations: false,
+    canEditEvaluations: false,
+    canDeleteEvaluations: false,
+    canViewStatistics: true,
+    canExportData: true,
+    canManageSettings: false,
+  },
+  [ROLES.INVITADO]: {
+    canManageUsers: false,
+    canManageInscriptions: false,
+    canViewReports: false,
+    canCreateEvaluations: false,
+    canEditEvaluations: false,
+    canDeleteEvaluations: false,
+    canViewStatistics: false,
     canExportData: false,
     canManageSettings: false,
   },
@@ -80,6 +116,11 @@ export const ROLE_ROUTES = {
     '/inscription/menor',
     '/seguimiento',
     '/seguimiento/evaluations',
+    '/seguimiento/statistics',
+    '/seguimiento/reports',
+  ],
+  [ROLES.PASANTE]: [
+    '/dashboard',
     '/seguimiento/statistics',
     '/seguimiento/reports',
   ],
@@ -132,5 +173,8 @@ export const getRolePermissions = (role) => {
 export const ROLE_OPTIONS = [
   { value: ROLES.ADMIN, label: 'Administrador' },
   { value: ROLES.ENTRENADOR, label: 'Entrenador' },
+  { value: ROLES.PASANTE, label: 'Pasante' },
   { value: ROLES.DEPORTISTA, label: 'Deportista' },
+  { value: ROLES.REPRESENTANTE, label: 'Representante' },
+  { value: ROLES.INVITADO, label: 'Invitado' },
 ];
