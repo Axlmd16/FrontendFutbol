@@ -8,7 +8,8 @@ import Modal from "@/shared/components/Modal";
 import Loader from "@/shared/components/Loader";
 import useDebounce from "@/shared/hooks/useDebounce";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
-import { UserPlus } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
+import { ROLE_OPTIONS } from "../../../app/config/roles";
 
 const UserListPage = () => {
   // ESTADO
@@ -115,6 +116,35 @@ const UserListPage = () => {
         </Button>
       </div>
 
+      {/* Filtros */}
+      <div className="bg-base-100 shadow-md rounded-lg p-4 my-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Búsqueda */}
+          <div className="md:col-span-2">
+            <Input
+              type="text"
+              placeholder="Buscar por nombre, email o usuario..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              icon={<Search size={16} className="text-gray-400" />}
+            />
+          </div>
+
+          {/* Filtro por rol */}
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="select select-primary"
+          >
+            <option value="">Todos los roles</option>
+            {ROLE_OPTIONS.map((role) => (
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       <UserTable />
     </div>
   );

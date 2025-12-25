@@ -7,9 +7,9 @@
  * Enumeración de roles disponibles en el sistema
  */
 export const ROLES = {
-  ADMIN: 'admin',
-  ENTRENADOR: 'entrenador',
-  PASANTE: 'pasante',
+  ADMIN: "admin",
+  ENTRENADOR: "entrenador",
+  PASANTE: "pasante",
 };
 
 /**
@@ -55,7 +55,7 @@ export const ROLE_PERMISSIONS = {
     canTakeAttendance: true,
     canEditAttendance: true,
     canViewAttendance: true,
-  }
+  },
 };
 
 /**
@@ -64,37 +64,37 @@ export const ROLE_PERMISSIONS = {
  */
 export const ROLE_ROUTES = {
   [ROLES.ADMIN]: [
-    '/dashboard',
-    '/users',
-    '/users/create',
-    '/users/edit',
-    '/inscription',
-    '/inscription/deportista',
-    '/inscription/menor',
-    '/seguimiento',
-    '/seguimiento/evaluations',
-    '/seguimiento/statistics',
-    '/seguimiento/reports',
-    '/settings',
+    "/dashboard",
+    "/users",
+    "/users/create",
+    "/users/edit",
+    "/inscription",
+    "/inscription/deportista",
+    "/inscription/menor",
+    "/seguimiento",
+    "/seguimiento/evaluations",
+    "/seguimiento/statistics",
+    "/seguimiento/reports",
+    "/settings",
   ],
   [ROLES.ENTRENADOR]: [
-    '/dashboard',
-    '/inscription',
-    '/inscription/deportista',
-    '/inscription/menor',
-    '/seguimiento',
-    '/seguimiento/evaluations',
-    '/seguimiento/statistics',
-    '/seguimiento/reports',
-    '/seguimiento/attendance',
+    "/dashboard",
+    "/inscription",
+    "/inscription/deportista",
+    "/inscription/menor",
+    "/seguimiento",
+    "/seguimiento/evaluations",
+    "/seguimiento/statistics",
+    "/seguimiento/reports",
+    "/seguimiento/attendance",
   ],
   [ROLES.PASANTE]: [
-    '/dashboard',
-    '/seguimiento/statistics',
-    '/seguimiento/reports',
-    '/seguimiento/evaluations',
-    '/seguimiento/attendance',
-  ]
+    "/dashboard",
+    "/seguimiento/statistics",
+    "/seguimiento/reports",
+    "/seguimiento/evaluations",
+    "/seguimiento/attendance",
+  ],
 };
 
 /**
@@ -103,7 +103,7 @@ export const ROLE_ROUTES = {
 export const hasRouteAccess = (role, path) => {
   if (!role || !path) return false;
   const allowedRoutes = ROLE_ROUTES[role] || [];
-  return allowedRoutes.some(route => path.startsWith(route));
+  return allowedRoutes.some((route) => path.startsWith(route));
 };
 
 /**
@@ -126,7 +126,7 @@ export const getRolePermissions = (role) => {
  * Lista de roles para mostrar en selectores
  */
 export const ROLE_OPTIONS = [
-  { value: ROLES.ADMIN, label: 'Administrador' },
-  { value: ROLES.ENTRENADOR, label: 'Entrenador' },
-  { value: ROLES.PASANTE, label: 'Pasante' },
+  { value: ROLES.ADMIN, label: "Administrador" },
+  { value: ROLES.ENTRENADOR, label: "Entrenador" },
+  { value: ROLES.PASANTE, label: "Pasante" },
 ];
