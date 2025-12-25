@@ -1,7 +1,98 @@
-import React from "react";
 import UserTable from "../components/UserTable";
+import usersApi from "../services/users.api";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "@/shared/components/Button";
+import Input from "@/shared/components/Input";
+import Modal from "@/shared/components/Modal";
+import Loader from "@/shared/components/Loader";
+import useDebounce from "@/shared/hooks/useDebounce";
+import { ROUTES, MESSAGES } from "@/app/config/constants";
+import { UserPlus } from "lucide-react";
 
 const UserListPage = () => {
+  // ESTADO
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Búsqueda y filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+
+  // Paginación
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+
+  // Modal de confirmación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    user: null,
+    loading: false,
+  });
+
+  // Navegación
+  const navigate = useNavigate();
+
+  // Debounce para búsqueda
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // ==============================================
+
+  // Obtiene la lista de usuarios
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+        search: debouncedSearch || undefined,
+        role: roleFilter || undefined,
+      };
+
+      const response = await usersApi.getAll(params);
+
+      console.log("Respuesta del backend:", response);
+
+      setUsers(response.data?.items || []);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data?.total || 0,
+      }));
+    } catch (err) {
+      setError(err.message || MESSAGES.ERROR.GENERIC);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.page, pagination.limit, debouncedSearch, roleFilter]);
+
+  // Efecto para cargar usuarios
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // ==============================================
+
+  // Navega a la página de crear usuario
+  const handleCreate = () => {
+    navigate(ROUTES.USERS_CREATE);
+  };
+
+  // Navega a la página de editar usuario
+  const handleEdit = (user) => {
+    navigate(`/users/edit/${user.id}`);
+  };
+
+  // Maneja cambio de página
+  const handlePageChange = (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
+
   return (
     <div>
       <div>
@@ -12,6 +103,18 @@ const UserListPage = () => {
           Gestiona los usuarios registrados en la plataforma desde esta sección.
         </p>
       </div>
+
+      <div className="flex flex-col sm:flex-row sm:justify-between items-end sm:items-center mt-6 ">
+        <Button
+          variant="primary"
+          onClick={handleCreate}
+          className="mt-4 sm:mt-0"
+        >
+          <UserPlus size={20} />
+          Agregar Usuario
+        </Button>
+      </div>
+
       <UserTable />
     </div>
   );

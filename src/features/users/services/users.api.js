@@ -1,12 +1,12 @@
 /**
  * API de Usuarios
- * 
+ *
  * Servicio que encapsula todas las llamadas HTTP
  * relacionadas con la gestión de usuarios.
  */
 
-import http from '@/app/config/http';
-import { API_ENDPOINTS } from '@/app/config/constants';
+import http from "@/app/config/http";
+import { API_ENDPOINTS } from "@/app/config/constants";
 
 const usersApi = {
   /**
@@ -19,10 +19,10 @@ const usersApi = {
    * @returns {Promise<Object>} Lista paginada de usuarios
    */
   getAll: async (params = {}) => {
-    const response = await http.get(API_ENDPOINTS.USERS.BASE, { params });
+    const response = await http.get(API_ENDPOINTS.USERS.GET_ALL, { params });
     return response.data;
   },
-  
+
   /**
    * Obtiene un usuario por su ID
    * @param {string|number} id - ID del usuario
@@ -32,17 +32,17 @@ const usersApi = {
     const response = await http.get(API_ENDPOINTS.USERS.BY_ID(id));
     return response.data;
   },
-  
+
   /**
    * Crea un nuevo usuario
    * @param {Object} userData - Datos del nuevo usuario
    * @returns {Promise<Object>} Usuario creado
    */
   create: async (userData) => {
-    const response = await http.post(API_ENDPOINTS.USERS.BASE, userData);
+    const response = await http.post(API_ENDPOINTS.USERS.CREATE, userData);
     return response.data;
   },
-  
+
   /**
    * Actualiza un usuario existente
    * @param {string|number} id - ID del usuario
@@ -53,7 +53,7 @@ const usersApi = {
     const response = await http.put(API_ENDPOINTS.USERS.BY_ID(id), userData);
     return response.data;
   },
-  
+
   /**
    * Cambia el estado activo/inactivo de un usuario
    * @param {string|number} id - ID del usuario
@@ -61,7 +61,9 @@ const usersApi = {
    * @returns {Promise<Object>} Usuario actualizado
    */
   toggleStatus: async (id, active) => {
-    const response = await http.patch(API_ENDPOINTS.USERS.BY_ID(id), { active });
+    const response = await http.patch(API_ENDPOINTS.USERS.BY_ID(id), {
+      active,
+    });
     return response.data;
   },
 };

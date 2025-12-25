@@ -198,6 +198,9 @@ export const API_ENDPOINTS = {
   USERS: {
     BASE: "/users",
     BY_ID: (id) => `/users/${id}`,
+    GET_ALL: "/users/all",
+    CREATE: "/users/create",
+    UPDATE: (id) => `/users/update/${id}`,
   },
 
   // Athletes

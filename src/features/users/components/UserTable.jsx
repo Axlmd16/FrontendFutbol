@@ -6,13 +6,6 @@ import { UserPlus } from "lucide-react";
 function UserTable() {
   return (
     <div>
-      <div className="flex justify-end">
-        <Button variant="primary" size="md">
-          <UserPlus size={20} />
-          Agregar Usuario
-        </Button>
-      </div>
-
       <div className="card w-full bg-base-100 shadow-md mt-6">
         <div className=" p-4 mb-4">
           <Input
@@ -33,9 +26,9 @@ function UserTable() {
                     <input type="checkbox" className="checkbox" />
                   </label>
                 </th>
-                <th>Name</th>
-                <th>Job</th>
-                <th>Favorite Color</th>
+                <th>Nombre Completo</th>
+                <th>Identificacion</th>
+                <th>Rol</th>
                 <th></th>
               </tr>
             </thead>
