@@ -1,20 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import UserForm from "../components/UserForm";
+import UserForm from "../components/UserForm";
 import usersApi from "../services/users.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 
 const CreateUserPage = () => {
-  // ==============================================
   // ESTADO
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
-
-  // ==============================================
-  // MANEJADORES
 
   // Maneja el envío del formulario
   const handleSubmit = async (userData) => {
@@ -22,6 +17,7 @@ const CreateUserPage = () => {
     setError(null);
 
     try {
+      console.log("userData to submit:", userData);
       await usersApi.create(userData);
 
       // TODO: Mostrar toast de éxito
@@ -46,7 +42,7 @@ const CreateUserPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+      <div className=" ">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -77,13 +73,13 @@ const CreateUserPage = () => {
 
         {/* Card con formulario */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          {/* <UserForm
+          <UserForm
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={loading}
             error={error}
             isEdit={false}
-          /> */}
+          />
         </div>
       </div>
     </div>

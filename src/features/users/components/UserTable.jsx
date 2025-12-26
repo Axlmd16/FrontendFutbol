@@ -96,12 +96,9 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
                     <div className="avatar">
                       <div className="mask mask-squircle w-10 h-10 bg-base-300">
                         <img
-                          src={
-                            user.photo ||
-                            "https://img.daisyui.com/images/profile/demo/2@94.webp"
-                          }
+                          src={user.photo || "public/img/user.png"}
                           alt={user.full_name}
-                          className="object-cover"
+                          className="object-cover rounded-full"
                         />
                       </div>
                     </div>

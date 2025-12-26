@@ -169,6 +169,26 @@ export const SPORT_CATEGORIES = [
   { value: "sub18", label: "Sub-18", minAge: 16, maxAge: 18 },
 ];
 
+/**
+ * Tipos de identificación
+ */
+export const TYPE_IDENTIFICATION_OPTIONS = [
+  { value: "dni", label: "Cédula" },
+  { value: "passport", label: "Pasaporte" },
+  { value: "ruc", label: "RUC" },
+];
+
+/**
+ * Tipos de estamento
+ */
+export const TYPE_STAMENT_OPTIONS = [
+  { value: "administrativos", label: "Administrativos" },
+  { value: "docentes", label: "Docentes" },
+  { value: "estudiantes", label: "Estudiantes" },
+  { value: "trabajadores", label: "Trabajadores" },
+  { value: "externos", label: "Externos" },
+];
+
 // ==============================================
 //? CONFIGURACIÓN DE FECHAS
 

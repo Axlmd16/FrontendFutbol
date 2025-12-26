@@ -7,9 +7,9 @@
  * Enumeración de roles disponibles en el sistema
  */
 export const ROLES = {
-  ADMIN: "admin",
-  ENTRENADOR: "entrenador",
-  PASANTE: "pasante",
+  ADMIN: "Administrator",
+  ENTRENADOR: "Coach",
+  PASANTE: "Intern",
 };
 
 /**

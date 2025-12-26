@@ -91,6 +91,39 @@ http.interceptors.response.use(
       );
     }
 
+    // 422 (Validation Error)
+    if (response?.status === 422) {
+      const data = response?.data;
+
+      // 1) Nuestro backend (ResponseSchema)
+      const message = typeof data?.message === "string" ? data.message : null;
+
+      // errors puede venir como dict {field:[msg]} o lista [{field,message,...}]
+      const errors = data?.errors;
+      let firstError = null;
+
+      if (Array.isArray(errors) && errors.length > 0) {
+        firstError = errors[0]?.message || null;
+      } else if (errors && typeof errors === "object") {
+        const firstKey = Object.keys(errors)[0];
+        const val = firstKey ? errors[firstKey] : null;
+        firstError = Array.isArray(val) ? val[0] : val;
+      }
+
+      // 2) FastAPI default (detail)
+      const detail = data?.detail;
+      if (!firstError && Array.isArray(detail) && detail.length > 0) {
+        firstError = detail[0]?.msg || null;
+      }
+      if (!firstError && typeof detail === "string") {
+        firstError = detail;
+      }
+
+      return Promise.reject(
+        new Error(firstError || message || "Error de validación de datos.")
+      );
+    }
+
     // Error genérico
     const errorMessage =
       response?.data?.message ||

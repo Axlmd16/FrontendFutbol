@@ -129,8 +129,8 @@ const UserListPage = () => {
   };
 
   return (
-    <div>
-      <div>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="">
         <h1 className="text-xl font-semibold text-gray-900">
           Lista de usuarios del sistema
         </h1>
