@@ -12,6 +12,15 @@
 import axios from "axios";
 import { AUTH_TOKEN_KEY } from "./constants";
 
+// Endpoints de auth pública que no deben forzar redirect en 401
+const isPublicAuthPath = (url = "") => {
+  return [
+    "/accounts/login",
+    "/accounts/password-reset/request",
+    "/accounts/password-reset/confirm",
+  ].some((path) => url.includes(path));
+};
+
 /**
  * Instancia de Axios configurada globalmente
  * Base URL se obtiene de las variables de entorno de Vite
@@ -54,10 +63,16 @@ http.interceptors.response.use(
     return response;
   },
   (error) => {
-    const { response } = error;
+    const { response, config } = error;
 
     // 401 (Unauthorized)
     if (response?.status === 401) {
+      if (isPublicAuthPath(config?.url)) {
+        return Promise.reject(
+          new Error(response?.data?.detail || "Credenciales inválidas")
+        );
+      }
+
       // Limpiar token almacenado
       localStorage.removeItem(AUTH_TOKEN_KEY);
 

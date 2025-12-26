@@ -8,6 +8,8 @@
 import http from "@/app/config/http";
 import { API_ENDPOINTS } from "@/app/config/constants";
 
+const unwrapData = (response) => response?.data?.data ?? response?.data ?? null;
+
 /**
  * Servicio de autenticación
  * Contiene todos los métodos para interactuar con la API de auth
@@ -18,7 +20,7 @@ const authApi = {
    */
   login: async (credentials) => {
     const response = await http.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    return response.data;
+    return unwrapData(response);
   },
 
   /**
@@ -27,8 +29,8 @@ const authApi = {
    * @returns {Promise<Object>} Respuesta de confirmación
    */
   logout: async () => {
-    const response = await http.post(API_ENDPOINTS.AUTH.LOGOUT);
-    return response.data;
+    // El backend actual no expone logout; limpiamos solo en cliente.
+    return { status: "success" };
   },
 
   /**
@@ -40,15 +42,18 @@ const authApi = {
     const response = await http.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       email,
     });
-    return response.data;
+    return unwrapData(response);
   },
 
   /**
    * Restablece la contraseña con un token
    */
   resetPassword: async (data) => {
-    const response = await http.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data);
-    return response.data;
+    const response = await http.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+      token: data.token,
+      new_password: data.password || data.new_password,
+    });
+    return unwrapData(response);
   },
 
   /**
@@ -57,7 +62,7 @@ const authApi = {
    */
   getCurrentUser: async () => {
     const response = await http.get(API_ENDPOINTS.AUTH.ME);
-    return response.data;
+    return unwrapData(response);
   },
 
   /**
@@ -65,7 +70,7 @@ const authApi = {
    */
   refreshToken: async () => {
     const response = await http.post(API_ENDPOINTS.AUTH.REFRESH);
-    return response.data;
+    return unwrapData(response);
   },
 };
 

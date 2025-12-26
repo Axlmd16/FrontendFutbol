@@ -186,12 +186,12 @@ export const DATE_FORMATS = {
 export const API_ENDPOINTS = {
   // Auth
   AUTH: {
-    LOGIN: "/auth/login",
-    LOGOUT: "/auth/logout",
-    REFRESH: "/auth/refresh",
-    FORGOT_PASSWORD: "/auth/forgot-password",
-    RESET_PASSWORD: "/auth/reset-password",
-    ME: "/auth/me",
+    LOGIN: "/accounts/login",
+    LOGOUT: "/accounts/logout",
+    REFRESH: "/accounts/refresh",
+    FORGOT_PASSWORD: "/accounts/password-reset/request",
+    RESET_PASSWORD: "/accounts/password-reset/confirm",
+    ME: "/accounts/me",
   },
 
   // Users

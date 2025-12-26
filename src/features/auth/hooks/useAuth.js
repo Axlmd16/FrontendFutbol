@@ -8,6 +8,18 @@ import authApi from "../services/auth.api";
 import { AuthContext } from "@/app/providers/AuthProvider";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 
+const decodeJwtPayload = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(normalized);
+    return JSON.parse(json);
+  } catch (error) {
+    console.warn("[Auth] No se pudo decodificar el token", error);
+    return null;
+  }
+};
+
 /**
  * useAuth - Hook principal de autenticación
  *
@@ -90,8 +102,14 @@ const useAuth = () => {
       const result = await executeOperation(() => authApi.login(credentials), {
         successMessage: MESSAGES.SUCCESS.LOGIN,
         onSuccess: (data) => {
-          // Guardar token y datos del usuario
-          saveAuthData(data.access_token || data.token, data.user);
+          const token = data?.access_token || data?.token;
+          const claims = token ? decodeJwtPayload(token) : null;
+          const userData = claims
+            ? { id: claims.sub, email: claims.email, role: claims.role }
+            : data?.user;
+
+          // Guardar token y datos mínimos del usuario
+          saveAuthData(token, userData);
 
           // Navegar al dashboard
           navigate(ROUTES.DASHBOARD, { replace: true });
