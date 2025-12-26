@@ -18,8 +18,9 @@ const variants = {
   primary: "btn-primary",
   secondary: "btn-secondary",
   ghost: "btn-ghost",
-  danger: "btn-error",
+  danger: "btn-warning",
   info: "btn-info",
+  accent: "btn-accent",
 };
 
 const sizes = {

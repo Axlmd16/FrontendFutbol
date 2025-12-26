@@ -84,6 +84,40 @@ const UserListPage = () => {
     navigate(ROUTES.USERS_CREATE);
   };
 
+  // Abre el modal de confirmación para eliminar usuario
+  const handleDeleteClick = (user) => {
+    setDeleteModal({
+      isOpen: true,
+      user,
+      loading: false,
+    });
+  };
+
+  // Confirma y ejecuta la eliminación
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.user) return;
+
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
+
+    try {
+      await usersApi.delete(deleteModal.user.id);
+
+      // Cerrar modal y recargar lista
+      setDeleteModal({ isOpen: false, user: null, loading: false });
+      fetchUsers();
+
+      // TODO: Mostrar toast de éxito
+    } catch (err) {
+      setError(err.message);
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  //Cierra el modal de eliminación
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, user: null, loading: false });
+  };
+
   // Navega a la página de editar usuario
   const handleEdit = (user) => {
     navigate(`/users/edit/${user.id}`);
@@ -161,7 +195,12 @@ const UserListPage = () => {
       ) : (
         <>
           {/* Tabla */}
-          <UserTable users={users} onEdit={handleEdit} loading={loading} />
+          <UserTable
+            users={users}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            loading={loading}
+          />
 
           {/* Paginación */}
           {pagination.total > pagination.limit && (
@@ -197,6 +236,37 @@ const UserListPage = () => {
           )}
         </>
       )}
+
+      {/* Modal de confirmación */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        title="Eliminar usuario"
+      >
+        <p className="text-gray-600">
+          ¿Estás seguro de desactivar al usuario{" "}
+          <strong>{deleteModal.user?.full_name}</strong>? Esta acción no se
+          puede deshacer.
+        </p>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Button
+            variant="accent"
+            onClick={handleDeleteCancel}
+            disabled={deleteModal.loading}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            variant="danger"
+            onClick={handleDeleteConfirm}
+            loading={deleteModal.loading}
+          >
+            Desactivar
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

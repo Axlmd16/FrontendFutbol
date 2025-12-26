@@ -2,6 +2,7 @@ import React from "react";
 import Button from "../../../shared/components/Button";
 import { CirclePower, UserRoundPen } from "lucide-react";
 import { ROLE_OPTIONS } from "../../../app/config/roles";
+import PropTypes from "prop-types";
 
 function UserTable({ users = [], onEdit, onDelete, loading = false }) {
   // Función auxiliar para obtener etiqueta de rol
@@ -10,12 +11,12 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
     return roleOption?.label || role;
   };
 
-  // Función auxiliar para colores (Usando clases de DaisyUI 'badge' opcionalmente)
+  // Función auxiliar para colores
   const getRoleBadgeColor = (role) => {
     const colors = {
       Administrator: "badge badge-primary",
-      entrenador: "badge badge-info",
-      pasante: "badge badge-success",
+      Coach: "badge badge-info",
+      Intern: "badge badge-success",
     };
     return colors[role] || "bg-gray-100 text-gray-700 border-gray-200";
   };
@@ -180,5 +181,23 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
     </div>
   );
 }
+
+// Validación de PropTypes
+UserTable.propTypes = {
+  users: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      full_name: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      dni: PropTypes.string,
+      role: PropTypes.string.isRequired,
+      is_active: PropTypes.bool.isRequired,
+      photo: PropTypes.string,
+    })
+  ),
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+};
 
 export default UserTable;
