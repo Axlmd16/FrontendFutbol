@@ -58,8 +58,6 @@ const UserListPage = () => {
 
       const response = await usersApi.getAll(params);
 
-      console.log("Respuesta del backend:", response);
-
       setUsers(response.data?.items || []);
       setPagination((prev) => ({
         ...prev,

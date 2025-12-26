@@ -32,20 +32,61 @@ const UserForm = ({
   const defaultTypeId = TYPE_IDENTIFICATION_OPTIONS?.[0]?.value ?? "dni";
   const defaultTypeStament = TYPE_STAMENT_OPTIONS?.[0]?.value ?? "estudiante";
 
+  const normalizedTypeIdentification = useMemo(() => {
+    const raw = (initialData?.type_identification ?? "").toString().trim();
+    const upper = raw.toUpperCase();
+    if (upper === "CEDULA") return "dni";
+    if (upper === "PASSPORT") return "passport";
+    if (upper === "RUC") return "ruc";
+
+    // Si ya viene en formato frontend (dni/passport/ruc)
+    const lower = raw.toLowerCase();
+    if (["dni", "passport", "ruc"].includes(lower)) return lower;
+
+    return "";
+  }, [initialData?.type_identification]);
+
+  const normalizedTypeStament = useMemo(() => {
+    const raw = (initialData?.type_stament ?? "").toString().trim();
+    const lower = raw.toLowerCase();
+    // Backend suele devolver ADMINISTRATIVOS/EXTERNOS, etc.
+    if (
+      [
+        "administrativos",
+        "docentes",
+        "estudiantes",
+        "trabajadores",
+        "externos",
+      ].includes(lower)
+    ) {
+      return lower;
+    }
+    return "";
+  }, [initialData?.type_stament]);
+
   const defaultValues = useMemo(
     () => ({
       first_name: initialData?.first_name || "",
       last_name: initialData?.last_name || "",
       email: initialData?.email || "",
+      dni: initialData?.dni || "",
       password: "",
       passwordConfirmation: "",
       role: initialData?.role || defaultRole,
-      type_identification: initialData?.type_identification || defaultTypeId,
-      type_stament: initialData?.type_stament || defaultTypeStament,
+      type_identification:
+        normalizedTypeIdentification || initialData?.type_identification || defaultTypeId,
+      type_stament: normalizedTypeStament || initialData?.type_stament || defaultTypeStament,
       direction: initialData?.direction || "",
       phone: initialData?.phone || "",
     }),
-    [defaultRole, defaultTypeId, defaultTypeStament, initialData]
+    [
+      defaultRole,
+      defaultTypeId,
+      defaultTypeStament,
+      initialData,
+      normalizedTypeIdentification,
+      normalizedTypeStament,
+    ]
   );
 
   const {
