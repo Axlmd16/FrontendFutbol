@@ -145,7 +145,58 @@ const UserListPage = () => {
           </select>
         </div>
       </div>
-      <UserTable />
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Contenido */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader size="lg" />
+        </div>
+      ) : (
+        <>
+          {/* Tabla */}
+          <UserTable users={users} onEdit={handleEdit} loading={loading} />
+
+          {/* Paginación */}
+          {pagination.total > pagination.limit && (
+            <div className="mt-6 flex justify-center">
+              <nav className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={pagination.page === 1}
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                >
+                  Anterior
+                </Button>
+
+                <span className="text-sm text-gray-700">
+                  Página {pagination.page} de{" "}
+                  {Math.ceil(pagination.total / pagination.limit)}
+                </span>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={
+                    pagination.page >=
+                    Math.ceil(pagination.total / pagination.limit)
+                  }
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                >
+                  Siguiente
+                </Button>
+              </nav>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
