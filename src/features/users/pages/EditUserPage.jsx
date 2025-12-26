@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import UserForm from "../components/UserForm";
 import Loader from "@/shared/components/Loader";
 import usersApi from "../services/users.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
+import { ChevronLeft } from "lucide-react";
 
 const EditUserPage = () => {
   const [user, setUser] = useState(null);
@@ -26,9 +28,8 @@ const EditUserPage = () => {
       try {
         const response = await usersApi.getById(id);
         setUser(response?.data ?? null);
-        console.log("User data fetched:", response);
       } catch (err) {
-        setError(err.message || "No se pudo cargar el usuario");
+        setError(err.message || MESSAGES.ERROR.USER_LOAD);
       } finally {
         setLoading(false);
       }
@@ -38,10 +39,6 @@ const EditUserPage = () => {
       fetchUser();
     }
   }, [id]);
-
-  // ==============================================
-  // MANEJADORES
-  // ==============================================
 
   /**
    * Maneja el envío del formulario
@@ -53,13 +50,18 @@ const EditUserPage = () => {
     try {
       await usersApi.update(id, userData);
 
-      // TODO: Mostrar toast de éxito
-      console.log(MESSAGES.SUCCESS.UPDATED);
+      toast.success(MESSAGES.SUCCESS.USER_UPDATED, {
+        description: MESSAGES.SUCCESS.USER_UPDATED_DESC,
+      });
 
       // Navegar a la lista de usuarios
       navigate(ROUTES.USERS);
     } catch (err) {
-      setError(err.message || MESSAGES.ERROR.GENERIC);
+      const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
+      setError(errorMessage);
+      toast.error(MESSAGES.ERROR.USER_UPDATE, {
+        description: errorMessage,
+      });
     } finally {
       setSaving(false);
     }
@@ -72,10 +74,6 @@ const EditUserPage = () => {
     navigate(ROUTES.USERS);
   };
 
-  // ==============================================
-  // RENDER - CARGANDO
-  // ==============================================
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -83,10 +81,6 @@ const EditUserPage = () => {
       </div>
     );
   }
-
-  // ==============================================
-  // RENDER - ERROR DE CARGA
-  // ==============================================
 
   if (!user && !loading) {
     return (
@@ -124,10 +118,6 @@ const EditUserPage = () => {
     );
   }
 
-  // ==============================================
-  // RENDER - FORMULARIO
-  // ==============================================
-
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -137,19 +127,7 @@ const EditUserPage = () => {
             onClick={handleCancel}
             className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeft size={25} className="mr-1" />
             Volver
           </button>
 

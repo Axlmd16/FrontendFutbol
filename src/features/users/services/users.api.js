@@ -50,7 +50,17 @@ const usersApi = {
    * @returns {Promise<Object>} Usuario actualizado
    */
   update: async (id, userData) => {
-    const response = await http.put(API_ENDPOINTS.USERS.BY_ID(id), userData);
+    const response = await http.put(API_ENDPOINTS.USERS.UPDATE(id), userData);
+    return response.data;
+  },
+
+  /**
+   * Desactiva un usuario (soft delete)
+   * @param {string|number} id - ID del usuario
+   * @returns {Promise<Object>} Usuario desactivado
+   */
+  desactivate: async (id) => {
+    const response = await http.patch(API_ENDPOINTS.USERS.DESACTIVATE(id));
     return response.data;
   },
 

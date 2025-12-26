@@ -85,6 +85,13 @@ export const MESSAGES = {
     DELETED: "Registro eliminado exitosamente",
     PASSWORD_RESET_SENT: "Se ha enviado un correo con las instrucciones",
     PASSWORD_CHANGED: "Contraseña actualizada correctamente",
+    // Usuarios
+    USER_CREATED: "Usuario creado exitosamente",
+    USER_CREATED_DESC: "El nuevo usuario ha sido registrado en el sistema.",
+    USER_UPDATED: "Usuario actualizado",
+    USER_UPDATED_DESC: "Los cambios han sido guardados correctamente.",
+    USER_DEACTIVATED: "Usuario desactivado",
+    USER_DEACTIVATED_DESC: (name) => `${name} ha sido desactivado del sistema.`,
   },
 
   // Errores
@@ -95,6 +102,14 @@ export const MESSAGES = {
     NOT_FOUND: "El recurso solicitado no existe",
     VALIDATION: "Por favor, verifica los datos ingresados",
     LOGIN_FAILED: "Credenciales inválidas",
+    // Usuarios
+    USER_CREATE: "Error al crear usuario",
+    USER_UPDATE: "Error al actualizar usuario",
+    USER_DEACTIVATE: "Error al desactivar usuario",
+    USER_LOAD: "No se pudo cargar el usuario",
+    USER_SELF_DEACTIVATE: "No puedes desactivarte a ti mismo",
+    USER_SELF_DEACTIVATE_DESC:
+      "Por seguridad, no está permitido desactivar tu propia cuenta.",
   },
 
   // Confirmaciones
@@ -221,6 +236,7 @@ export const API_ENDPOINTS = {
     GET_ALL: "/users/all",
     CREATE: "/users/create",
     UPDATE: (id) => `/users/update/${id}`,
+    DESACTIVATE: (id) => `/users/desactivate/${id}`,
   },
 
   // Athletes

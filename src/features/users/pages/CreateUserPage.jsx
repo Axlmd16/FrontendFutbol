@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import UserForm from "../components/UserForm";
 import usersApi from "../services/users.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
@@ -20,13 +21,18 @@ const CreateUserPage = () => {
       console.log("userData to submit:", userData);
       await usersApi.create(userData);
 
-      // TODO: Mostrar toast de éxito
-      console.log(MESSAGES.SUCCESS.CREATED);
+      toast.success(MESSAGES.SUCCESS.USER_CREATED, {
+        description: MESSAGES.SUCCESS.USER_CREATED_DESC,
+      });
 
       // Navegar a la lista de usuarios
       navigate(ROUTES.USERS);
     } catch (err) {
-      setError(err.message || MESSAGES.ERROR.GENERIC);
+      const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
+      setError(errorMessage);
+      toast.error(MESSAGES.ERROR.USER_CREATE, {
+        description: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -42,7 +48,7 @@ const CreateUserPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className=" ">
+      <div className=" max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <button

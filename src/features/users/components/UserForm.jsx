@@ -8,18 +8,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { TYPE_IDENTIFICATION_OPTIONS } from "../../../app/config/constants";
 import { TYPE_STAMENT_OPTIONS } from "../../../app/config/constants";
 
-/**
- * UserForm - Formulario de usuario
- *
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.initialData - Datos iniciales (para edición)
- * @param {Function} props.onSubmit - Callback al enviar
- * @param {Function} props.onCancel - Callback al cancelar
- * @param {boolean} props.loading - Estado de carga
- * @param {string} props.error - Mensaje de error
- * @param {boolean} props.isEdit - Indica si es modo edición
- * @returns {JSX.Element} Formulario de usuario
- */
 const UserForm = ({
   initialData = null,
   onSubmit,
@@ -39,7 +27,6 @@ const UserForm = ({
     if (upper === "PASSPORT") return "passport";
     if (upper === "RUC") return "ruc";
 
-    // Si ya viene en formato frontend (dni/passport/ruc)
     const lower = raw.toLowerCase();
     if (["dni", "passport", "ruc"].includes(lower)) return lower;
 
@@ -49,7 +36,6 @@ const UserForm = ({
   const normalizedTypeStament = useMemo(() => {
     const raw = (initialData?.type_stament ?? "").toString().trim();
     const lower = raw.toLowerCase();
-    // Backend suele devolver ADMINISTRATIVOS/EXTERNOS, etc.
     if (
       [
         "administrativos",
@@ -74,8 +60,13 @@ const UserForm = ({
       passwordConfirmation: "",
       role: initialData?.role || defaultRole,
       type_identification:
-        normalizedTypeIdentification || initialData?.type_identification || defaultTypeId,
-      type_stament: normalizedTypeStament || initialData?.type_stament || defaultTypeStament,
+        normalizedTypeIdentification ||
+        initialData?.type_identification ||
+        defaultTypeId,
+      type_stament:
+        normalizedTypeStament ||
+        initialData?.type_stament ||
+        defaultTypeStament,
       direction: initialData?.direction || "",
       phone: initialData?.phone || "",
     }),
@@ -101,6 +92,61 @@ const UserForm = ({
   });
 
   const password = useWatch({ control, name: "password" });
+  const typeIdentification = useWatch({ control, name: "type_identification" });
+
+  const identificationRules = useMemo(() => {
+    // Valores esperados en el frontend: dni | ruc | passport
+    switch (typeIdentification) {
+      case "ruc":
+        return {
+          label: "RUC",
+          min: 13,
+          max: 13,
+          inputMode: "numeric",
+          maxLength: 13,
+          placeholder: "13 dígitos",
+          validate: (value) => {
+            const v = (value ?? "").toString().trim();
+            if (!/^\d{13}$/.test(v)) return "El RUC debe tener exactamente 13 dígitos";
+            return true;
+          },
+        };
+      case "passport":
+        return {
+          label: "Pasaporte",
+          min: 6,
+          max: 15,
+          inputMode: "text",
+          maxLength: 15,
+          placeholder: "6–15 caracteres",
+          validate: (value) => {
+            const v = (value ?? "").toString().trim();
+            if (v.length < 6 || v.length > 15) {
+              return "El pasaporte debe tener entre 6 y 15 caracteres";
+            }
+            if (!/^[A-Za-z0-9]+$/.test(v)) {
+              return "El pasaporte solo permite caracteres alfanuméricos";
+            }
+            return true;
+          },
+        };
+      case "dni":
+      default:
+        return {
+          label: "Cédula",
+          min: 10,
+          max: 10,
+          inputMode: "numeric",
+          maxLength: 10,
+          placeholder: "10 dígitos",
+          validate: (value) => {
+            const v = (value ?? "").toString().trim();
+            if (!/^\d{10}$/.test(v)) return "La cédula debe tener exactamente 10 dígitos";
+            return true;
+          },
+        };
+    }
+  }, [typeIdentification]);
 
   useEffect(() => {
     reset(defaultValues);
@@ -228,13 +274,15 @@ const UserForm = ({
           label="Número de identificación"
           type="text"
           name="dni"
-          placeholder="12345678"
+          placeholder={identificationRules.placeholder}
           error={errors.dni?.message}
           disabled={loading}
           required
+          inputMode={identificationRules.inputMode}
+          maxLength={identificationRules.maxLength}
           {...register("dni", {
             required: "El número de identificación es requerido",
-            minLength: { value: 4, message: "Mínimo 4 caracteres" },
+            validate: identificationRules.validate,
           })}
         />
 
@@ -243,10 +291,19 @@ const UserForm = ({
           label="Teléfono"
           type="text"
           name="phone"
-          placeholder="123-456-7890"
+          placeholder="10 dígitos"
           error={errors.phone?.message}
           disabled={loading}
-          {...register("phone")}
+          inputMode="numeric"
+          maxLength={10}
+          {...register("phone", {
+            validate: (value) => {
+              const v = (value ?? "").toString().trim();
+              if (!v) return true;
+              if (!/^\d{10}$/.test(v)) return "El teléfono debe tener exactamente 10 dígitos";
+              return true;
+            },
+          })}
         />
 
         {/* Tipo de estamento */}

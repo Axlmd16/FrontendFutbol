@@ -2,6 +2,8 @@ import UserTable from "../components/UserTable";
 import usersApi from "../services/users.api";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import useAuth from "@/features/auth/hooks/useAuth";
 import Button from "@/shared/components/Button";
 import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
@@ -37,6 +39,9 @@ const UserListPage = () => {
 
   // Navegación
   const navigate = useNavigate();
+
+  // Usuario actual logueado
+  const { user: currentUser } = useAuth();
 
   // Debounce para búsqueda
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -84,6 +89,14 @@ const UserListPage = () => {
 
   // Abre el modal de confirmación para eliminar usuario
   const handleDeleteClick = (user) => {
+    // Validar que no intente desactivarse a sí mismo
+    if (currentUser?.id === user.id) {
+      toast.error(MESSAGES.ERROR.USER_SELF_DEACTIVATE, {
+        description: MESSAGES.ERROR.USER_SELF_DEACTIVATE_DESC,
+      });
+      return;
+    }
+
     setDeleteModal({
       isOpen: true,
       user,
@@ -98,15 +111,23 @@ const UserListPage = () => {
     setDeleteModal((prev) => ({ ...prev, loading: true }));
 
     try {
-      await usersApi.delete(deleteModal.user.id);
+      await usersApi.desactivate(deleteModal.user.id);
+
+      toast.success(MESSAGES.SUCCESS.USER_DEACTIVATED, {
+        description: MESSAGES.SUCCESS.USER_DEACTIVATED_DESC(
+          deleteModal.user.full_name
+        ),
+      });
 
       // Cerrar modal y recargar lista
       setDeleteModal({ isOpen: false, user: null, loading: false });
       fetchUsers();
-
-      // TODO: Mostrar toast de éxito
     } catch (err) {
-      setError(err.message);
+      const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
+      setError(errorMessage);
+      toast.error(MESSAGES.ERROR.USER_DEACTIVATE, {
+        description: errorMessage,
+      });
       setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
   };
