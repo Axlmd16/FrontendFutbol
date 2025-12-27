@@ -25,7 +25,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
 
       case "password":
         if (!value) return "La contraseña es requerida";
-        if (value.length < 6) return "Mínimo 6 caracteres";
+        if (value.length < 8) return "Mínimo 8 caracteres";
         return "";
 
       default:
