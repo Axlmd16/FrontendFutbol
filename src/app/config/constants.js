@@ -85,6 +85,13 @@ export const MESSAGES = {
     DELETED: "Registro eliminado exitosamente",
     PASSWORD_RESET_SENT: "Se ha enviado un correo con las instrucciones",
     PASSWORD_CHANGED: "Contraseña actualizada correctamente",
+    // Usuarios
+    USER_CREATED: "Usuario creado exitosamente",
+    USER_CREATED_DESC: "El nuevo usuario ha sido registrado en el sistema.",
+    USER_UPDATED: "Usuario actualizado",
+    USER_UPDATED_DESC: "Los cambios han sido guardados correctamente.",
+    USER_DEACTIVATED: "Usuario desactivado",
+    USER_DEACTIVATED_DESC: (name) => `${name} ha sido desactivado del sistema.`,
   },
 
   // Errores
@@ -95,6 +102,14 @@ export const MESSAGES = {
     NOT_FOUND: "El recurso solicitado no existe",
     VALIDATION: "Por favor, verifica los datos ingresados",
     LOGIN_FAILED: "Credenciales inválidas",
+    // Usuarios
+    USER_CREATE: "Error al crear usuario",
+    USER_UPDATE: "Error al actualizar usuario",
+    USER_DEACTIVATE: "Error al desactivar usuario",
+    USER_LOAD: "No se pudo cargar el usuario",
+    USER_SELF_DEACTIVATE: "No puedes desactivarte a ti mismo",
+    USER_SELF_DEACTIVATE_DESC:
+      "Por seguridad, no está permitido desactivar tu propia cuenta.",
   },
 
   // Confirmaciones
@@ -169,6 +184,26 @@ export const SPORT_CATEGORIES = [
   { value: "sub18", label: "Sub-18", minAge: 16, maxAge: 18 },
 ];
 
+/**
+ * Tipos de identificación
+ */
+export const TYPE_IDENTIFICATION_OPTIONS = [
+  { value: "dni", label: "Cédula" },
+  { value: "passport", label: "Pasaporte" },
+  { value: "ruc", label: "RUC" },
+];
+
+/**
+ * Tipos de estamento
+ */
+export const TYPE_STAMENT_OPTIONS = [
+  { value: "administrativos", label: "Administrativos" },
+  { value: "docentes", label: "Docentes" },
+  { value: "estudiantes", label: "Estudiantes" },
+  { value: "trabajadores", label: "Trabajadores" },
+  { value: "externos", label: "Externos" },
+];
+
 // ==============================================
 //? CONFIGURACIÓN DE FECHAS
 
@@ -198,6 +233,10 @@ export const API_ENDPOINTS = {
   USERS: {
     BASE: "/users",
     BY_ID: (id) => `/users/${id}`,
+    GET_ALL: "/users/all",
+    CREATE: "/users/create",
+    UPDATE: (id) => `/users/update/${id}`,
+    DESACTIVATE: (id) => `/users/desactivate/${id}`,
   },
 
   // Athletes

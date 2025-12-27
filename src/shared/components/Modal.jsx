@@ -1,66 +1,57 @@
-/**
- * ==============================================
- * Modal Base - Kallpa UNL
- * ==============================================
- * 
- * Modal simple (sin dependencias) para confirmaciones
- * y formularios.
- */
-
-import { useEffect } from 'react';
-import PropTypes from 'prop-types';
+import { useEffect } from "react";
+import PropTypes from "prop-types";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
-  // Bloquear scroll cuando el modal está abierto
+  // Mantenemos tu lógica de bloqueo de scroll y Escape, es excelente para UX.
   useEffect(() => {
     if (!isOpen) return;
 
     const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.body.style.overflow = original;
-      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [isOpen, onClose]);
 
+  // Si no está abierto, no renderizamos nada para evitar conflictos de z-index
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Cerrar"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/40"
-      />
+    // 'modal-open' fuerza la visibilidad ya que controlamos el estado con React
+    // 'modal-bottom sm:modal-middle' hace que en móvil salga de abajo, y en PC al centro
+    <dialog className="modal modal-open modal-bottom sm:modal-middle">
+      {/* Caja del Modal */}
+      <div className="modal-box relative">
+        {/* Botón de cerrar (X) flotante en la esquina */}
+        <button
+          onClick={onClose}
+          className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          aria-label="Cerrar"
+        >
+          ✕
+        </button>
 
-      {/* Panel */}
-      <div className="relative w-full max-w-lg mx-4 bg-white rounded-xl shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded hover:bg-gray-100 text-gray-500"
-            aria-label="Cerrar"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        {/* Título */}
+        {title && <h3 className="font-bold text-lg pr-8 mb-4">{title}</h3>}
 
-        <div className="p-5">{children}</div>
+        {/* Contenido */}
+        <div className="py-2">{children}</div>
       </div>
-    </div>
+
+      {/* Backdrop (Fondo oscuro) */}
+      {/* Al hacer clic fuera, se ejecuta onClose */}
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onClose}>close</button>
+      </form>
+    </dialog>
   );
 };
 

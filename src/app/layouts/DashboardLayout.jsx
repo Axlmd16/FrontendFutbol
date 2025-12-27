@@ -137,7 +137,7 @@ const DashboardLayout = () => {
                     "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors",
                     "border-l-4",
                     isActive
-                      ? "bg-primary/10 text-primary border-primary"
+                      ? "bg-primary/25 btn-primary text-gray-600 border-primary rounded-md"
                       : "text-base-content/70 hover:text-base-content hover:bg-base-200/50 border-transparent",
                     collapsed && !isMobile ? "justify-center px-0" : "",
                   ].join(" ")
