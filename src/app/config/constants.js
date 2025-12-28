@@ -167,9 +167,9 @@ export const ATTENDANCE_STATUS = {
  * Géneros
  */
 export const GENDER_OPTIONS = [
-  { value: "M", label: "Masculino" },
-  { value: "F", label: "Femenino" },
-  { value: "O", label: "Otro" },
+  { value: "MALE", label: "Masculino" },
+  { value: "FEMALE", label: "Femenino" },
+  { value: "OTHER", label: "Otro" },
 ];
 
 /**
@@ -243,6 +243,7 @@ export const API_ENDPOINTS = {
   ATHLETES: {
     BASE: "/athletes",
     BY_ID: (id) => `/athletes/${id}`,
+    CREATE: "/athletes/register-unl",
   },
 
   // Evaluations
