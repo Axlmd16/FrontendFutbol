@@ -3,9 +3,9 @@ import { useForm, useWatch } from "react-hook-form";
 import PropTypes from "prop-types";
 import Input from "@/shared/components/Input";
 import Button from "@/shared/components/Button";
+import { User, FileText, Activity } from "lucide-react";
 import {
   GENDER_OPTIONS,
-  SPORT_CATEGORIES,
   VALIDATION,
   TYPE_IDENTIFICATION_OPTIONS,
   TYPE_STAMENT_OPTIONS,
@@ -13,6 +13,7 @@ import {
 
 /**
  * DeportistaForm - Formulario de deportista
+ * Diseño profesional con secciones agrupadas
  */
 const DeportistaForm = ({
   initialData = null,
@@ -23,7 +24,7 @@ const DeportistaForm = ({
   isMenor = false,
 }) => {
   // ==============================================
-  // ESTADO Y CONFIGURACIÓNq
+  // ESTADO Y CONFIGURACIÓN
   // ==============================================
 
   const defaultTypeId = TYPE_IDENTIFICATION_OPTIONS?.[0]?.value ?? "dni";
@@ -93,7 +94,15 @@ const DeportistaForm = ({
       height: initialData?.height || "",
       weight: initialData?.weight || "",
     }),
-    [initialData]
+    [
+      initialData,
+      normalizedSex,
+      defaultSex,
+      normalizedTypeIdentification,
+      defaultTypeId,
+      normalizedTypeStament,
+      defaultTypeStament,
+    ]
   );
 
   const {
@@ -118,13 +127,10 @@ const DeportistaForm = ({
   const typeIdentification = useWatch({ control, name: "type_identification" });
 
   const identificationRules = useMemo(() => {
-    // Valores esperados en el frontend: dni | ruc | passport
     switch (typeIdentification) {
       case "ruc":
         return {
           label: "RUC",
-          min: 13,
-          max: 13,
           inputMode: "numeric",
           maxLength: 13,
           placeholder: "13 dígitos",
@@ -138,8 +144,6 @@ const DeportistaForm = ({
       case "passport":
         return {
           label: "Pasaporte",
-          min: 6,
-          max: 15,
           inputMode: "text",
           maxLength: 15,
           placeholder: "6–15 caracteres",
@@ -158,8 +162,6 @@ const DeportistaForm = ({
       default:
         return {
           label: "Cédula",
-          min: 10,
-          max: 10,
           inputMode: "numeric",
           maxLength: 10,
           placeholder: "10 dígitos",
@@ -174,220 +176,303 @@ const DeportistaForm = ({
   }, [typeIdentification]);
 
   // ==============================================
+  // COMPONENTE DE SECCIÓN
+  // ==============================================
+
+  const SectionHeader = ({ icon: Icon, title, color = "primary" }) => (
+    <div
+      className={`flex items-center gap-3 mb-4 pb-2 border-b border-base-200`}
+    >
+      <div className={`p-2 bg-${color}/10 rounded-lg`}>
+        <Icon className={`w-5 h-5 text-${color}`} />
+      </div>
+      <h3 className="text-lg font-semibold text-base-content">{title}</h3>
+    </div>
+  );
+
+  // ==============================================
   // RENDER
   // ==============================================
 
   return (
     <form
       onSubmit={handleSubmit(onValidSubmit)}
-      className="space-y-6"
+      className="space-y-8"
       noValidate
     >
       {/* Error del servidor */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <p className="text-sm">{error}</p>
+        <div className="alert alert-error">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Grid de campos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Nombres */}
-        <Input
-          label="Nombres"
-          type="text"
-          name="first_name"
-          placeholder="Juan Pérez"
-          error={errors.first_name?.message}
-          disabled={loading}
-          required
-          {...register("first_name", {
-            required: "El nombre es requerido",
-            minLength: { value: 3, message: "Mínimo 3 caracteres" },
-          })}
-        />
+      {/* ============================================== */}
+      {/* SECCIÓN 1: DATOS PERSONALES */}
+      {/* ============================================== */}
+      <section>
+        <SectionHeader icon={User} title="Datos Personales" color="primary" />
 
-        {/* Apellidos */}
-        <Input
-          label="Apellidos"
-          type="text"
-          name="last_name"
-          placeholder="Juan Pérez"
-          error={errors.last_name?.message}
-          disabled={loading}
-          required
-          {...register("last_name", {
-            required: "El apellido es requerido",
-            minLength: { value: 3, message: "Mínimo 3 caracteres" },
-          })}
-        />
-
-        {/* Fecha de nacimiento */}
-        <Input
-          label="Fecha de nacimiento"
-          type="date"
-          name="birth_date"
-          placeholder="dd/mm/yyyy"
-          error={errors.birth_date?.message}
-          disabled={loading}
-          required
-          {...register("birth_date", {
-            required: "La fecha de nacimiento es requerida",
-          })}
-        />
-
-        {/* Genero */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 ">
-            Genero <span className="text-red-500">*</span>
-          </label>
-          <select
-            className="select select-bordered w-full bg-white"
-            {...register("sex", {
-              required: "El genero es requerido",
-            })}
-          >
-            {GENDER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Dirección (Opcional) - Solo si NO es menor */}
-        {!isMenor && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Nombres */}
           <Input
-            label="Dirección"
+            label="Nombres"
             type="text"
-            name="direction"
-            placeholder="Av. Siempre Viva 123"
-            error={errors.direction?.message}
+            name="first_name"
+            placeholder="Ej: Juan Carlos"
+            error={errors.first_name?.message}
             disabled={loading}
-            {...register("direction")}
-          />
-        )}
-
-        {/* Tipo de identificacion */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 ">
-            Tipo de identificación <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register("type_identification", {
-              required: "Selecciona un tipo de identificación",
-            })}
-            disabled={loading}
-            className="select select-bordered w-full bg-white"
-          >
-            {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.type_identification?.message ? (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.type_identification.message}
-            </p>
-          ) : null}
-        </div>
-
-        {/* Dni (Obligatorio) */}
-        <Input
-          label="Número de identificación"
-          type="text"
-          name="dni"
-          placeholder={identificationRules.placeholder}
-          error={errors.dni?.message}
-          disabled={loading}
-          required
-          inputMode={identificationRules.inputMode}
-          maxLength={identificationRules.maxLength}
-          {...register("dni", {
-            required: "El número de identificación es requerido",
-            validate: identificationRules.validate,
-          })}
-        />
-
-        {/* Teléfono (Opcional) - Solo si NO es menor */}
-        {!isMenor && (
-          <Input
-            label="Teléfono"
-            type="text"
-            name="phone"
-            placeholder="10 dígitos"
-            error={errors.phone?.message}
-            disabled={loading}
-            inputMode="numeric"
-            maxLength={10}
-            {...register("phone", {
-              validate: (value) => {
-                const v = (value ?? "").toString().trim();
-                if (!v) return true;
-                if (!/^\d{10}$/.test(v))
-                  return "El teléfono debe tener exactamente 10 dígitos";
-                return true;
-              },
+            required
+            {...register("first_name", {
+              required: "El nombre es requerido",
+              minLength: { value: 3, message: "Mínimo 3 caracteres" },
             })}
           />
-        )}
 
-        {/* Tipo de estamento - Solo si NO es menor */}
-        {!isMenor && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 ">
-              Estamento <span className="text-red-500">*</span>
+          {/* Apellidos */}
+          <Input
+            label="Apellidos"
+            type="text"
+            name="last_name"
+            placeholder="Ej: Pérez García"
+            error={errors.last_name?.message}
+            disabled={loading}
+            required
+            {...register("last_name", {
+              required: "El apellido es requerido",
+              minLength: { value: 3, message: "Mínimo 3 caracteres" },
+            })}
+          />
+
+          {/* Fecha de nacimiento */}
+          <Input
+            label="Fecha de nacimiento"
+            type="date"
+            name="birth_date"
+            error={errors.birth_date?.message}
+            disabled={loading}
+            required
+            {...register("birth_date", {
+              required: "La fecha de nacimiento es requerida",
+            })}
+          />
+
+          {/* Sexo */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">
+                Sexo <span className="text-error">*</span>
+              </span>
             </label>
             <select
-              {...register("type_stament", {
-                required: !isMenor ? "Selecciona un estamento" : false,
-              })}
+              className={`select select-bordered w-full bg-white${
+                errors.sex ? "select-error" : ""
+              }`}
               disabled={loading}
-              className="select select-bordered w-full bg-white"
+              {...register("sex", {
+                required: "El sexo es requerido",
+              })}
             >
-              {TYPE_STAMENT_OPTIONS.map((option) => (
+              {GENDER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
             </select>
-            {errors.type_stament?.message ? (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.type_stament.message}
-              </p>
-            ) : null}
+            {errors.sex && (
+              <label className="label">
+                <span className="label-text-alt text-error">
+                  {errors.sex.message}
+                </span>
+              </label>
+            )}
           </div>
-        )}
 
-        {/* Altura (Opcional) */}
-        <Input
-          label="Altura (m)"
-          type="text"
-          name="height"
-          placeholder="1.75"
-          error={errors.height?.message}
-          disabled={loading}
-          {...register("height")}
+          {/* Tipo de identificación */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">
+                Tipo de documento <span className="text-error">*</span>
+              </span>
+            </label>
+            <select
+              className={`select select-bordered w-full bg-white${
+                errors.type_identification ? "select-error" : ""
+              }`}
+              disabled={loading}
+              {...register("type_identification", {
+                required: "Selecciona un tipo de identificación",
+              })}
+            >
+              {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.type_identification && (
+              <label className="label">
+                <span className="label-text-alt text-error">
+                  {errors.type_identification.message}
+                </span>
+              </label>
+            )}
+          </div>
+
+          {/* Número de identificación */}
+          <Input
+            label="Número de documento"
+            type="text"
+            name="dni"
+            placeholder={identificationRules.placeholder}
+            error={errors.dni?.message}
+            disabled={loading}
+            required
+            inputMode={identificationRules.inputMode}
+            maxLength={identificationRules.maxLength}
+            {...register("dni", {
+              required: "El número de identificación es requerido",
+              validate: identificationRules.validate,
+            })}
+          />
+        </div>
+      </section>
+
+      {/* ============================================== */}
+      {/* SECCIÓN 2: INFORMACIÓN DE CONTACTO (Solo mayores) */}
+      {/* ============================================== */}
+      {!isMenor && (
+        <section>
+          <SectionHeader
+            icon={FileText}
+            title="Información de Contacto"
+            color="secondary"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Teléfono */}
+            <Input
+              label="Teléfono"
+              type="text"
+              name="phone"
+              placeholder="Ej: 0987654321"
+              error={errors.phone?.message}
+              disabled={loading}
+              inputMode="numeric"
+              maxLength={10}
+              {...register("phone", {
+                validate: (value) => {
+                  const v = (value ?? "").toString().trim();
+                  if (!v) return true;
+                  if (!/^\d{10}$/.test(v))
+                    return "El teléfono debe tener exactamente 10 dígitos";
+                  return true;
+                },
+              })}
+            />
+
+            {/* Estamento */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">
+                  Estamento <span className="text-error">*</span>
+                </span>
+              </label>
+              <select
+                className={`select select-bordered w-full bg-white${
+                  errors.type_stament ? "select-error" : ""
+                }`}
+                disabled={loading}
+                {...register("type_stament", {
+                  required: "Selecciona un estamento",
+                })}
+              >
+                {TYPE_STAMENT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {errors.type_stament && (
+                <label className="label">
+                  <span className="label-text-alt text-error">
+                    {errors.type_stament.message}
+                  </span>
+                </label>
+              )}
+            </div>
+
+            {/* Dirección - Ocupa todo el ancho */}
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Input
+                label="Dirección"
+                type="text"
+                name="direction"
+                placeholder="Av. Principal #123"
+                error={errors.direction?.message}
+                disabled={loading}
+                {...register("direction")}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================== */}
+      {/* SECCIÓN 3: DATOS FÍSICOS */}
+      {/* ============================================== */}
+      <section>
+        <SectionHeader
+          icon={Activity}
+          title="Datos Físicos (Opcional)"
+          color="accent"
         />
 
-        {/* Peso (Opcional) */}
-        <Input
-          label="Peso (kg)"
-          type="text"
-          name="weight"
-          placeholder="70"
-          error={errors.weight?.message}
-          disabled={loading}
-          {...register("weight")}
-        />
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Altura */}
+          <Input
+            label="Altura (metros)"
+            type="text"
+            name="height"
+            placeholder="Ej: 1.75"
+            error={errors.height?.message}
+            disabled={loading}
+            {...register("height")}
+          />
 
-      {/* Botones */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
+          {/* Peso */}
+          <Input
+            label="Peso (kg)"
+            type="text"
+            name="weight"
+            placeholder="Ej: 70"
+            error={errors.weight?.message}
+            disabled={loading}
+            {...register("weight")}
+          />
+        </div>
+      </section>
+
+      {/* ============================================== */}
+      {/* BOTONES DE ACCIÓN */}
+      {/* ============================================== */}
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-base-200">
         <Button
           type="button"
-          variant="secondary"
+          variant="ghost"
           onClick={onCancel}
           disabled={loading}
         >
@@ -399,6 +484,7 @@ const DeportistaForm = ({
           variant="primary"
           loading={loading}
           disabled={loading}
+          className="shadow-lg shadow-primary/20"
         >
           Registrar deportista
         </Button>
