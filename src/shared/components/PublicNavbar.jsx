@@ -3,49 +3,100 @@
  * Navbar Público - Kallpa UNL
  * ==============================================
  * 
- * Navbar simple para páginas públicas: Landing, Login, Registro.
+ * Navbar moderno con efecto glass para páginas públicas.
  */
 
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/config/constants';
 import Button from './Button';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 const PublicNavbar = ({ showAuthButtons = true }) => {
   const location = useLocation();
   const isLogin = location.pathname === ROUTES.LOGIN;
   const isRegister = location.pathname.startsWith(ROUTES.REGISTER);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-16 flex items-center justify-between">
-          <Link to={ROUTES.LANDING} className="flex items-center gap-2">
-            <div className="h-9 w-9 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">K</span>
+    <header className="sticky top-0 z-50 w-full">
+      <div className="navbar bg-base-100 shadow-lg border-b border-base-content/10">
+        <div className="navbar-start">
+          <Link to={ROUTES.LANDING} className="btn btn-ghost text-xl normal-case gap-2 px-2 sm:px-4">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-content font-bold">
+              K
             </div>
-            <div className="leading-tight">
-              <p className="font-semibold text-gray-900">Kallpa UNL</p>
-              <p className="text-xs text-gray-500">Gestión Deportiva</p>
+            <div className="flex flex-col items-start leading-none">
+              <span className="font-bold text-base-content">Kallpa UNL</span>
             </div>
           </Link>
+        </div>
 
-          {showAuthButtons ? (
-            <div className="flex items-center gap-2">
-              <Link to={ROUTES.LOGIN} className={isLogin ? 'pointer-events-none' : ''}>
-                <Button variant={isLogin ? 'secondary' : 'ghost'}>
-                  Iniciar sesión
-                </Button>
-              </Link>
-              <Link to={ROUTES.REGISTER} className={isRegister ? 'pointer-events-none' : ''}>
-                <Button variant={isRegister ? 'secondary' : 'primary'}>
-                  Registrarse
-                </Button>
-              </Link>
-            </div>
-          ) : null}
+        <div className="navbar-end gap-2">
+          {showAuthButtons && (
+            <>
+              {/* Desktop Menu */}
+              <div className="hidden sm:flex items-center gap-2">
+                <Link to={ROUTES.LOGIN} tabIndex={-1}>
+                  <Button 
+                    variant={isLogin ? 'primary' : 'ghost'} 
+                    size="sm"
+                    className={isLogin ? '' : 'text-base-content/70 hover:text-primary'}
+                    disabled={isLogin}
+                  >
+                    Iniciar sesión
+                  </Button>
+                </Link>
+                <Link to={ROUTES.REGISTER} tabIndex={-1}>
+                  <Button 
+                    variant={isRegister ? 'primary' : 'primary'} 
+                    size="sm"
+                    disabled={isRegister}
+                    className={isRegister ? 'btn-disabled opacity-50' : ''}
+                  >
+                    Registrarse
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Mobile Menu Toggle */}
+              <div className="sm:hidden">
+                 <button 
+                  className="btn btn-square btn-ghost" 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  {isMenuOpen ? <X /> : <Menu />}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMenuOpen && showAuthButtons && (
+        <div className="sm:hidden absolute top-full left-0 right-0 bg-base-100 border-b border-base-content/5 shadow-lg p-4 flex flex-col gap-3 animate-in slide-in-from-top-2">
+           <Link to={ROUTES.LOGIN} onClick={() => setIsMenuOpen(false)}>
+              <Button 
+                variant={isLogin ? 'primary' : 'ghost'} 
+                fullWidth
+                disabled={isLogin}
+              >
+                Iniciar sesión
+              </Button>
+            </Link>
+            <Link to={ROUTES.REGISTER} onClick={() => setIsMenuOpen(false)}>
+              <Button 
+                variant={isRegister ? 'primary' : 'primary'} 
+                fullWidth
+                disabled={isRegister}
+              >
+                Registrarse
+              </Button>
+            </Link>
+        </div>
+      )}
     </header>
   );
 };
