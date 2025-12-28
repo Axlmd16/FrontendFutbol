@@ -243,6 +243,7 @@ export const API_ENDPOINTS = {
   ATHLETES: {
     BASE: "/athletes",
     BY_ID: (id) => `/athletes/${id}`,
+    CREATE: "/athletes/register-unl",
   },
 
   // Evaluations

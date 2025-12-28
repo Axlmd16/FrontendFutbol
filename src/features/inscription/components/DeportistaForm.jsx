@@ -28,7 +28,7 @@ const DeportistaForm = ({
 
   const defaultTypeId = TYPE_IDENTIFICATION_OPTIONS?.[0]?.value ?? "dni";
   const defaultTypeStament = TYPE_STAMENT_OPTIONS?.[0]?.value ?? "estudiante";
-  const defaultGender = GENDER_OPTIONS?.[0]?.value ?? "OTHER";
+  const defaultSex = GENDER_OPTIONS?.[0]?.value ?? "OTHER";
 
   const normalizedTypeIdentification = useMemo(() => {
     const raw = (initialData?.type_identification ?? "").toString().trim();
@@ -60,8 +60,8 @@ const DeportistaForm = ({
     return "";
   }, [initialData?.type_stament]);
 
-  const normalizedGender = useMemo(() => {
-    const raw = (initialData?.gender ?? "").toString().trim();
+  const normalizedSex = useMemo(() => {
+    const raw = (initialData?.sex ?? "").toString().trim();
     const upper = raw.toUpperCase();
     if (upper === "MASCULINO") return "MALE";
     if (upper === "FEMENINO") return "FEMALE";
@@ -71,14 +71,14 @@ const DeportistaForm = ({
     if (["male", "female", "other"].includes(lower)) return lower;
 
     return "";
-  }, [initialData?.gender]);
+  }, [initialData?.sex]);
 
   const defaultValues = useMemo(
     () => ({
       first_name: initialData?.first_name || "",
       last_name: initialData?.last_name || "",
       birth_date: initialData?.birth_date || "",
-      gender: normalizedGender || initialData?.gender || defaultGender,
+      sex: normalizedSex || initialData?.sex || defaultSex,
       direction: initialData?.direction || "",
       type_identification:
         normalizedTypeIdentification ||
@@ -243,7 +243,7 @@ const DeportistaForm = ({
           </label>
           <select
             className="select select-bordered w-full bg-white"
-            {...register("gender", {
+            {...register("sex", {
               required: "El genero es requerido",
             })}
           >
