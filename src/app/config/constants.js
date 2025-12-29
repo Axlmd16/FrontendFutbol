@@ -243,6 +243,7 @@ export const API_ENDPOINTS = {
   ATHLETES: {
     BASE: "/athletes",
     BY_ID: (id) => `/athletes/${id}`,
+    GET_ALL: "/athletes/all",
     CREATE: "/athletes/register-unl",
   },
 
@@ -268,7 +269,9 @@ export const API_ENDPOINTS = {
 
   // Attendance
   ATTENDANCE: {
-    BASE: "/attendance",
-    BY_DATE: (date) => `/attendance/date/${date}`,
+    BASE: "/attendances",
+    BULK: "/attendances/bulk",
+    BY_DATE: "/attendances/by-date",
+    SUMMARY: "/attendances/summary",
   },
 };
