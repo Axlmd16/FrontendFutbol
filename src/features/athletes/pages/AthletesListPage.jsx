@@ -1,15 +1,15 @@
 import AthletesTable from "../components/AthletesTable";
 import athletesApi from "../services/athletes.api";
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import useAuth from "@/features/auth/hooks/useAuth";
 import Button from "@/shared/components/Button";
 import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Loader from "@/shared/components/Loader";
 import useDebounce from "@/shared/hooks/useDebounce";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
-import { Search } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 
 const AthletesListPage = () => {
   // ESTADO
@@ -35,8 +35,7 @@ const AthletesListPage = () => {
     loading: false,
   });
 
-  // Usuario actual logueado
-  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   // Debounce para búsqueda
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -119,6 +118,16 @@ const AthletesListPage = () => {
     setDeactivateModal({ isOpen: false, athlete: null, loading: false });
   };
 
+  // Navega a crear deportista
+  const handleCreate = () => {
+    navigate(ROUTES.INSCRIPTION_CREATE);
+  };
+
+  // Navega a editar deportista
+  const handleEdit = (athlete) => {
+    navigate(ROUTES.INSCRIPTION_EDIT.replace(":id", athlete.id));
+  };
+
   // Maneja cambio de página
   const handlePageChange = (newPage) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
@@ -133,6 +142,17 @@ const AthletesListPage = () => {
         <p className="mt-4 text-sm text-gray-600">
           Gestiona los deportistas de tu club desde esta sección.
         </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:justify-between items-end sm:items-center mt-6">
+        <Button
+          variant="primary"
+          onClick={handleCreate}
+          className="mt-4 sm:mt-0"
+        >
+          <UserPlus size={20} />
+          Agregar deportista
+        </Button>
       </div>
 
       {/* Filtros */}
@@ -183,6 +203,7 @@ const AthletesListPage = () => {
           {/* Tabla */}
           <AthletesTable
             athletes={athletes}
+            onEdit={handleEdit}
             onDeactivate={handleDeactivateClick}
             loading={loading}
           />

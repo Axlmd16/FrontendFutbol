@@ -52,11 +52,6 @@ export const getSidebarItems = (role) => {
     return [
       ...baseItems,
       { label: "Usuarios", to: ROUTES.USERS, icon: "users" },
-      {
-        label: "Inscripciones",
-        to: ROUTES.INSCRIPTION_DEPORTISTA,
-        icon: "inscription",
-      },
       { label: "Evaluaciones", to: ROUTES.EVALUATIONS, icon: "evaluations" },
       { label: "Estadísticas", to: ROUTES.STATISTICS, icon: "statistics" },
       { label: "Reportes", to: ROUTES.REPORTS, icon: "reports" },
@@ -68,7 +63,7 @@ export const getSidebarItems = (role) => {
       ...baseItems,
       {
         label: "Inscripciones",
-        to: ROUTES.INSCRIPTION_DEPORTISTA,
+        to: ROUTES.INSCRIPTION,
         icon: "inscription",
       },
       { label: "Asistencias", to: ROUTES.ATTENDANCE, icon: "attendance" },

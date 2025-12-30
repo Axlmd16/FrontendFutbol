@@ -33,12 +33,12 @@ import UserListPage from "@/features/users/pages/UserListPage";
 import CreateUserPage from "@/features/users/pages/CreateUserPage";
 import EditUserPage from "@/features/users/pages/EditUserPage";
 
-// Páginas de Inscripción
+// Páginas de Inscripción / Deportistas
 import RegisterDeportistaPage from "@/features/inscription/pages/RegisterDeportistaPage";
 import RegisterMenorPage from "@/features/inscription/pages/RegisterMenorPage";
-
-// Páginas de Deportistas
 import AthletesListPage from "@/features/athletes/pages/AthletesListPage";
+import CreateAthletePage from "@/features/athletes/pages/CreateAthletePage";
+import EditAthletePage from "@/features/athletes/pages/EditAthletePage";
 
 // Páginas de Seguimiento
 import EvaluationsPage from "@/features/seguimiento/pages/EvaluationsPage";
@@ -94,29 +94,30 @@ const AppRouter = () => {
               <Route path={ROUTES.USERS_EDIT} element={<EditUserPage />} />
             </Route>
 
-            {/* RUTAS DE INSCRIPCIÓN - ADMIN y ENTRENADOR */}
-            <Route
-              element={
-                <RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR]} />
-              }
-            >
+            {/* RUTAS DE INSCRIPCIÓN / DEPORTISTAS - SOLO ENTRENADOR */}
+            <Route element={<RoleRoute allowedRoles={[ROLES.ENTRENADOR]} />}>
+              {/* Lista de deportistas (usa ruta principal y alias existente) */}
+              <Route path={ROUTES.INSCRIPTION} element={<AthletesListPage />} />
               <Route
                 path={ROUTES.INSCRIPTION_DEPORTISTA}
-                element={<RegisterDeportistaPage />}
+                element={<AthletesListPage />}
               />
+
+              {/* Crear / Editar deportista */}
+              <Route
+                path={ROUTES.INSCRIPTION_CREATE}
+                element={<CreateAthletePage />}
+              />
+              <Route
+                path={ROUTES.INSCRIPTION_EDIT}
+                element={<EditAthletePage />}
+              />
+
+              {/* Formularios previos (se mantienen) */}
               <Route
                 path={ROUTES.INSCRIPTION_MENOR}
                 element={<RegisterMenorPage />}
               />
-            </Route>
-
-            {/* RUTAS DE DEPORTISTAS - ENTRENADOR */}
-            <Route
-              element={
-                <RoleRoute allowedRoles={[ROLES.ENTRENADOR]} />
-              }
-            >
-              <Route path={ROUTES.ATHLETES} element={<AthletesListPage />} />
             </Route>
 
             {/* RUTAS DE SEGUIMIENTO */}

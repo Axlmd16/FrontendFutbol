@@ -1,9 +1,14 @@
 import React from "react";
 import Button from "../../../shared/components/Button";
-import { CirclePower } from "lucide-react";
+import { CirclePower, UserRoundPen } from "lucide-react";
 import PropTypes from "prop-types";
 
-function AthletesTable({ athletes = [], onDeactivate, loading = false }) {
+function AthletesTable({
+  athletes = [],
+  onEdit,
+  onDeactivate,
+  loading = false,
+}) {
   // Función auxiliar para obtener badge de categoría
   const getCategoryBadge = (category) => {
     const badges = {
@@ -157,6 +162,15 @@ function AthletesTable({ athletes = [], onDeactivate, loading = false }) {
                 <td>
                   <div className="flex justify-end gap-2 pr-2">
                     <Button
+                      variant="ghost"
+                      size="sm"
+                      className="btn-square btn-ghost text-info hover:bg-info/10"
+                      onClick={() => onEdit && onEdit(athlete)}
+                      title="Editar deportista"
+                    >
+                      <UserRoundPen size={16} />
+                    </Button>
+                    <Button
                       variant="danger"
                       size="sm"
                       onClick={() => onDeactivate(athlete)}
@@ -189,6 +203,7 @@ AthletesTable.propTypes = {
       state: PropTypes.bool,
     })
   ),
+  onEdit: PropTypes.func.isRequired,
   onDeactivate: PropTypes.func.isRequired,
   loading: PropTypes.bool,
 };

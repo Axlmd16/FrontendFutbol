@@ -34,6 +34,33 @@ const athletesApi = {
   },
 
   /**
+   * Crea un nuevo deportista
+   * @param {Object} athleteData - Datos del nuevo deportista
+   * @returns {Promise<Object>} Deportista creado
+   */
+  create: async (athleteData) => {
+    const response = await http.post(
+      API_ENDPOINTS.ATHLETES.CREATE,
+      athleteData
+    );
+    return response.data;
+  },
+
+  /**
+   * Actualiza un deportista existente
+   * @param {string|number} id - ID del deportista
+   * @param {Object} athleteData - Datos a actualizar
+   * @returns {Promise<Object>} Deportista actualizado
+   */
+  update: async (id, athleteData) => {
+    const response = await http.put(
+      API_ENDPOINTS.ATHLETES.UPDATE(id),
+      athleteData
+    );
+    return response.data;
+  },
+
+  /**
    * Da de baja un deportista (soft delete)
    * @param {string|number} id - ID del deportista
    * @returns {Promise<Object>} Deportista dado de baja
