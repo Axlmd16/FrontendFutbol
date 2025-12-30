@@ -7,20 +7,36 @@
 
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Edit2, ArrowLeft, Plus, Loader } from "lucide-react";
-import { useEvaluationById, useTestsByEvaluation } from "../hooks/useEvaluations";
+import { Edit2, ArrowLeft, Plus, Loader, X } from "lucide-react";
+import {
+  useEvaluationById,
+  useTestsByEvaluation,
+  useUpdateSprintTest,
+  useUpdateYoyoTest,
+  useUpdateEnduranceTest,
+  useUpdateTechnicalAssessment,
+} from "../hooks/useEvaluations";
 import { useQuery } from "@tanstack/react-query";
 import athletesApi from "../services/athletes.api";
 import { formatDate, formatTime } from "@/shared/utils/dateUtils";
+import EditTestForm from "./EditTestForm";
 
 const EvaluationDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [filterTestType, setFilterTestType] = React.useState("all");
   const [searchAthlete, setSearchAthlete] = React.useState("");
+  const [editingTest, setEditingTest] = React.useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+
+  // Hooks de mutación para actualizar tests
+  const updateSprintTest = useUpdateSprintTest();
+  const updateYoyoTest = useUpdateYoyoTest();
+  const updateEnduranceTest = useUpdateEnduranceTest();
+  const updateTechnicalAssessment = useUpdateTechnicalAssessment();
 
   const { data, isLoading, error } = useEvaluationById(id);
-  const { data: testsData, isLoading: testsLoading } = useTestsByEvaluation(id);
+  const { data: testsData, isLoading: testsLoading, refetch: refetchTests } = useTestsByEvaluation(id);
   
   const evaluation = data?.data;
   const allTests = testsData?.all || [];
@@ -122,6 +138,36 @@ const EvaluationDetail = () => {
     if (test.test_type === "endurance_test") return "Test de Resistencia";
     if (test.test_type === "technical_assessment") return "Evaluación Técnica";
     return test.test_type?.replace(/_/g, " ") || "Test";
+  };
+
+  // Función para abrir el modal de edición
+  const handleEditTest = (test) => {
+    // Buscar el test actualizado en allTests para asegurar datos frescos
+    const freshTest = allTests.find(t => t.id === test.id) || test;
+    setEditingTest(freshTest);
+    setIsEditModalOpen(true);
+  };
+
+  // Función para cerrar el modal
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingTest(null);
+  };
+
+  // Obtener la mutación correcta según el tipo de test
+  const getUpdateMutation = (testType) => {
+    switch (testType) {
+      case "sprint_test":
+        return updateSprintTest;
+      case "yoyo_test":
+        return updateYoyoTest;
+      case "endurance_test":
+        return updateEnduranceTest;
+      case "technical_assessment":
+        return updateTechnicalAssessment;
+      default:
+        return null;
+    }
   };
 
   if (isLoading) {
@@ -339,11 +385,18 @@ const EvaluationDetail = () => {
                   <h3 className="font-semibold text-gray-900">
                     {formatTestType(test)}
                   </h3>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded whitespace-nowrap">
-                    {getAthleteName(test.athlete_id)}
-                  </span>
+                  <button
+                    onClick={() => handleEditTest(test)}
+                    className="p-1 hover:bg-gray-100 rounded transition text-blue-600 hover:text-blue-800"
+                    title="Editar test"
+                  >
+                    <Edit2 size={16} />
+                  </button>
                 </div>
-                <p className="text-sm text-gray-600">
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded whitespace-nowrap">
+                  {getAthleteName(test.athlete_id)}
+                </span>
+                <p className="text-sm text-gray-600 mt-3">
                   Fecha: {formatDate(test.date)}
                 </p>
                 {test.observations && (
@@ -356,6 +409,35 @@ const EvaluationDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Edición de Test */}
+      {isEditModalOpen && editingTest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-2xl font-bold">Editar {formatTestType(editingTest)}</h2>
+              <button
+                onClick={handleCloseEditModal}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={24} className="text-gray-600" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <EditTestForm
+                test={editingTest}
+                mutation={getUpdateMutation(editingTest.test_type)}
+                onSuccess={() => {
+                  refetchTests();
+                  handleCloseEditModal();
+                }}
+                onCancel={handleCloseEditModal}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

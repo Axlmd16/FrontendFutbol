@@ -237,6 +237,66 @@ const evaluationsApi = {
     return response.data;
   },
 
+  // ===============================================
+  // TESTS - ACTUALIZAR
+  // ===============================================
+
+  /**
+   * Actualiza un test de velocidad
+   * @param {number} testId - ID del test
+   * @param {Object} updateData - Datos a actualizar
+   * @returns {Promise<Object>} Test actualizado
+   */
+  updateSprintTest: async (testId, updateData) => {
+    const response = await http.patch(
+      `${API_ENDPOINTS.TESTS.SPRINT}/${testId}`,
+      updateData
+    );
+    return response.data;
+  },
+
+  /**
+   * Actualiza un test Yoyo
+   * @param {number} testId - ID del test
+   * @param {Object} updateData - Datos a actualizar
+   * @returns {Promise<Object>} Test actualizado
+   */
+  updateYoyoTest: async (testId, updateData) => {
+    const response = await http.patch(
+      `${API_ENDPOINTS.TESTS.YOYO}/${testId}`,
+      updateData
+    );
+    return response.data;
+  },
+
+  /**
+   * Actualiza un test de resistencia
+   * @param {number} testId - ID del test
+   * @param {Object} updateData - Datos a actualizar
+   * @returns {Promise<Object>} Test actualizado
+   */
+  updateEnduranceTest: async (testId, updateData) => {
+    const response = await http.patch(
+      `${API_ENDPOINTS.TESTS.ENDURANCE}/${testId}`,
+      updateData
+    );
+    return response.data;
+  },
+
+  /**
+   * Actualiza una evaluación técnica
+   * @param {number} testId - ID del test
+   * @param {Object} updateData - Datos a actualizar
+   * @returns {Promise<Object>} Test actualizado
+   */
+  updateTechnicalAssessment: async (testId, updateData) => {
+    const response = await http.patch(
+      `${API_ENDPOINTS.TESTS.TECHNICAL}/${testId}`,
+      updateData
+    );
+    return response.data;
+  },
+
   /**
    * Obtiene todos los tests de una evaluación
    * @param {number} evaluationId - ID de la evaluación

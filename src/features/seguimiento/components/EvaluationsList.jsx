@@ -5,15 +5,19 @@
  * para ver detalles, editar y eliminar
  */
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Eye, Plus } from "lucide-react";
+import { Edit2, Trash2, Eye, Plus, X } from "lucide-react";
 import { useEvaluations, useDeleteEvaluation } from "../hooks/useEvaluations";
 import { formatDate, formatTime } from "@/shared/utils/dateUtils";
 
 const EvaluationsList = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
+  const [searchName, setSearchName] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterTime, setFilterTime] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
   const pageSize = 10;
 
   const { data, isLoading, error } = useEvaluations({
@@ -22,6 +26,57 @@ const EvaluationsList = () => {
   });
 
   const deleteEvaluation = useDeleteEvaluation();
+
+  // Aplicar filtros a las evaluaciones
+  const filteredEvaluations = useMemo(() => {
+    const evaluations = data?.data || [];
+    return evaluations.filter((evaluation) => {
+      // Filtro por nombre (case-insensitive substring)
+      if (searchName.trim()) {
+        if (!evaluation.name.toLowerCase().includes(searchName.toLowerCase())) {
+          return false;
+        }
+      }
+      // Filtro por fecha
+      if (filterDate) {
+        const evaluationDate = evaluation.date.split("T")[0];
+        if (evaluationDate !== filterDate) {
+          return false;
+        }
+      }
+      // Filtro por hora
+      if (filterTime) {
+        if (evaluation.time !== filterTime) {
+          return false;
+        }
+      }
+      // Filtro por ubicación (case-insensitive substring)
+      if (filterLocation.trim()) {
+        if (
+          !evaluation.location?.toLowerCase().includes(filterLocation.toLowerCase())
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [data?.data, searchName, filterDate, filterTime, filterLocation]);
+
+  // Calcular total de páginas basado en evaluaciones filtradas
+  const totalFilteredCount = filteredEvaluations.length;
+  const totalPages = Math.ceil(totalFilteredCount / pageSize);
+
+  // Obtener evaluaciones para la página actual
+  const paginatedEvaluations = filteredEvaluations.slice(
+    page * pageSize,
+    (page + 1) * pageSize
+  );
+
+  // Resetear página si hay filtros activos
+  const hasActiveFilters = searchName || filterDate || filterTime || filterLocation;
+  React.useEffect(() => {
+    setPage(0);
+  }, [hasActiveFilters]);
 
   const handleDelete = (id) => {
     if (window.confirm("¿Está seguro que desea eliminar esta evaluación?")) {
@@ -45,22 +100,82 @@ const EvaluationsList = () => {
     );
   }
 
-  const evaluations = data?.data || [];
-  const totalCount = data?.total || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
-
   return (
     <div className="space-y-6">
-      {/* Botón para crear evaluación */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Evaluaciones</h2>
-        <button
-          onClick={() => navigate("/seguimiento/evaluations/create")}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-        >
-          <Plus size={20} />
-          Nueva Evaluación
-        </button>
+      {/* Filtros de búsqueda */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+        <h3 className="font-semibold text-gray-900">Filtros</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Búsqueda por nombre */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Filtro por fecha */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fecha
+            </label>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Filtro por hora */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Hora
+            </label>
+            <input
+              type="time"
+              value={filterTime}
+              onChange={(e) => setFilterTime(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Búsqueda por ubicación */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ubicación
+            </label>
+            <input
+              type="text"
+              placeholder="Buscar por ubicación..."
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Botón para limpiar filtros */}
+        {hasActiveFilters && (
+          <button
+            onClick={() => {
+              setSearchName("");
+              setFilterDate("");
+              setFilterTime("");
+              setFilterLocation("");
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+          >
+            <X size={16} />
+            Limpiar filtros
+          </button>
+        )}
       </div>
 
       {/* Tabla de evaluaciones */}
@@ -86,14 +201,14 @@ const EvaluationsList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {evaluations.length === 0 ? (
+            {paginatedEvaluations.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                  No hay evaluaciones disponibles
+                  {hasActiveFilters ? "No hay evaluaciones que coincidan con los filtros" : "No hay evaluaciones disponibles"}
                 </td>
               </tr>
             ) : (
-              evaluations.map((evaluation) => (
+              paginatedEvaluations.map((evaluation) => (
                 <tr key={evaluation.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {evaluation.name}
