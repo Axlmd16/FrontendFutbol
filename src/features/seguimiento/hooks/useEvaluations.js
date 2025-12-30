@@ -35,6 +35,15 @@ export const useEvaluationsByUser = (userId) => {
   });
 };
 
+export const useTestsByEvaluation = (evaluationId) => {
+  return useQuery({
+    queryKey: ["tests-by-evaluation", evaluationId],
+    queryFn: () => evaluationsApi.getTestsByEvaluation(evaluationId),
+    enabled: !!evaluationId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useCreateEvaluation = () => {
   const queryClient = useQueryClient();
 
@@ -102,6 +111,9 @@ export const useCreateSprintTest = () => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["tests-by-evaluation", variables.evaluation_id],
+      });
       toast.success("Test de velocidad creado exitosamente");
       return data;
     },
@@ -121,6 +133,9 @@ export const useCreateYoyoTest = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["tests-by-evaluation", variables.evaluation_id],
       });
       toast.success("Test Yoyo creado exitosamente");
       return data;
@@ -142,6 +157,9 @@ export const useCreateEnduranceTest = () => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["tests-by-evaluation", variables.evaluation_id],
+      });
       toast.success("Test de resistencia creado exitosamente");
       return data;
     },
@@ -161,6 +179,9 @@ export const useCreateTechnicalAssessment = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["tests-by-evaluation", variables.evaluation_id],
       });
       toast.success("Evaluación técnica creada exitosamente");
       return data;

@@ -180,6 +180,93 @@ const evaluationsApi = {
     );
     return response.data;
   },
+
+  // ===============================================
+  // TESTS - OBTENER
+  // ===============================================
+
+  /**
+   * Obtiene tests de velocidad (sprint)
+   * @param {Object} params - Parámetros de filtrado
+   * @param {number} [params.evaluation_id] - Filtrar por evaluación
+   * @param {number} [params.skip] - Registros a saltar
+   * @param {number} [params.limit] - Límite de registros
+   * @returns {Promise<Object>} Lista de tests
+   */
+  getSprintTests: async (params = {}) => {
+    const response = await http.get(API_ENDPOINTS.TESTS.SPRINT, { params });
+    return response.data;
+  },
+
+  /**
+   * Obtiene tests Yoyo
+   * @param {Object} params - Parámetros de filtrado
+   * @param {number} [params.evaluation_id] - Filtrar por evaluación
+   * @param {number} [params.skip] - Registros a saltar
+   * @param {number} [params.limit] - Límite de registros
+   * @returns {Promise<Object>} Lista de tests
+   */
+  getYoyoTests: async (params = {}) => {
+    const response = await http.get(API_ENDPOINTS.TESTS.YOYO, { params });
+    return response.data;
+  },
+
+  /**
+   * Obtiene tests de resistencia (endurance)
+   * @param {Object} params - Parámetros de filtrado
+   * @param {number} [params.evaluation_id] - Filtrar por evaluación
+   * @param {number} [params.skip] - Registros a saltar
+   * @param {number} [params.limit] - Límite de registros
+   * @returns {Promise<Object>} Lista de tests
+   */
+  getEnduranceTests: async (params = {}) => {
+    const response = await http.get(API_ENDPOINTS.TESTS.ENDURANCE, { params });
+    return response.data;
+  },
+
+  /**
+   * Obtiene evaluaciones técnicas
+   * @param {Object} params - Parámetros de filtrado
+   * @param {number} [params.evaluation_id] - Filtrar por evaluación
+   * @param {number} [params.skip] - Registros a saltar
+   * @param {number} [params.limit] - Límite de registros
+   * @returns {Promise<Object>} Lista de tests
+   */
+  getTechnicalAssessments: async (params = {}) => {
+    const response = await http.get(API_ENDPOINTS.TESTS.TECHNICAL, { params });
+    return response.data;
+  },
+
+  /**
+   * Obtiene todos los tests de una evaluación
+   * @param {number} evaluationId - ID de la evaluación
+   * @returns {Promise<Object>} Tests agrupados por tipo
+   */
+  getTestsByEvaluation: async (evaluationId) => {
+    const params = { evaluation_id: evaluationId };
+    
+    // Hacer llamadas en paralelo para obtener todos los tipos de test
+    const [sprint, yoyo, endurance, technical] = await Promise.all([
+      evaluationsApi.getSprintTests(params).catch(() => ({ data: [] })),
+      evaluationsApi.getYoyoTests(params).catch(() => ({ data: [] })),
+      evaluationsApi.getEnduranceTests(params).catch(() => ({ data: [] })),
+      evaluationsApi.getTechnicalAssessments(params).catch(() => ({ data: [] })),
+    ]);
+
+    // Combinar todos los tests
+    return {
+      sprint_tests: sprint.data || [],
+      yoyo_tests: yoyo.data || [],
+      endurance_tests: endurance.data || [],
+      technical_assessments: technical.data || [],
+      all: [
+        ...(sprint.data || []),
+        ...(yoyo.data || []),
+        ...(endurance.data || []),
+        ...(technical.data || []),
+      ],
+    };
+  },
 };
 
 export default evaluationsApi;

@@ -7,8 +7,10 @@
 
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Edit2, ArrowLeft, Plus } from "lucide-react";
-import { useEvaluationById } from "../hooks/useEvaluations";
+import { Edit2, ArrowLeft, Plus, Loader } from "lucide-react";
+import { useEvaluationById, useTestsByEvaluation } from "../hooks/useEvaluations";
+import { useQuery } from "@tanstack/react-query";
+import athletesApi from "../services/athletes.api";
 import { formatDate, formatTime } from "@/shared/utils/dateUtils";
 
 const EvaluationDetail = () => {
@@ -16,7 +18,36 @@ const EvaluationDetail = () => {
   const { id } = useParams();
 
   const { data, isLoading, error } = useEvaluationById(id);
+  const { data: testsData, isLoading: testsLoading } = useTestsByEvaluation(id);
+  
   const evaluation = data?.data;
+  const allTests = testsData?.all || [];
+
+  // Hook para obtener datos de atletas con caché
+  const { data: athletesData } = useQuery({
+    queryKey: ["athletes", "all"],
+    queryFn: () => athletesApi.getAll({ limit: 1000 }),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const athletes = athletesData?.data || [];
+  
+  // Función auxiliar para obtener nombre del atleta
+  const getAthleteName = (athleteId) => {
+    const athlete = athletes.find(a => a.id === athleteId);
+    return athlete?.first_name && athlete?.last_name 
+      ? `${athlete.first_name} ${athlete.last_name}`
+      : `Atleta #${athleteId}`;
+  };
+
+  // Función para formatear tipo de test con palabras más legibles
+  const formatTestType = (test) => {
+    if (test.type === "sprint_test") return "Test de Velocidad";
+    if (test.type === "yoyo_test") return "Test Yoyo";
+    if (test.type === "endurance_test") return "Test de Resistencia";
+    if (test.type === "technical_assessment") return "Evaluación Técnica";
+    return test.type?.replace(/_/g, " ") || "Test";
+  };
 
   if (isLoading) {
     return (
@@ -34,7 +65,7 @@ const EvaluationDetail = () => {
     );
   }
 
-  const tests = evaluation.tests || [];
+  const tests = allTests || [];
 
   return (
     <div className="space-y-6">
@@ -133,7 +164,11 @@ const EvaluationDetail = () => {
           </button>
         </div>
 
-        {tests.length === 0 ? (
+        {testsLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader className="w-6 h-6 text-blue-600 animate-spin" />
+          </div>
+        ) : tests.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 mb-4">
               No hay tests registrados en esta evaluación
@@ -153,11 +188,11 @@ const EvaluationDetail = () => {
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900 capitalize">
-                    {test.test_type || "Test"}
+                  <h3 className="font-semibold text-gray-900">
+                    {formatTestType(test)}
                   </h3>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                    {test.athlete_id}
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded whitespace-nowrap">
+                    {getAthleteName(test.athlete_id)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">

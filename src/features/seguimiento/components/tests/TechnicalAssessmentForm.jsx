@@ -10,11 +10,10 @@ import { Plus, Loader } from "lucide-react";
 import AthletesSelectionList from "./AthletesSelectionList";
 
 const SCALE_OPTIONS = [
-  { value: "MUY_BAJO", label: "Muy Bajo" },
-  { value: "BAJO", label: "Bajo" },
-  { value: "MEDIO", label: "Medio" },
-  { value: "ALTO", label: "Alto" },
-  { value: "MUY_ALTO", label: "Muy Alto" },
+  { value: "Poor", label: "Pobre" },
+  { value: "Average", label: "Regular" },
+  { value: "Good", label: "Bueno" },
+  { value: "Excellent", label: "Excelente" },
 ];
 
 const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
@@ -22,11 +21,11 @@ const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
-      ball_control: "MEDIO",
-      short_pass: "MEDIO",
-      long_pass: "MEDIO",
-      shooting: "MEDIO",
-      dribbling: "MEDIO",
+      ball_control: "Average",
+      short_pass: "Average",
+      long_pass: "Average",
+      shooting: "Average",
+      dribbling: "Average",
       observations: "",
     },
   });
