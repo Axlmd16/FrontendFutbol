@@ -4,14 +4,16 @@
  * Formulario para crear tests de velocidad (sprint)
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Loader } from "lucide-react";
+import AthletesSelectionList from "./AthletesSelectionList";
 
 const SprintTestForm = ({ evaluationId, mutation, onSuccess }) => {
+  const [selectedAthletes, setSelectedAthletes] = useState([]);
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
-      athlete_id: "",
       distance_meters: 30,
       time_0_10_s: "",
       time_0_30_s: "",
@@ -20,17 +22,27 @@ const SprintTestForm = ({ evaluationId, mutation, onSuccess }) => {
   });
 
   const onSubmit = async (formData) => {
+    // Validar que haya atletas seleccionados
+    if (selectedAthletes.length === 0) {
+      alert("Por favor selecciona al menos un atleta");
+      return;
+    }
+
     try {
-      await mutation.mutateAsync({
-        ...formData,
-        evaluation_id: parseInt(evaluationId),
-        athlete_id: parseInt(formData.athlete_id),
-        distance_meters: parseFloat(formData.distance_meters),
-        time_0_10_s: parseFloat(formData.time_0_10_s),
-        time_0_30_s: parseFloat(formData.time_0_30_s),
-        date: new Date().toISOString(),
-      });
+      // Crear un test para cada atleta seleccionado
+      for (const athleteId of selectedAthletes) {
+        await mutation.mutateAsync({
+          ...formData,
+          evaluation_id: parseInt(evaluationId),
+          athlete_id: athleteId,
+          distance_meters: parseFloat(formData.distance_meters),
+          time_0_10_s: parseFloat(formData.time_0_10_s),
+          time_0_30_s: parseFloat(formData.time_0_30_s),
+          date: new Date().toISOString(),
+        });
+      }
       reset();
+      setSelectedAthletes([]);
       onSuccess();
     } catch (error) {
       console.error("Error:", error);
@@ -38,28 +50,21 @@ const SprintTestForm = ({ evaluationId, mutation, onSuccess }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Atleta */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Deportista ID *
-          </label>
-          <input
-            type="number"
-            placeholder="ID del deportista"
-            {...register("athlete_id", {
-              required: "El ID del deportista es requerido",
-              min: { value: 1, message: "ID inválido" },
-            })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.athlete_id && (
-            <p className="text-red-600 text-sm mt-1">
-              {errors.athlete_id.message}
-            </p>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* Selección de atletas */}
+      <AthletesSelectionList
+        selectedAthleteIds={selectedAthletes}
+        onSelectionChange={setSelectedAthletes}
+        multiSelect={true}
+        loading={mutation.isPending}
+      />
+
+      {/* Formulario de datos del test */}
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">
+          Datos del Test de Velocidad
+        </h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
         {/* Distancia */}
         <div>
@@ -161,9 +166,11 @@ const SprintTestForm = ({ evaluationId, mutation, onSuccess }) => {
             )}
           </button>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
 
 export default SprintTestForm;
+

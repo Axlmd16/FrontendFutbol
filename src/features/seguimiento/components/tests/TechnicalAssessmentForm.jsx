@@ -4,9 +4,10 @@
  * Formulario para crear evaluaciones técnicas
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Loader } from "lucide-react";
+import AthletesSelectionList from "./AthletesSelectionList";
 
 const SCALE_OPTIONS = [
   { value: "MUY_BAJO", label: "Muy Bajo" },
@@ -17,9 +18,10 @@ const SCALE_OPTIONS = [
 ];
 
 const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
+  const [selectedAthletes, setSelectedAthletes] = useState([]);
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
-      athlete_id: "",
       ball_control: "MEDIO",
       short_pass: "MEDIO",
       long_pass: "MEDIO",
@@ -30,14 +32,24 @@ const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
   });
 
   const onSubmit = async (formData) => {
+    // Validar que haya atletas seleccionados
+    if (selectedAthletes.length === 0) {
+      alert("Por favor selecciona al menos un atleta");
+      return;
+    }
+
     try {
-      await mutation.mutateAsync({
-        ...formData,
-        evaluation_id: parseInt(evaluationId),
-        athlete_id: parseInt(formData.athlete_id),
-        date: new Date().toISOString(),
-      });
+      // Crear un test para cada atleta seleccionado
+      for (const athleteId of selectedAthletes) {
+        await mutation.mutateAsync({
+          ...formData,
+          evaluation_id: parseInt(evaluationId),
+          athlete_id: athleteId,
+          date: new Date().toISOString(),
+        });
+      }
       reset();
+      setSelectedAthletes([]);
       onSuccess();
     } catch (error) {
       console.error("Error:", error);
@@ -45,28 +57,21 @@ const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Atleta */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Deportista ID *
-          </label>
-          <input
-            type="number"
-            placeholder="ID del deportista"
-            {...register("athlete_id", {
-              required: "El ID del deportista es requerido",
-              min: { value: 1, message: "ID inválido" },
-            })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.athlete_id && (
-            <p className="text-red-600 text-sm mt-1">
-              {errors.athlete_id.message}
-            </p>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* Selección de atletas */}
+      <AthletesSelectionList
+        selectedAthleteIds={selectedAthletes}
+        onSelectionChange={setSelectedAthletes}
+        multiSelect={true}
+        loading={mutation.isPending}
+      />
+
+      {/* Formulario de datos del test */}
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">
+          Datos de la Evaluación Técnica
+        </h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
         {/* Habilidades técnicas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,8 +229,8 @@ const TechnicalAssessmentForm = ({ evaluationId, mutation, onSuccess }) => {
             )}
           </button>
         </div>
-      </form>
-    </div>
+        </form>
+      </div>    </div>
   );
 };
 
