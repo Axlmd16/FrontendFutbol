@@ -45,9 +45,8 @@ const ChangePasswordPage = () => {
   return (
     <div className="min-h-[calc(100vh-4rem)] pb-12">
       {/* Banner Section */}
-      <div className="h-48 w-full bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden">
+      <div className="h-48 w-full bg-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute bottom-0 left-0 w-full h-1/3 bg-linear-to-t from-black/30 to-transparent"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">

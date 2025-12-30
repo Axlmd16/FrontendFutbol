@@ -58,13 +58,13 @@ const ForgotPasswordPage = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="bg-base-100 rounded-2xl shadow-xl p-8 text-center">
             {/* Icono de éxito */}
-            <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto h-16 w-16 bg-success/20 rounded-full flex items-center justify-center mb-4">
               <svg
-                className="h-10 w-10 text-green-600"
+                className="h-10 w-10 text-success"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -78,18 +78,18 @@ const ForgotPasswordPage = () => {
               </svg>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-base-content mb-2">
               ¡Revisa tu correo!
             </h2>
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-base-content/70 mb-6">
               Si existe una cuenta con el email <strong>{email}</strong>,
               recibirás instrucciones para restablecer tu contraseña.
             </p>
 
             <Link
               to={ROUTES.LOGIN}
-              className="text-blue-600 hover:text-blue-500 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               Volver al inicio de sesión
             </Link>
@@ -104,14 +104,14 @@ const ForgotPasswordPage = () => {
   // ==============================================
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-base-100 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
               <svg
-                className="h-10 w-10 text-blue-600"
+                className="h-10 w-10 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -125,10 +125,10 @@ const ForgotPasswordPage = () => {
               </svg>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-base-content">
               ¿Olvidaste tu contraseña?
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-base-content/70">
               Ingresa tu email y te enviaremos instrucciones para recuperarla.
             </p>
           </div>
@@ -137,7 +137,7 @@ const ForgotPasswordPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error del servidor */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
                 <p className="text-sm">{error}</p>
               </div>
             )}
@@ -171,7 +171,7 @@ const ForgotPasswordPage = () => {
             <div className="text-center">
               <Link
                 to={ROUTES.LOGIN}
-                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                className="text-sm text-primary hover:text-primary/80 font-medium"
               >
                 ← Volver al inicio de sesión
               </Link>
