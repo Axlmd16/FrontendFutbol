@@ -22,7 +22,9 @@ export const useEvaluationById = (id) => {
     queryKey: ["evaluation", id],
     queryFn: () => evaluationsApi.getById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -40,7 +42,9 @@ export const useTestsByEvaluation = (evaluationId) => {
     queryKey: ["tests-by-evaluation", evaluationId],
     queryFn: () => evaluationsApi.getTestsByEvaluation(evaluationId),
     enabled: !!evaluationId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 };
 

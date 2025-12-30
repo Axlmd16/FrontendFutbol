@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Loader, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import AthletesSelectionList from "./AthletesSelectionList";
 
 const SprintTestForm = ({
@@ -16,8 +17,22 @@ const SprintTestForm = ({
   isEdit = false,
   testData = null,
   onCancel,
+  selectedAthlete: selectedAthleteProp = null,
+  hideAthleteSelector = false,
 }) => {
   const [selectedAthletes, setSelectedAthletes] = useState([]);
+  const [selectedAthlete, setSelectedAthlete] = useState(null);
+
+  const formatAthleteType = (type) => {
+    const types = {
+      EXTERNOS: "Escuela",
+      ESTUDIANTES: "Estudiante",
+      DOCENTES: "Docente",
+      TRABAJADORES: "Trabajador",
+      ADMINISTRATIVOS: "Admin",
+    };
+    return types[type] || type || "Tipo no disponible";
+  };
 
   const {
     register,
@@ -38,6 +53,14 @@ const SprintTestForm = ({
   useEffect(() => {
     if (isEdit && testData) {
       setSelectedAthletes([testData.athlete_id]);
+      setSelectedAthlete({
+        id: testData.athlete_id,
+        full_name: testData.athlete_name || `Atleta ${testData.athlete_id}`,
+        dni: testData.athlete_dni,
+        type_athlete: testData.athlete_type,
+        height: testData.athlete_height,
+        weight: testData.athlete_weight,
+      });
       setValue("distance_meters", testData.distance_meters);
       setValue("time_0_10_s", testData.time_0_10_s);
       setValue("time_0_30_s", testData.time_0_30_s);
@@ -45,10 +68,18 @@ const SprintTestForm = ({
     }
   }, [isEdit, testData, setValue]);
 
+  // Sincronizar atleta pasado por props (flujo de creación desde AddTestsForm)
+  useEffect(() => {
+    if (!isEdit && selectedAthleteProp) {
+      setSelectedAthletes([selectedAthleteProp.id]);
+      setSelectedAthlete(selectedAthleteProp);
+    }
+  }, [selectedAthleteProp, isEdit]);
+
   const onSubmit = async (formData) => {
     // Validar que haya atletas seleccionados
-    if (selectedAthletes.length === 0) {
-      alert("Por favor selecciona al menos un atleta");
+    if (selectedAthletes.length === 0 || !selectedAthlete) {
+      toast.error("Por favor selecciona un atleta");
       return;
     }
 
@@ -58,7 +89,7 @@ const SprintTestForm = ({
         await mutation.mutateAsync({
           testId: testData.id,
           data: {
-            athlete_id: selectedAthletes[0],
+            athlete_id: selectedAthlete.id,
             distance_meters: parseFloat(formData.distance_meters),
             time_0_10_s: parseFloat(formData.time_0_10_s),
             time_0_30_s: parseFloat(formData.time_0_30_s),
@@ -66,21 +97,20 @@ const SprintTestForm = ({
           },
         });
       } else {
-        // Crear nuevos tests para cada atleta
-        for (const athleteId of selectedAthletes) {
-          await mutation.mutateAsync({
-            ...formData,
-            evaluation_id: parseInt(evaluationId),
-            athlete_id: athleteId,
-            distance_meters: parseFloat(formData.distance_meters),
-            time_0_10_s: parseFloat(formData.time_0_10_s),
-            time_0_30_s: parseFloat(formData.time_0_30_s),
-            date: new Date().toISOString(),
-          });
-        }
+        // Crear test para un único atleta
+        await mutation.mutateAsync({
+          ...formData,
+          evaluation_id: parseInt(evaluationId),
+          athlete_id: selectedAthlete.id,
+          distance_meters: parseFloat(formData.distance_meters),
+          time_0_10_s: parseFloat(formData.time_0_10_s),
+          time_0_30_s: parseFloat(formData.time_0_30_s),
+          date: new Date().toISOString(),
+        });
       }
       reset();
       setSelectedAthletes([]);
+      setSelectedAthlete(null);
       onSuccess();
     } catch (error) {
       console.error("Error:", error);
@@ -104,14 +134,38 @@ const SprintTestForm = ({
         </div>
       )}
 
-      {/* Selección de atletas */}
-      <AthletesSelectionList
-        selectedAthleteIds={selectedAthletes}
-        onSelectionChange={setSelectedAthletes}
-        multiSelect={!isEdit}
-        loading={mutation.isPending}
-        disabled={isEdit}
-      />
+      {/* Selección de atletas (solo cuando no se provee desde el flujo externo) */}
+      {!hideAthleteSelector && (
+        <AthletesSelectionList
+          selectedAthleteIds={selectedAthletes}
+          onSelectionChange={setSelectedAthletes}
+          multiSelect={false}
+          loading={mutation.isPending}
+          disabled={isEdit}
+          onSelectedAthleteChange={setSelectedAthlete}
+        />
+      )}
+
+      {/* Datos del atleta seleccionado */}
+      <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Atleta seleccionado</h4>
+        {selectedAthlete ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-base font-semibold text-gray-900">{selectedAthlete.full_name || "Nombre no disponible"}</p>
+              <p className="text-sm text-gray-600">DNI: {selectedAthlete.dni || "No disponible"}</p>
+              <p className="text-sm text-gray-600">Tipo: {formatAthleteType(selectedAthlete.type_athlete)}</p>
+              <p className="text-sm text-gray-600">Altura: {selectedAthlete.height ? `${selectedAthlete.height} cm` : "No disponible"}</p>
+              <p className="text-sm text-gray-600">Peso: {selectedAthlete.weight ? `${selectedAthlete.weight} kg` : "No disponible"}</p>
+            </div>
+            <span className="px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full">
+              1 seleccionado
+            </span>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">Selecciona un atleta para continuar.</p>
+        )}
+      </div>
 
       {/* Formulario de datos del test */}
       <div className="bg-white rounded-lg shadow-lg p-8">

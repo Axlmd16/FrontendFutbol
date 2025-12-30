@@ -10,8 +10,9 @@ import athletesApi from "../../services/athletes.api";
 function AthletesSelectionList({
   selectedAthleteIds = [],
   onSelectionChange,
-  multiSelect = true,
+  multiSelect = false, // for backward compatibility, but we enforce single select
   loading: parentLoading = false,
+  onSelectedAthleteChange = () => {},
 }) {
   const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,23 +60,28 @@ function AthletesSelectionList({
 
   // Manejar selección
   const handleToggleAthlete = (athleteId) => {
-    let newSelection;
-
-    if (multiSelect) {
-      // Multi-select: toggle
-      if (selectedAthleteIds.includes(athleteId)) {
-        newSelection = selectedAthleteIds.filter((id) => id !== athleteId);
-      } else {
-        newSelection = [...selectedAthleteIds, athleteId];
-      }
-    } else {
-      // Single select: reemplazar
-      newSelection = selectedAthleteIds.includes(athleteId)
-        ? []
-        : [athleteId];
-    }
+    // Forzado a single select: si está seleccionado se desmarca, si no, se reemplaza.
+    const newSelection = selectedAthleteIds.includes(athleteId)
+      ? []
+      : [athleteId];
 
     onSelectionChange(newSelection);
+
+    // Notificar atleta(s) seleccionado(s) (útil para modo single select)
+    if (onSelectedAthleteChange) {
+      if (!multiSelect) {
+        const selectedAthlete =
+          newSelection.length === 1
+            ? athletes.find((a) => a.id === newSelection[0]) || null
+            : null;
+        onSelectedAthleteChange(selectedAthlete);
+      } else {
+        const selectedList = athletes.filter((a) =>
+          newSelection.includes(a.id)
+        );
+        onSelectedAthleteChange(selectedList);
+      }
+    }
   };
 
   // Tipos de atleta
@@ -238,7 +244,8 @@ function AthletesSelectionList({
                           <span>•</span>
                         </>
                       )}
-                      <span>ID: {athlete.id}</span>
+                      {athlete.dni && <span>DNI: {athlete.dni}</span>}
+                      {!athlete.dni && !athlete.club && <span>Sin DNI</span>}
                     </div>
                   </div>
 
