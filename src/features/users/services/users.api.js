@@ -76,6 +76,15 @@ const usersApi = {
     });
     return response.data;
   },
+
+  /**
+   * Obtiene el perfil del usuario actual
+   * @returns {Promise<Object>} Datos del usuario actual
+   */
+  getMe: async () => {
+    const response = await http.get(API_ENDPOINTS.AUTH.ME);
+    return response.data;
+  },
 };
 
 export default usersApi;

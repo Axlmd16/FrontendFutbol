@@ -116,7 +116,7 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Mensaje de error del servidor */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
           <p className="text-sm">{error}</p>
         </div>
       )}
@@ -153,17 +153,17 @@ const LoginForm = ({ onSubmit, loading = false, error = null }) => {
 
       {/* Opciones adicionales */}
       <div className="flex items-center justify-between">
-        <label className="flex items-center">
+        <label className="flex items-center cursor-pointer">
           <input
             type="checkbox"
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="checkbox checkbox-primary checkbox-sm"
           />
-          <span className="ml-2 text-sm text-gray-600">Recordarme</span>
+          <span className="ml-2 text-sm text-base-content/70">Recordarme</span>
         </label>
 
         <Link
           to={ROUTES.FORGOT_PASSWORD}
-          className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+          className="text-sm text-primary hover:text-primary/80 font-medium"
         >
           ¿Olvidaste tu contraseña?
         </Link>
