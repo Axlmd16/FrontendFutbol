@@ -226,7 +226,7 @@ export const API_ENDPOINTS = {
     REFRESH: "/accounts/refresh",
     FORGOT_PASSWORD: "/accounts/password-reset/request",
     RESET_PASSWORD: "/accounts/password-reset/confirm",
-    ME: "/accounts/me",
+    ME: "/users/me",
   },
 
   // Users
