@@ -60,7 +60,9 @@ export const useCreateEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al crear evaluación";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al crear evaluación";
       toast.error(message);
     },
   });
@@ -79,7 +81,9 @@ export const useUpdateEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al actualizar evaluación";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al actualizar evaluación";
       toast.error(message);
     },
   });
@@ -96,7 +100,9 @@ export const useDeleteEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al eliminar evaluación";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al eliminar evaluación";
       toast.error(message);
     },
   });
@@ -125,7 +131,9 @@ export const useCreateSprintTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al crear test de velocidad";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al crear test de velocidad";
       toast.error(message);
     },
   });
@@ -150,7 +158,9 @@ export const useCreateYoyoTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al crear test Yoyo";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al crear test Yoyo";
       toast.error(message);
     },
   });
@@ -175,7 +185,9 @@ export const useCreateEnduranceTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al crear test de resistencia";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al crear test de resistencia";
       toast.error(message);
     },
   });
@@ -200,7 +212,9 @@ export const useCreateTechnicalAssessment = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al crear evaluación técnica";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al crear evaluación técnica";
       toast.error(message);
     },
   });
@@ -228,7 +242,9 @@ export const useUpdateSprintTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al actualizar test de velocidad";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al actualizar test de velocidad";
       toast.error(message);
     },
   });
@@ -252,7 +268,9 @@ export const useUpdateYoyoTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al actualizar test Yoyo";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al actualizar test Yoyo";
       toast.error(message);
     },
   });
@@ -276,7 +294,9 @@ export const useUpdateEnduranceTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al actualizar test de resistencia";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al actualizar test de resistencia";
       toast.error(message);
     },
   });
@@ -300,7 +320,9 @@ export const useUpdateTechnicalAssessment = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || "Error al actualizar evaluación técnica";
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al actualizar evaluación técnica";
       toast.error(message);
     },
   });
