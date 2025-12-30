@@ -19,6 +19,7 @@ function AthletesSelectionList({
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedFilters, setExpandedFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
@@ -36,15 +37,19 @@ function AthletesSelectionList({
         limit: pagination.limit,
         search: debouncedSearch || undefined,
         type_athlete: typeFilter || undefined,
+        gender: genderFilter || undefined,
+        is_active: true, // Solo mostrar atletas activos
       };
 
       const response = await athletesApi.getAll(params);
 
       if (response.status === "success" && response.data) {
-        setAthletes(response.data.items || []);
+        // Filtrar atletas inactivos en caso de que el backend no lo haga
+        const activeAthletes = (response.data.items || []).filter(a => a.is_active === true);
+        setAthletes(activeAthletes);
         setPagination((prev) => ({
           ...prev,
-          total: response.data.total || 0,
+          total: activeAthletes.length,
         }));
       }
     } catch (error) {
@@ -52,10 +57,20 @@ function AthletesSelectionList({
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, debouncedSearch, typeFilter]);
+  }, [pagination.page, pagination.limit, debouncedSearch, typeFilter, genderFilter]);
 
   useEffect(() => {
     fetchAthletes();
+  }, [fetchAthletes]);
+
+  // Refetch cuando el componente se monta para asegurar datos frescos
+  useEffect(() => {
+    const unsubscribe = window.addEventListener("focus", fetchAthletes);
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, [fetchAthletes]);
 
   // Manejar selección
@@ -171,6 +186,15 @@ function AthletesSelectionList({
                 <option value="DOCENTES">Docente</option>
                 <option value="TRABAJADORES">Trabajador</option>
                 <option value="ADMINISTRATIVOS">Admin</option>
+              </select>
+              <select
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="">Todos los sexos</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
               </select>
             </div>
           </div>

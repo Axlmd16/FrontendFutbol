@@ -8,6 +8,7 @@ import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import {
   useCreateEvaluation,
   useUpdateEvaluation,
@@ -18,7 +19,7 @@ import { getCurrentUser } from "@/shared/utils/authUtils";
 const EvaluationForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       name: "",
       date: new Date().toISOString().split("T")[0],
@@ -48,6 +49,13 @@ const EvaluationForm = ({ isEdit = false }) => {
   }, [evaluationData, isEdit, setValue]);
 
   const onSubmit = async (formData) => {
+    // Validar que la fecha no sea anterior a hoy
+    const today = new Date().toISOString().split("T")[0];
+    if (formData.date < today) {
+      toast.error("La fecha no puede ser anterior a hoy");
+      return;
+    }
+
     // Normalizar fecha sin desplazar por zona horaria
     const normalizeDate = (value) => {
       if (!value) return value;
@@ -111,7 +119,6 @@ const EvaluationForm = ({ isEdit = false }) => {
   };
 
   const today = new Date().toISOString().split("T")[0];
-  const watchDate = watch("date");
 
   if (isEdit && isLoadingData) {
     return (
@@ -171,15 +178,8 @@ const EvaluationForm = ({ isEdit = false }) => {
             </label>
             <input
               type="date"
-              min={today}
               {...register("date", {
                 required: "La fecha es requerida",
-                validate: (value) => {
-                  if (value < today) {
-                    return "La fecha no puede ser en el pasado";
-                  }
-                  return true;
-                },
               })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
