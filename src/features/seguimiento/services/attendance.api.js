@@ -53,6 +53,17 @@ const attendanceApi = {
     });
     return response.data;
   },
+
+  /**
+   * Obtiene lista de fechas con registros de asistencia
+   * @returns {Promise<Object>} Lista de fechas
+   */
+  getDates: async () => {
+    const response = await http.get(
+      API_ENDPOINTS.ATTENDANCE.DATES || "/attendances/dates"
+    );
+    return response.data;
+  },
 };
 
 export default attendanceApi;

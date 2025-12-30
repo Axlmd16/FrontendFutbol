@@ -17,11 +17,9 @@ import {
  */
 function AttendanceForm({
   date,
-  time,
   typeFilter,
   searchTerm,
   onDateChange,
-  onTimeChange,
   onTypeFilterChange,
   onSearchChange,
 }) {
@@ -50,7 +48,7 @@ function AttendanceForm({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           {/* Grupo Fecha y Hora (Combinados visualmente) */}
           <div className="md:col-span-4 flex rounded-lg overflow-hidden border border-slate-200 focus-within:ring-2 focus-within:ring-primary/20 transition-all bg-slate-50/50 h-10">
-            <div className="flex-1 border-r border-slate-200 relative group">
+            <div className="flex-1 relative group">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
                 <Calendar size={14} />
               </div>
@@ -59,18 +57,6 @@ function AttendanceForm({
                 className="w-full pl-9 pr-2 py-2 bg-transparent border-none focus:outline-none text-xs font-medium text-slate-700 placeholder-slate-400 h-full"
                 value={date}
                 onChange={(e) => onDateChange(e.target.value)}
-              />
-            </div>
-            <div className="w-1/3 relative group">
-              <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none text-slate-400 group-focus-within:text-secondary transition-colors">
-                <Clock size={14} />
-              </div>
-              <input
-                type="time"
-                className="w-full pl-8 pr-2 py-2 bg-transparent border-none focus:outline-none text-xs font-medium text-slate-700 placeholder-slate-400 h-full"
-                value={time}
-                onChange={(e) => onTimeChange(e.target.value)}
-                placeholder="--:--"
               />
             </div>
           </div>
@@ -133,11 +119,9 @@ function AttendanceForm({
 
 AttendanceForm.propTypes = {
   date: PropTypes.string.isRequired,
-  time: PropTypes.string,
   typeFilter: PropTypes.string,
   searchTerm: PropTypes.string,
   onDateChange: PropTypes.func.isRequired,
-  onTimeChange: PropTypes.func.isRequired,
   onTypeFilterChange: PropTypes.func.isRequired,
   onSearchChange: PropTypes.func.isRequired,
 };

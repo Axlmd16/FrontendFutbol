@@ -80,66 +80,6 @@ function AttendanceTable({
   return (
     <div className="space-y-4">
       {/* Dashboard Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
-          <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-            <CheckCircle size={20} />
-          </div>
-          <div>
-            <div className="text-xl font-bold text-slate-800">
-              {presentCount}
-            </div>
-            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">
-              Presentes
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
-          <div className="p-2 bg-rose-100 text-rose-600 rounded-lg">
-            <XCircle size={20} />
-          </div>
-          <div>
-            <div className="text-xl font-bold text-slate-800">
-              {absentCount}
-            </div>
-            <div className="text-[10px] font-bold text-rose-600 uppercase tracking-wide">
-              Ausentes
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
-          <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-            <Users size={20} />
-          </div>
-          <div>
-            <div className="text-xl font-bold text-slate-800">{totalCount}</div>
-            <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">
-              Total
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
-          <div className="relative z-10">
-            <div className="text-2xl font-black text-slate-800">
-              {attendancePercentage}%
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-              Asistencia
-            </div>
-          </div>
-          <div className="absolute right-0 bottom-0 top-0 w-16 bg-linear-to-l from-primary/10 to-transparent"></div>
-          {/* Circular Progress (Visual only) */}
-          <div
-            className="radial-progress text-primary/20 text-[10px] font-bold"
-            style={{ "--value": attendancePercentage, "--size": "2.5rem" }}
-          >
-            <span className="text-primary">{attendancePercentage}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Main Table Card */}
       <div className="bg-white rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden">
@@ -172,19 +112,25 @@ function AttendanceTable({
             <tbody className="divide-y divide-slate-50">
               {athletes.map((athlete, index) => {
                 const attendance = attendanceData[athlete.id] || {
-                  is_present: true,
+                  is_present: false,
                   justification: "",
                 };
                 const typeInfo = formatAthleteType(athlete.type_athlete);
                 const isPresent = attendance.is_present;
+                const isJustified =
+                  !isPresent &&
+                  attendance.justification &&
+                  attendance.justification.trim() !== "";
 
                 return (
                   <tr
                     key={athlete.id}
                     className={`group transition-colors duration-200 ${
-                      !isPresent
-                        ? "bg-rose-50/30 hover:bg-rose-50/60"
-                        : "hover:bg-slate-50"
+                      isPresent
+                        ? "hover:bg-slate-50"
+                        : isJustified
+                        ? "bg-rose-50/40 hover:bg-rose-50/70"
+                        : "bg-slate-50/50 hover:bg-slate-100"
                     }`}
                   >
                     {/* Index */}
@@ -239,7 +185,9 @@ function AttendanceTable({
                                 ${
                                   isPresent
                                     ? "bg-emerald-500 focus:ring-emerald-500"
-                                    : "bg-rose-500 focus:ring-rose-500"
+                                    : isJustified
+                                    ? "bg-rose-500 focus:ring-rose-500"
+                                    : "bg-slate-200 focus:ring-slate-300"
                                 }
                             `}
                       >
@@ -256,12 +204,20 @@ function AttendanceTable({
                               size={12}
                               className="text-emerald-500"
                             />
+                          ) : isJustified ? (
+                            <AlertCircle size={12} className="text-rose-500" />
                           ) : (
-                            <XCircle size={12} className="text-rose-500" />
+                            <XCircle size={12} className="text-slate-400" />
                           )}
                         </span>
                         <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold uppercase text-white tracking-wider pointer-events-none">
-                          {isPresent ? "Presente" : "Ausente"}
+                          {isPresent ? (
+                            "Presente"
+                          ) : isJustified ? (
+                            "Justificado"
+                          ) : (
+                            <span className="text-slate-500">Sin Reg.</span>
+                          )}
                         </span>
                       </button>
                     </td>

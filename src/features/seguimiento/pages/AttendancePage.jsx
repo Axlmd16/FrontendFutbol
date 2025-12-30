@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Save, CalendarCheck, RefreshCw, ChevronRight } from "lucide-react";
+import {
+  Save,
+  CalendarCheck,
+  RefreshCw,
+  ChevronRight,
+  History,
+} from "lucide-react";
 
 // Componentes
 import AttendanceForm from "../components/AttendanceComponents/AttendanceForm";
 import AttendanceTable from "../components/AttendanceComponents/AttendanceTable";
+import AttendanceHistoryDrawer from "../components/AttendanceComponents/AttendanceHistoryDrawer";
 import Button from "@/shared/components/Button";
 
 // Servicios
@@ -24,7 +31,7 @@ function AttendancePage() {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
-  const [time, setTime] = useState("");
+
   const [typeFilter, setTypeFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,6 +40,10 @@ function AttendancePage() {
   const [attendanceData, setAttendanceData] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Historial
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyDates, setHistoryDates] = useState([]);
 
   // Paginación
   const [pagination, setPagination] = useState({
@@ -43,6 +54,24 @@ function AttendancePage() {
 
   // Debounce para búsqueda
   const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // ==========================================
+  // CARGAR HISTORIAL DE FECHAS
+  // ==========================================
+  const fetchHistoryDates = useCallback(async () => {
+    try {
+      const response = await attendanceApi.getDates();
+      if (response.status === "success") {
+        setHistoryDates(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error loading history dates:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHistoryDates();
+  }, [fetchHistoryDates]);
 
   // ==========================================
   // CARGAR ATLETAS Y ASISTENCIA
@@ -178,17 +207,24 @@ function AttendancePage() {
     setSaving(true);
 
     try {
-      // Preparar registros
-      const records = athletes.map((athlete) => ({
-        athlete_id: athlete.id,
-        is_present: attendanceData[athlete.id]?.is_present ?? true,
-        justification: attendanceData[athlete.id]?.justification || null,
-      }));
+      // Preparar registros (Presentes O con justificación)
+      const records = athletes
+        .filter((athlete) => {
+          const data = attendanceData[athlete.id];
+          // Guardar si está presente O tiene justificación (aunque no esté presente)
+          return (
+            data?.is_present ||
+            (data?.justification && data.justification.trim() !== "")
+          );
+        })
+        .map((athlete) => ({
+          athlete_id: athlete.id,
+          is_present: attendanceData[athlete.id]?.is_present || false,
+          justification: attendanceData[athlete.id]?.justification || null,
+        }));
 
-      // Preparar payload
       const payload = {
         date: date,
-        time: time || undefined, // Si no hay hora, el backend usa la actual
         records: records,
       };
 
@@ -198,12 +234,10 @@ function AttendancePage() {
         const { created_count, updated_count } = response.data || {};
 
         // Mostrar mensaje con hora usada
-        const timeUsed =
-          time ||
-          new Date().toLocaleTimeString("es-EC", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        const timeUsed = new Date().toLocaleTimeString("es-EC", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
         toast.success("Asistencia guardada exitosamente", {
           description: `📅 ${date} ⏰ ${timeUsed} — ${
@@ -249,16 +283,27 @@ function AttendancePage() {
               Gestiona la asistencia diaria de los atletas.
             </p>
           </div>
+
+          {/* Botón Historial */}
+          <button
+            onClick={() => setShowHistory(true)}
+            className="btn btn-sm btn-secondary gap-2"
+          >
+            <History size={16} />
+            Historial
+            {historyDates.length > 0 && (
+              <span className="badge badge-sm badge-primary badge-outline text-[10px]">
+                {historyDates.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Filtros */}
         <AttendanceForm
           date={date}
-          time={time}
           typeFilter={typeFilter}
           searchTerm={searchTerm}
           onDateChange={setDate}
-          onTimeChange={setTime}
           onTypeFilterChange={setTypeFilter}
           onSearchChange={setSearchTerm}
         />
@@ -325,6 +370,15 @@ function AttendancePage() {
             </div>
           </div>
         </div>
+
+        {/* Drawer de Historial */}
+        <AttendanceHistoryDrawer
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+          dates={historyDates}
+          selectedDate={date}
+          onSelectDate={setDate}
+        />
       </div>
     </div>
   );
