@@ -249,14 +249,18 @@ export const API_ENDPOINTS = {
   EVALUATIONS: {
     BASE: "/evaluations",
     BY_ID: (id) => `/evaluations/${id}`,
+    BY_USER: (userId) => `/evaluations/user/${userId}`,
+    CREATE: "/evaluations",
+    UPDATE: (id) => `/evaluations/${id}`,
+    DELETE: (id) => `/evaluations/${id}`,
   },
 
   // Tests
   TESTS: {
-    SPRINT: "/tests/sprint",
-    ENDURANCE: "/tests/endurance",
-    YOYO: "/tests/yoyo",
-    TECHNICAL: "/tests/technical",
+    SPRINT: "/sprint-tests",
+    ENDURANCE: "/endurance-tests",
+    YOYO: "/yoyo-tests",
+    TECHNICAL: "/technical-assessments",
   },
 
   // Statistics

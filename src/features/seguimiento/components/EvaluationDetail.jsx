@@ -1,0 +1,180 @@
+/**
+ * EvaluationDetail Component
+ *
+ * Muestra los detalles de una evaluación
+ * y permite agregar tests
+ */
+
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Edit2, ArrowLeft, Plus } from "lucide-react";
+import { useEvaluationById } from "../hooks/useEvaluations";
+import { formatDate, formatTime } from "@/shared/utils/dateUtils";
+
+const EvaluationDetail = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  const { data, isLoading, error } = useEvaluationById(id);
+  const evaluation = data?.data;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !evaluation) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700">Error al cargar la evaluación</p>
+      </div>
+    );
+  }
+
+  const tests = evaluation.tests || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Encabezado */}
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={() => navigate("/seguimiento/evaluations")}
+          className="p-2 hover:bg-gray-100 rounded-lg transition"
+        >
+          <ArrowLeft size={24} className="text-gray-600" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {evaluation.name}
+          </h1>
+          <p className="text-gray-600 text-sm">ID: {evaluation.id}</p>
+        </div>
+        <button
+          onClick={() => navigate(`/seguimiento/evaluations/${id}/edit`)}
+          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          <Edit2 size={20} />
+          Editar
+        </button>
+      </div>
+
+      {/* Información principal */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Card de información */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Información
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-gray-600">Fecha</p>
+              <p className="text-lg font-medium text-gray-900">
+                {formatDate(evaluation.date)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Hora</p>
+              <p className="text-lg font-medium text-gray-900">
+                {evaluation.time}
+              </p>
+            </div>
+            {evaluation.location && (
+              <div>
+                <p className="text-sm text-gray-600">Ubicación</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {evaluation.location}
+                </p>
+              </div>
+            )}
+            {evaluation.observations && (
+              <div>
+                <p className="text-sm text-gray-600">Observaciones</p>
+                <p className="text-gray-900">{evaluation.observations}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card de estado */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Estado</h2>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-gray-600">Estado</p>
+              <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                Activa
+              </span>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Tests Registrados</p>
+              <p className="text-lg font-medium text-gray-900">
+                {tests.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de Tests */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Tests Registrados
+          </h2>
+          <button
+            onClick={() => navigate(`/seguimiento/evaluations/${id}/add-tests`)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+          >
+            <Plus size={20} />
+            Agregar Test
+          </button>
+        </div>
+
+        {tests.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">
+              No hay tests registrados en esta evaluación
+            </p>
+            <button
+              onClick={() => navigate(`/seguimiento/evaluations/${id}/add-tests`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+            >
+              Agregar primer test
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {tests.map((test) => (
+              <div
+                key={test.id}
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 capitalize">
+                    {test.test_type || "Test"}
+                  </h3>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {test.athlete_id}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Fecha: {formatDate(test.date)}
+                </p>
+                {test.observations && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Obs: {test.observations}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default EvaluationDetail;
