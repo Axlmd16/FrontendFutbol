@@ -1,12 +1,419 @@
-import React, { useState, useMemo } from 'react';
-import PublicNavbar from '../../../shared/components/PublicNavbar';
+/**
+ * ==============================================
+ * Registro Escuela (Público) - Fútbol UNL
+ * ==============================================
+ *
+ * Página de registro de atletas menores para la escuela.
+ * Layout de dos columnas: info lateral + formulario.
+ * Flujo de 2 pasos: Representante → Deportista (menor).
+ */
+
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import PublicNavbar from "@/shared/components/PublicNavbar";
+import Button from "@/shared/components/Button";
+import RepresentanteForm from "@/features/inscription/components/RepresentanteForm";
+import DeportistaForm from "@/features/inscription/components/DeportistaForm";
+import inscriptionApi from "@/features/inscription/services/inscription.api";
+import { MESSAGES, ROUTES, VALIDATION } from "@/app/config/constants";
+import {
+  CheckCircle,
+  ArrowLeft,
+  Home,
+  UserPlus,
+  GraduationCap,
+  ClipboardList,
+  Phone,
+  HelpCircle,
+  Users,
+  User,
+} from "lucide-react";
 
 const RegisterSchoolPage = () => {
+  const navigate = useNavigate();
 
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [athleteName, setAthleteName] = useState("");
+
+  const [representanteData, setRepresentanteData] = useState({});
+  const [representanteErrors, setRepresentanteErrors] = useState({});
+  const [athleteData, setAthleteData] = useState(null);
+
+  const stepTitle = useMemo(() => {
+    if (step === 1) return "Datos del Representante";
+    return "Datos del Deportista (Menor)";
+  }, [step]);
+
+  const validateRepresentante = () => {
+    const errors = {};
+
+    if (!representanteData.cedula?.trim()) {
+      errors.cedula = "La cédula es requerida";
+    } else if (!VALIDATION.CI_PATTERN.test(representanteData.cedula)) {
+      errors.cedula = "Ingresa una cédula válida";
+    }
+
+    if (!representanteData.nombres?.trim())
+      errors.nombres = "Los nombres son requeridos";
+    if (!representanteData.apellidos?.trim())
+      errors.apellidos = "Los apellidos son requeridos";
+    if (!representanteData.parentesco)
+      errors.parentesco = "El parentesco es requerido";
+
+    if (!representanteData.email?.trim()) {
+      errors.email = "El email es requerido";
+    } else if (!VALIDATION.EMAIL_PATTERN.test(representanteData.email)) {
+      errors.email = "Ingresa un email válido";
+    }
+
+    if (!representanteData.telefonoPrincipal?.trim()) {
+      errors.telefonoPrincipal = "El teléfono es requerido";
+    } else if (
+      !VALIDATION.PHONE_PATTERN.test(representanteData.telefonoPrincipal)
+    ) {
+      errors.telefonoPrincipal = "Ingresa un teléfono válido";
+    }
+
+    if (!representanteData.direccion?.trim())
+      errors.direccion = "La dirección es requerida";
+
+    setRepresentanteErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const goBack = () => {
+    if (step === 2) {
+      setStep(1);
+      return;
+    }
+    navigate(ROUTES.REGISTER);
+  };
+
+  const handleContinueFromRepresentative = () => {
+    setError(null);
+    if (!validateRepresentante()) return;
+    setStep(2);
+  };
+
+  const handleSubmitSchool = async (athletePayload) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      setAthleteData(athletePayload);
+      await inscriptionApi.registerMenor({
+        athlete: athletePayload,
+        representative: representanteData,
+      });
+
+      setAthleteName(
+        `${athletePayload.first_name} ${athletePayload.last_name}`
+      );
+
+      toast.success("¡Registro exitoso!", {
+        description: "El deportista ha sido registrado correctamente.",
+      });
+
+      setRegistrationSuccess(true);
+    } catch (err) {
+      toast.error("Error en el registro", {
+        description: err?.message || MESSAGES.ERROR.GENERIC,
+      });
+      setError(err?.message || MESSAGES.ERROR.GENERIC);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // PANTALLA DE ÉXITO
+  // ==========================================
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen bg-base-200">
+        <PublicNavbar />
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <div className="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
+              <div className="bg-success py-6 px-6">
+                <div className="flex flex-col items-center text-success-content">
+                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-10 h-10" />
+                  </div>
+                  <h1 className="text-2xl font-bold text-center">
+                    ¡Registro Completado!
+                  </h1>
+                </div>
+              </div>
+
+              <div className="card-body p-6">
+                <p className="text-lg text-center text-base-content mb-4">
+                  Bienvenido,{" "}
+                  <span className="font-bold text-primary">{athleteName}</span>
+                </p>
+
+                <div className="bg-base-200/50 rounded-xl p-4 mb-4">
+                  <ul className="steps steps-vertical lg:steps-horizontal w-full text-sm">
+                    <li className="step step-success" data-content="✓">
+                      Representante
+                    </li>
+                    <li className="step step-success" data-content="✓">
+                      Deportista
+                    </li>
+                    <li className="step" data-content="3">
+                      Contacto
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="alert alert-info text-sm mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    className="stroke-current shrink-0 w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                  <span>Un entrenador se comunicará contigo pronto.</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setRegistrationSuccess(false);
+                      setAthleteName("");
+                      setStep(1);
+                      setRepresentanteData({});
+                      setAthleteData(null);
+                    }}
+                    className="flex-1"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Registrar otro
+                  </Button>
+
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(ROUTES.LANDING)}
+                    className="flex-1"
+                  >
+                    <Home className="w-4 h-4" />
+                    Volver al inicio
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // FORMULARIO DE REGISTRO (Layout 2 columnas)
+  // ==========================================
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       <PublicNavbar />
-        <div>Pagina con formulario de registro de atletas para la escuela</div>
+
+      <main className="container mx-auto px-4 py-4">
+        {/* Botón volver */}
+        <button
+          onClick={goBack}
+          className="inline-flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors text-sm mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {step === 1 ? "Volver a opciones" : "Volver al paso anterior"}
+        </button>
+
+        {/* Layout de dos columnas */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* ========== PANEL LATERAL IZQUIERDO ========== */}
+          <aside className="lg:w-72 shrink-0">
+            <div className="lg:sticky lg:top-4 space-y-4">
+              {/* Card de información */}
+              <div className="card bg-base-100 shadow-md border border-base-300">
+                <div className="card-body p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <GraduationCap className="w-5 h-5 text-secondary" />
+                    <h2 className="font-bold text-base-content">
+                      Registro Escuela
+                    </h2>
+                  </div>
+                  <p className="text-sm text-base-content/70">
+                    Inscribe a tu hijo/a en la Escuela de Fútbol de la UNL.
+                    Formación deportiva de calidad.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stepper vertical dinámico */}
+              <div className="card bg-base-100 shadow-md border border-base-300">
+                <div className="card-body p-4">
+                  <h3 className="text-sm font-semibold text-base-content mb-3">
+                    Proceso de registro
+                  </h3>
+                  <ul className="steps steps-vertical text-xs">
+                    <li
+                      className={`step ${step >= 1 ? "step-primary" : ""}`}
+                      data-content={step > 1 ? "✓" : "1"}
+                    >
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        Representante
+                      </div>
+                    </li>
+                    <li
+                      className={`step ${step >= 2 ? "step-primary" : ""}`}
+                      data-content="2"
+                    >
+                      <div className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        Deportista
+                      </div>
+                    </li>
+                    <li className="step" data-content="3">
+                      ¡Listo!
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Indicador de paso actual */}
+              <div className="card bg-primary/10 border border-primary/20">
+                <div className="card-body p-4">
+                  <p className="text-xs font-medium text-primary">
+                    Paso {step} de 2
+                  </p>
+                  <p className="text-sm font-semibold text-base-content">
+                    {stepTitle}
+                  </p>
+                </div>
+              </div>
+
+              {/* Info de campos obligatorios */}
+              <div className="card bg-info/10 border border-info/20">
+                <div className="card-body p-4">
+                  <div className="flex items-start gap-2">
+                    <ClipboardList className="w-4 h-4 text-info mt-0.5 shrink-0" />
+                    <p className="text-xs text-base-content/70">
+                      Los campos marcados con{" "}
+                      <span className="text-error font-bold">*</span> son
+                      obligatorios.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ayuda */}
+              <div className="card bg-base-100 shadow-md border border-base-300">
+                <div className="card-body p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <HelpCircle className="w-4 h-4 text-base-content/60" />
+                    <h3 className="text-sm font-semibold text-base-content">
+                      ¿Necesitas ayuda?
+                    </h3>
+                  </div>
+                  <p className="text-xs text-base-content/60 mb-2">
+                    Contacta al equipo de soporte.
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-primary">
+                    <Phone className="w-3 h-3" />
+                    <span>07 123 4567</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* ========== FORMULARIO (DERECHA) ========== */}
+          <div className="flex-1">
+            <div className="card bg-base-100 shadow-lg border border-base-300">
+              <div className="card-body p-4 lg:p-6">
+                {/* Mostrar error global si existe */}
+                {error && (
+                  <div className="alert alert-error mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="stroke-current shrink-0 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="text-sm">{error}</span>
+                  </div>
+                )}
+
+                {/* PASO 1: Formulario de Representante */}
+                {step === 1 && (
+                  <>
+                    <RepresentanteForm
+                      data={representanteData}
+                      onChange={(data) => {
+                        setRepresentanteData(data);
+                        if (Object.keys(representanteErrors).length)
+                          setRepresentanteErrors({});
+                      }}
+                      errors={representanteErrors}
+                      disabled={loading}
+                    />
+
+                    <div className="divider"></div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigate(ROUTES.REGISTER)}
+                        disabled={loading}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleContinueFromRepresentative}
+                        disabled={loading}
+                      >
+                        Continuar al paso 2
+                        <ArrowLeft className="w-4 h-4 rotate-180" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {/* PASO 2: Formulario de Deportista (menor) */}
+                {step === 2 && (
+                  <DeportistaForm
+                    initialData={athleteData}
+                    onSubmit={handleSubmitSchool}
+                    onCancel={goBack}
+                    loading={loading}
+                    error={error}
+                    isMenor
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

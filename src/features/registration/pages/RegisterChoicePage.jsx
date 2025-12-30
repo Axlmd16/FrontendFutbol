@@ -4,60 +4,107 @@
  * ==============================================
  * 
  * Permite elegir si se registrará a la escuela o al club.
- * Esta ruta es pública.
+ * Diseño profesional y limpio utilizando DaisyUI/Tailwind.
  */
 
 import { useNavigate } from 'react-router-dom';
 import PublicNavbar from '@/shared/components/PublicNavbar';
 import Button from '@/shared/components/Button';
 import { ROUTES } from '@/app/config/constants';
+import { User, School, ArrowRight } from 'lucide-react'; // Suponiendo que tienes lucide-react instalado (está en package.json)
 
 const RegisterChoicePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       <PublicNavbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Registrarse</h1>
-          <p className="text-sm text-gray-600">
-            Elige el tipo de registro para continuar.
+      <main className="container mx-auto px-4 py-16 lg:py-24">
+        
+        {/* Header Section */}
+        <div className="text-center mb-16 space-y-4">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-base-content">
+            Únete a <span className="text-primary">Kallpa UNL</span>
+          </h1>
+          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
+            Elige tu camino. Ya seas un deportista en formación o un atleta de competición, 
+            tenemos el espacio ideal para tu desarrollo.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900">Escuela</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Registro para deportista menor: primero representante y luego datos del menor.
-            </p>
-            <div className="mt-5">
-              <Button variant="primary" onClick={() => navigate(ROUTES.REGISTER_SCHOOL)} fullWidth>
-                Registrar en Escuela
-              </Button>
+        {/* Cards Grid */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          
+          {/* OPCIÓN 1: ESCUELA */}
+          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-base-300">
+            <div className="card-body items-center text-center p-10">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <School className="w-10 h-10 text-primary" />
+              </div>
+              <h2 className="card-title text-2xl font-bold mb-2">Escuela Formativa</h2>
+              <p className="text-base-content/70 mb-8">
+                Diseñado para menores de edad. Comienza el proceso registrando primero los datos del representante legal y luego la información del deportista.
+              </p>
+              <div className="card-actions w-full">
+                <Button 
+                  variant="primary" 
+                  size="lg" 
+                  onClick={() => navigate(ROUTES.REGISTER_SCHOOL)} 
+                  fullWidth
+                  className="rounded-full shadow-lg hover:shadow-primary/50"
+                  icon={ArrowRight}
+                >
+                  Registrar en Escuela
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900">Club</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Registro normal con datos personales del deportista.
-            </p>
-            <div className="mt-5">
-              <Button variant="secondary" onClick={() => navigate(ROUTES.REGISTER_CLUB)} fullWidth>
-                Registrar en Club
-              </Button>
+          {/* OPCIÓN 2: CLUB */}
+          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-base-300">
+            <div className="card-body items-center text-center p-10">
+              <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mb-6">
+                <User className="w-10 h-10 text-secondary" />
+              </div>
+              <h2 className="card-title text-2xl font-bold mb-2">Club de Alto Rendimiento</h2>
+              <p className="text-base-content/70 mb-8">
+                Para deportistas mayores o élite. Registro directo con tus datos personales para acceder a entrenamientos especializados.
+              </p>
+              <div className="card-actions w-full">
+                <Button 
+                  variant="secondary" 
+                  size="lg"
+                  onClick={() => navigate(ROUTES.REGISTER_CLUB)} 
+                  fullWidth
+                  className="rounded-full shadow-lg hover:shadow-secondary/50"
+                  icon={ArrowRight}
+                >
+                  Registrar en Club
+                </Button>
+              </div>
             </div>
           </div>
+
         </div>
 
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => navigate(ROUTES.LANDING)}>
-            Volver al inicio
+        {/* Footer Actions */}
+        <div className="mt-16 text-center">
+          <p className="text-base-content/60 mb-4">¿Ya tienes cuenta?</p>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(ROUTES.LOGIN)}
+            className="text-primary hover:text-primary-focus hover:bg-primary/5"
+          >
+            Iniciar Sesión
           </Button>
+          <div className="mt-4">
+             <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.LANDING)}>
+              Volver al inicio
+            </Button>
+          </div>
         </div>
+
       </main>
     </div>
   );

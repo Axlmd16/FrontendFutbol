@@ -167,9 +167,9 @@ export const ATTENDANCE_STATUS = {
  * Géneros
  */
 export const GENDER_OPTIONS = [
-  { value: "M", label: "Masculino" },
-  { value: "F", label: "Femenino" },
-  { value: "O", label: "Otro" },
+  { value: "MALE", label: "Masculino" },
+  { value: "FEMALE", label: "Femenino" },
+  { value: "OTHER", label: "Otro" },
 ];
 
 /**
@@ -243,6 +243,8 @@ export const API_ENDPOINTS = {
   ATHLETES: {
     BASE: "/athletes",
     BY_ID: (id) => `/athletes/${id}`,
+    GET_ALL: "/athletes/all",
+    CREATE: "/athletes/register-unl",
   },
 
   // Evaluations
@@ -271,7 +273,9 @@ export const API_ENDPOINTS = {
 
   // Attendance
   ATTENDANCE: {
-    BASE: "/attendance",
-    BY_DATE: (date) => `/attendance/date/${date}`,
+    BASE: "/attendances",
+    BULK: "/attendances/bulk",
+    BY_DATE: "/attendances/by-date",
+    SUMMARY: "/attendances/summary",
   },
 };
