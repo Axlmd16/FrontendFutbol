@@ -60,6 +60,7 @@ export const ROUTES = {
 
   // Perfil y configuración
   PROFILE: "/profile",
+  CHANGE_PASSWORD: "/change-password",
   SETTINGS: "/settings",
 };
 
@@ -226,7 +227,8 @@ export const API_ENDPOINTS = {
     REFRESH: "/accounts/refresh",
     FORGOT_PASSWORD: "/accounts/password-reset/request",
     RESET_PASSWORD: "/accounts/password-reset/confirm",
-    ME: "/accounts/me",
+    CHANGE_PASSWORD: "/accounts/change-password",
+    ME: "/users/me",
   },
 
   // Users
