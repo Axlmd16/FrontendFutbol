@@ -102,6 +102,18 @@ const EvaluationsList = () => {
 
   return (
     <div className="space-y-6">
+      {/* Botón para crear evaluación */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Evaluaciones</h2>
+        <button
+          onClick={() => navigate("/seguimiento/evaluations/create")}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          <Plus size={20} />
+          Nueva Evaluación
+        </button>
+      </div>
+
       {/* Filtros de búsqueda */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
         <h3 className="font-semibold text-gray-900">Filtros</h3>
