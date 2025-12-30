@@ -37,6 +37,9 @@ import EditUserPage from "@/features/users/pages/EditUserPage";
 import RegisterDeportistaPage from "@/features/inscription/pages/RegisterDeportistaPage";
 import RegisterMenorPage from "@/features/inscription/pages/RegisterMenorPage";
 
+// Páginas de Deportistas
+import AthletesListPage from "@/features/athletes/pages/AthletesListPage";
+
 // Páginas de Seguimiento
 import EvaluationsPage from "@/features/seguimiento/pages/EvaluationsPage";
 import StatisticsPage from "@/features/seguimiento/pages/StatisticsPage";
@@ -105,6 +108,15 @@ const AppRouter = () => {
                 path={ROUTES.INSCRIPTION_MENOR}
                 element={<RegisterMenorPage />}
               />
+            </Route>
+
+            {/* RUTAS DE DEPORTISTAS - ENTRENADOR */}
+            <Route
+              element={
+                <RoleRoute allowedRoles={[ROLES.ENTRENADOR]} />
+              }
+            >
+              <Route path={ROUTES.ATHLETES} element={<AthletesListPage />} />
             </Route>
 
             {/* RUTAS DE SEGUIMIENTO */}

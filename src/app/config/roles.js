@@ -82,6 +82,7 @@ export const ROLE_ROUTES = {
     "/inscription",
     "/inscription/deportista",
     "/inscription/menor",
+    "/athletes",
     "/seguimiento",
     "/seguimiento/evaluations",
     "/seguimiento/statistics",

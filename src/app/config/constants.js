@@ -46,6 +46,9 @@ export const ROUTES = {
   USERS_CREATE: "/users/create",
   USERS_EDIT: "/users/edit/:id",
 
+  // Deportistas
+  ATHLETES: "/athletes",
+
   // //   Inscripción
   //   INSCRIPTION: '/inscription',
   //   INSCRIPTION_DEPORTISTA: '/inscription/deportista',
@@ -92,6 +95,9 @@ export const MESSAGES = {
     USER_UPDATED_DESC: "Los cambios han sido guardados correctamente.",
     USER_DEACTIVATED: "Usuario desactivado",
     USER_DEACTIVATED_DESC: (name) => `${name} ha sido desactivado del sistema.`,
+    // Deportistas
+    ATHLETE_DEACTIVATED: "Deportista dado de baja",
+    ATHLETE_DEACTIVATED_DESC: (name) => `${name} ha sido dado de baja del sistema.`,
   },
 
   // Errores
@@ -110,6 +116,9 @@ export const MESSAGES = {
     USER_SELF_DEACTIVATE: "No puedes desactivarte a ti mismo",
     USER_SELF_DEACTIVATE_DESC:
       "Por seguridad, no está permitido desactivar tu propia cuenta.",
+    // Deportistas
+    ATHLETE_DEACTIVATE: "Error al dar de baja al deportista",
+    ATHLETE_LOAD: "No se pudo cargar la lista de deportistas",
   },
 
   // Confirmaciones
@@ -245,6 +254,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/athletes/${id}`,
     GET_ALL: "/athletes/all",
     CREATE: "/athletes/register-unl",
+    DESACTIVATE: (id) => `/athletes/desactivate/${id}`,
   },
 
   // Evaluations
