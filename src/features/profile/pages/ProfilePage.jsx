@@ -11,9 +11,12 @@ import {
   MapPin,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import usersApi from "@/features/users/services/users.api";
+import { ROUTES } from "@/app/config/constants";
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
   const {
@@ -62,9 +65,16 @@ const ProfilePage = () => {
     const date = new Date(createdAt);
     return date.toLocaleDateString("es-ES", {
       day: "2-digit",
-      month: "2-digit",
+      month: "long",
       year: "numeric",
     });
+  };
+
+  const getUpdatedAt = (updatedAt) => {
+    const date = new Date(updatedAt);
+    const diffTime = Math.abs(date - new Date());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays + " días";
   };
 
   return (
@@ -84,9 +94,9 @@ const ProfilePage = () => {
                 {/* Avatar */}
                 <div className="absolute -top-16 left-1/2 -translate-x-1/2">
                   <div className="avatar indicator">
-                    <span className="indicator-item badge badge-secondary cursor-pointer p-1 rounded-full shadow-lg border-2 border-base-100 hover:scale-110 transition-transform">
+                    {/* <span className="indicator-item badge badge-secondary cursor-pointer p-1 rounded-full shadow-lg border-2 border-base-100 hover:scale-110 transition-transform">
                       <Camera size={14} className="text-white" />
-                    </span>
+                    </span> */}
                     <div className="w-32 h-32 rounded-full ring ring-base-100 ring-offset-2 bg-base-300 shadow-2xl overflow-hidden group">
                       {user?.photoURL ? (
                         <img
@@ -135,10 +145,10 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="card-actions w-full mt-6">
-                  <button className="btn btn-primary btn-block gap-2 shadow-primary/25 shadow-lg">
+                  {/* <button className="btn btn-primary btn-block gap-2 shadow-primary/25 shadow-lg">
                     <Edit2 size={16} />
                     Editar Perfil
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -154,9 +164,9 @@ const ProfilePage = () => {
                     <User className="text-primary" size={20} />
                     Información Personal
                   </h3>
-                  <button className="btn btn-ghost btn-sm btn-square text-base-content/50">
+                  {/* <button className="btn btn-ghost btn-sm btn-square text-base-content/50">
                     <Edit2 size={16} />
-                  </button>
+                  </button> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -238,11 +248,16 @@ const ProfilePage = () => {
                           Contraseña
                         </h4>
                         <p className="text-sm text-base-content/60">
-                          Último cambio hace 3 meses
+                          Ultimo cambio hace {getUpdatedAt(user?.updated_at)}
                         </p>
                       </div>
                     </div>
-                    <button className="btn btn-ghost btn-sm">Cambiar</button>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => navigate(ROUTES.CHANGE_PASSWORD)}
+                    >
+                      Cambiar
+                    </button>
                   </div>
 
                   {/* Add more security options here if needed, e.g., 2FA */}

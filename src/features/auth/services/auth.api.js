@@ -72,6 +72,14 @@ const authApi = {
     const response = await http.post(API_ENDPOINTS.AUTH.REFRESH);
     return unwrapData(response);
   },
+
+  /**
+   * Cambia la contraseña del usuario autenticado
+   */
+  changePassword: async (data) => {
+    const response = await http.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data);
+    return unwrapData(response);
+  },
 };
 
 export default authApi;
