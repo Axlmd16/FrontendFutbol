@@ -109,8 +109,8 @@ const AppRouter = () => {
 
             {/* RUTAS DE SEGUIMIENTO */}
 
-            {/* Evaluaciones - Todos los autenticados */}
-            <Route path={ROUTES.EVALUATIONS} element={<EvaluationsPage />} />
+            {/* Evaluaciones - Todos los autenticados (con subrutas) */}
+            <Route path="/seguimiento/evaluations/*" element={<EvaluationsPage />} />
 
             {/* Estadísticas - Todos los autenticados */}
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
