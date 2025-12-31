@@ -13,12 +13,12 @@ import {
   useCreateEnduranceTest,
   useCreateTechnicalAssessment,
   useEvaluationById,
-} from "../hooks/useEvaluations";
-import SprintTestForm from "./tests/SprintTestForm";
-import YoyoTestForm from "./tests/YoyoTestForm";
-import EnduranceTestForm from "./tests/EnduranceTestForm";
-import TechnicalAssessmentForm from "./tests/TechnicalAssessmentForm";
-import AthletesSelectionList from "./tests/AthletesSelectionList";
+} from "../../hooks/useEvaluations";
+import SprintTestForm from "./SprintTestForm";
+import YoyoTestForm from "./YoyoTestForm";
+import EnduranceTestForm from "./EnduranceTestForm";
+import TechnicalAssessmentForm from "./TechnicalAssessmentForm";
+import AthletesSelectionList from "./AthletesSelectionList";
 
 const AddTestsForm = () => {
   const navigate = useNavigate();
@@ -79,7 +79,9 @@ const AddTestsForm = () => {
           {/* Encabezado */}
           <div className="flex items-center gap-4 mb-6">
             <button
-              onClick={() => navigate(`/seguimiento/evaluations/${evaluationId}`)}
+              onClick={() =>
+                navigate(`/seguimiento/evaluations/${evaluationId}`)
+              }
               className="p-2 hover:bg-gray-100 rounded-lg transition"
             >
               <ArrowLeft size={24} className="text-gray-600" />
@@ -131,7 +133,9 @@ const AddTestsForm = () => {
               <ArrowLeft size={24} className="text-gray-600" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Agregar Tests</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Agregar Tests
+              </h1>
               <p className="text-gray-600">Evaluación: {evaluation?.name}</p>
             </div>
           </div>
@@ -144,10 +148,24 @@ const AddTestsForm = () => {
                 <p className="text-base font-semibold text-gray-900">
                   {selectedAthlete?.full_name || "Nombre no disponible"}
                 </p>
-                <p className="text-sm text-gray-600">DNI: {selectedAthlete?.dni || "No disponible"}</p>
-                <p className="text-sm text-gray-600">Tipo: {selectedAthlete?.type_athlete || "Tipo no disponible"}</p>
-                <p className="text-sm text-gray-600">Altura: {selectedAthlete?.height ? `${selectedAthlete.height} cm` : "No disponible"}</p>
-                <p className="text-sm text-gray-600">Peso: {selectedAthlete?.weight ? `${selectedAthlete.weight} kg` : "No disponible"}</p>
+                <p className="text-sm text-gray-600">
+                  DNI: {selectedAthlete?.dni || "No disponible"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Tipo: {selectedAthlete?.type_athlete || "Tipo no disponible"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Altura:{" "}
+                  {selectedAthlete?.height
+                    ? `${selectedAthlete.height} cm`
+                    : "No disponible"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Peso:{" "}
+                  {selectedAthlete?.weight
+                    ? `${selectedAthlete.weight} kg`
+                    : "No disponible"}
+                </p>
               </div>
             </div>
             <button
@@ -178,7 +196,8 @@ const AddTestsForm = () => {
           {/* Instrucciones */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-900">
-              ℹ️ Selecciona el tipo de test que deseas agregar. Se creará para el atleta seleccionado.
+              ℹ️ Selecciona el tipo de test que deseas agregar. Se creará para
+              el atleta seleccionado.
             </p>
           </div>
         </div>
@@ -200,9 +219,7 @@ const AddTestsForm = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             {testTypes.find((t) => t.id === selectedTest)?.label}
           </h1>
-          <p className="text-gray-600">
-            Evaluación: {evaluation?.name}
-          </p>
+          <p className="text-gray-600">Evaluación: {evaluation?.name}</p>
         </div>
       </div>
 

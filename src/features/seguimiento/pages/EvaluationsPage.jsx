@@ -7,10 +7,10 @@
 
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import EvaluationsList from "../components/EvaluationsList";
-import EvaluationForm from "../components/EvaluationForm";
-import EvaluationDetail from "../components/EvaluationDetail";
-import AddTestsForm from "../components/AddTestsForm";
+import EvaluationsList from "../components/EvaluationComponents/EvaluationsList";
+import EvaluationForm from "../components/EvaluationComponents/EvaluationForm";
+import EvaluationDetail from "../components/EvaluationComponents/EvaluationDetail";
+import AddTestsForm from "../components/tests/AddTestsForm";
 
 const EvaluationsPage = () => {
   return (

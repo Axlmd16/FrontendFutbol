@@ -305,6 +305,9 @@ export const API_ENDPOINTS = {
   // Statistics
   STATISTICS: {
     BASE: "/statistics",
+    OVERVIEW: "/statistics/overview",
+    ATTENDANCE: "/statistics/attendance",
+    TESTS: "/statistics/tests",
     BY_ATHLETE: (id) => `/statistics/athlete/${id}`,
   },
 

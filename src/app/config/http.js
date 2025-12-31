@@ -99,6 +99,16 @@ http.interceptors.response.use(
       return Promise.reject(new Error("El recurso solicitado no existe."));
     }
 
+    // 400 (Bad Request)
+    if (response?.status === 400) {
+      console.error("[HTTP 400]:", response?.data);
+      const errorMessage =
+        response?.data?.message ||
+        response?.data?.detail ||
+        "Solicitud inválida.";
+      return Promise.reject(new Error(errorMessage));
+    }
+
     // 500 (Server Error)
     if (response?.status >= 500) {
       console.error("[HTTP 5xx]:", "Error del servidor");
@@ -138,7 +148,7 @@ http.interceptors.response.use(
       const errorMsg = firstError || message || "Error de validación de datos.";
       // Mostrar el error como toast
       toast.error(errorMsg);
-      
+
       // Crear un error con la estructura esperada por los hooks
       const error = new Error(errorMsg);
       error.response = { data: { detail: errorMsg } };

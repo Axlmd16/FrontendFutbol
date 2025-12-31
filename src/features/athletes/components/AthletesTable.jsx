@@ -72,7 +72,7 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
     return (
       <div className="card bg-base-100 border border-base-300">
         <div className="card-body items-center text-center py-16">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4">
             <User size={40} className="text-primary/60" />
           </div>
           <h3 className="text-xl font-bold text-base-content">
@@ -91,7 +91,7 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
     <div className="card bg-white shadow-lg border border-base-300 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="table w-full">
-          <thead className="bg-gradient-to-r from-base-200 to-base-300">
+          <thead className="bg-linear-to-r from-base-200 to-base-300">
             <tr>
               <th className="text-xs uppercase tracking-wider font-bold text-base-content/80">
                 <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
                       <div
                         className={`w-12 h-12 rounded-full ring-2 flex items-center justify-center ${
                           athlete.is_active
-                            ? "bg-gradient-to-br from-primary/20 to-primary/10 ring-primary/30"
+                            ? "bg-linear-to-br from-primary/20 to-primary/10 ring-primary/30"
                             : "bg-base-200 ring-base-300"
                         }`}
                       >
