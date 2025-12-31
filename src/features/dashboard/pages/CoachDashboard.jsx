@@ -1,17 +1,17 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/app/config/constants';
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/app/config/constants";
 
 const Card = ({ title, description, to, cta }) => (
-  <div className="rounded-xl border border-gray-200 bg-white p-5">
-    <div className="text-base font-semibold text-gray-900">{title}</div>
-    <div className="mt-1 text-sm text-gray-600">{description}</div>
+  <div className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
+    <div className="text-base font-semibold text-base-content">{title}</div>
+    <div className="mt-1 text-sm text-base-content/70">{description}</div>
     {to && (
       <div className="mt-4">
         <Link
           to={to}
-          className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/90"
         >
-          {cta || 'Abrir'}
+          {cta || "Abrir"}
         </Link>
       </div>
     )}
@@ -22,10 +22,10 @@ const CoachDashboard = () => {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="text-xl font-semibold text-base-content">
           Dashboard Entrenador
         </h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-base-content/70">
           Acceso a inscripciones, evaluaciones, estadísticas y reportes.
         </p>
       </div>

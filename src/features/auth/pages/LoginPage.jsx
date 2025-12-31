@@ -35,14 +35,14 @@ const LoginPage = () => {
   return (
     <div>
       <PublicNavbar />
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
           {/* Card principal */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-base-100 rounded-2xl shadow-xl p-8">
             {/* Header */}
             <div className="text-center mb-8">
               {/* Logo */}
-              <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
                 <svg
                   className="h-10 w-10 text-white"
                   fill="none"
@@ -59,13 +59,17 @@ const LoginPage = () => {
               </div>
 
               {/* Título */}
-              <h1 className="text-3xl font-bold text-gray-900">Kallpa UNL</h1>
-              <p className="mt-2 text-gray-600">Sistema de Gestión Deportiva</p>
+              <h1 className="text-3xl font-bold text-base-content">
+                Kallpa UNL
+              </h1>
+              <p className="mt-2 text-base-content/70">
+                Sistema de Gestión Deportiva
+              </p>
             </div>
 
             {/* Mensaje de estado  */}
             {location.state?.message && (
-              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+              <div className="mb-6 bg-success/10 border border-success/30 text-success px-4 py-3 rounded-lg">
                 <p className="text-sm">{location.state.message}</p>
               </div>
             )}

@@ -11,6 +11,7 @@
 
 import axios from "axios";
 import { AUTH_TOKEN_KEY } from "./constants";
+import { toast } from "sonner";
 
 // Endpoints de auth pública que no deben forzar redirect en 401
 const isPublicAuthPath = (url = "") => {
@@ -134,9 +135,14 @@ http.interceptors.response.use(
         firstError = detail;
       }
 
-      return Promise.reject(
-        new Error(firstError || message || "Error de validación de datos.")
-      );
+      const errorMsg = firstError || message || "Error de validación de datos.";
+      // Mostrar el error como toast
+      toast.error(errorMsg);
+      
+      // Crear un error con la estructura esperada por los hooks
+      const error = new Error(errorMsg);
+      error.response = { data: { detail: errorMsg } };
+      return Promise.reject(error);
     }
 
     // Error genérico

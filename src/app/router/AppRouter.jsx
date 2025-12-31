@@ -51,6 +51,7 @@ import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 
 // Perfil de usuario
 import ProfilePage from "@/features/profile/pages/ProfilePage";
+import ChangePasswordPage from "@/features/profile/pages/ChangePasswordPage";
 
 /**
  * Componente principal del Router
@@ -123,7 +124,10 @@ const AppRouter = () => {
             {/* RUTAS DE SEGUIMIENTO */}
 
             {/* Evaluaciones - Todos los autenticados (con subrutas) */}
-            <Route path="/seguimiento/evaluations/*" element={<EvaluationsPage />} />
+            <Route
+              path="/seguimiento/evaluations/*"
+              element={<EvaluationsPage />}
+            />
 
             {/* Estadísticas - Todos los autenticados */}
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
@@ -136,6 +140,10 @@ const AppRouter = () => {
 
             {/* Perfil - Todos los autenticados */}
             <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+            <Route
+              path={ROUTES.CHANGE_PASSWORD}
+              element={<ChangePasswordPage />}
+            />
           </Route>
         </Route>
 
