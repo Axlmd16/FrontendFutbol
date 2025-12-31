@@ -8,7 +8,11 @@ import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Loader from "@/shared/components/Loader";
 import useDebounce from "@/shared/hooks/useDebounce";
-import { ROUTES, MESSAGES } from "@/app/config/constants";
+import {
+  ROUTES,
+  MESSAGES,
+  ESTAMENTO_FILTER_OPTIONS,
+} from "@/app/config/constants";
 import {
   Search,
   UserPlus,
@@ -26,7 +30,7 @@ const AthletesListPage = () => {
 
   // Búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [estamentoFilter, setEstamentoFilter] = useState("");
 
   // Paginación
   const [pagination, setPagination] = useState({
@@ -36,7 +40,7 @@ const AthletesListPage = () => {
   });
 
   // Modal de confirmación
-  const [deactivateModal, setDeactivateModal] = useState({
+  const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     athlete: null,
     loading: false,
@@ -55,7 +59,7 @@ const AthletesListPage = () => {
         page: pagination.page,
         limit: pagination.limit,
         search: debouncedSearch || undefined,
-        category: categoryFilter || undefined,
+        type_athlete: estamentoFilter || undefined,
       };
 
       const response = await athletesApi.getAll(params);
@@ -70,43 +74,58 @@ const AthletesListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, debouncedSearch, categoryFilter]);
+  }, [pagination.page, pagination.limit, debouncedSearch, estamentoFilter]);
 
   useEffect(() => {
     fetchAthletes();
   }, [fetchAthletes]);
 
   // Handlers
-  const handleDeactivateClick = (athlete) => {
-    setDeactivateModal({ isOpen: true, athlete, loading: false });
+  const handleDeleteClick = (athlete) => {
+    setDeleteModal({ isOpen: true, athlete, loading: false });
   };
 
-  const handleDeactivateConfirm = async () => {
-    if (!deactivateModal.athlete) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.athlete) return;
 
-    setDeactivateModal((prev) => ({ ...prev, loading: true }));
+    setDeleteModal((prev) => ({ ...prev, loading: true }));
+    const isCurrentlyActive = deleteModal.athlete.is_active;
 
     try {
-      await athletesApi.desactivate(deactivateModal.athlete.id);
-      toast.success(MESSAGES.SUCCESS.ATHLETE_DEACTIVATED, {
-        description: MESSAGES.SUCCESS.ATHLETE_DEACTIVATED_DESC(
-          deactivateModal.athlete.full_name
-        ),
-      });
-      setDeactivateModal({ isOpen: false, athlete: null, loading: false });
+      if (isCurrentlyActive) {
+        // Desactivar deportista
+        await athletesApi.desactivate(deleteModal.athlete.id);
+        toast.success(MESSAGES.SUCCESS.ATHLETE_DEACTIVATED, {
+          description: MESSAGES.SUCCESS.ATHLETE_DEACTIVATED_DESC(
+            deleteModal.athlete.full_name
+          ),
+        });
+      } else {
+        // Activar deportista
+        await athletesApi.activate(deleteModal.athlete.id);
+        toast.success(MESSAGES.SUCCESS.ATHLETE_ACTIVATED, {
+          description: MESSAGES.SUCCESS.ATHLETE_ACTIVATED_DESC(
+            deleteModal.athlete.full_name
+          ),
+        });
+      }
+      setDeleteModal({ isOpen: false, athlete: null, loading: false });
       fetchAthletes();
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
       setError(errorMessage);
-      toast.error(MESSAGES.ERROR.ATHLETE_DEACTIVATE, {
-        description: errorMessage,
-      });
-      setDeactivateModal((prev) => ({ ...prev, loading: false }));
+      toast.error(
+        isCurrentlyActive
+          ? MESSAGES.ERROR.ATHLETE_DEACTIVATE
+          : MESSAGES.ERROR.ATHLETE_ACTIVATE,
+        { description: errorMessage }
+      );
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  const handleDeactivateCancel = () => {
-    setDeactivateModal({ isOpen: false, athlete: null, loading: false });
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, athlete: null, loading: false });
   };
 
   const handleCreate = () => navigate(ROUTES.INSCRIPTION_CREATE);
@@ -166,17 +185,15 @@ const AthletesListPage = () => {
               />
             </div>
             <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              value={estamentoFilter}
+              onChange={(e) => setEstamentoFilter(e.target.value)}
               className="select select-bordered w-full bg-base-100"
             >
-              <option value="">Todas las categorías</option>
-              <option value="SUB10">SUB10</option>
-              <option value="SUB12">SUB12</option>
-              <option value="SUB14">SUB14</option>
-              <option value="SUB16">SUB16</option>
-              <option value="SUB18">SUB18</option>
-              <option value="ADULTO">ADULTO</option>
+              {ESTAMENTO_FILTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -212,7 +229,7 @@ const AthletesListPage = () => {
           <AthletesTable
             athletes={athletes}
             onEdit={handleEdit}
-            onDeactivate={handleDeactivateClick}
+            onDelete={handleDeleteClick}
             loading={loading}
           />
 
@@ -280,33 +297,49 @@ const AthletesListPage = () => {
         </>
       )}
 
-      {/* Deactivate Modal */}
+      {/* Toggle Status Modal */}
       <Modal
-        isOpen={deactivateModal.isOpen}
-        onClose={handleDeactivateCancel}
-        title="Dar de baja a deportista"
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        title={
+          deleteModal.athlete?.is_active
+            ? "Dar de baja a deportista"
+            : "Activar deportista"
+        }
       >
         <p className="text-base-content/70">
-          ¿Estás seguro de dar de baja al deportista{" "}
-          <strong className="text-base-content">
-            {deactivateModal.athlete?.full_name}
-          </strong>
-          ? Esta acción marcará al deportista como inactivo.
+          {deleteModal.athlete?.is_active ? (
+            <>
+              ¿Estás seguro de dar de baja al deportista{" "}
+              <strong className="text-base-content">
+                {deleteModal.athlete?.full_name}
+              </strong>
+              ? Esta acción marcará al deportista como inactivo.
+            </>
+          ) : (
+            <>
+              ¿Deseas activar nuevamente al deportista{" "}
+              <strong className="text-base-content">
+                {deleteModal.athlete?.full_name}
+              </strong>
+              ? Podrá participar en actividades del club.
+            </>
+          )}
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <Button
             variant="ghost"
-            onClick={handleDeactivateCancel}
-            disabled={deactivateModal.loading}
+            onClick={handleDeleteCancel}
+            disabled={deleteModal.loading}
           >
             Cancelar
           </Button>
           <Button
-            variant="danger"
-            onClick={handleDeactivateConfirm}
-            loading={deactivateModal.loading}
+            variant={deleteModal.athlete?.is_active ? "danger" : "success"}
+            onClick={handleDeleteConfirm}
+            loading={deleteModal.loading}
           >
-            Confirmar Baja
+            {deleteModal.athlete?.is_active ? "Confirmar Baja" : "Activar"}
           </Button>
         </div>
       </Modal>

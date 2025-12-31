@@ -58,11 +58,14 @@ const DeportistaForm = ({
   const normalizedSex = useMemo(() => {
     const raw = (initialData?.sex ?? "").toString().trim();
     const upper = raw.toUpperCase();
+    // Handle Spanish values
     if (upper === "MASCULINO") return "MALE";
     if (upper === "FEMENINO") return "FEMALE";
     if (upper === "OTRO") return "OTHER";
-    const lower = raw.toLowerCase();
-    if (["male", "female", "other"].includes(lower)) return lower;
+    // Handle backend enum values: "Male", "Female", "Other" or "MALE", "FEMALE", "OTHER"
+    if (upper === "MALE") return "MALE";
+    if (upper === "FEMALE") return "FEMALE";
+    if (upper === "OTHER") return "OTHER";
     return "";
   }, [initialData?.sex]);
 
@@ -70,7 +73,8 @@ const DeportistaForm = ({
     () => ({
       first_name: initialData?.first_name || "",
       last_name: initialData?.last_name || "",
-      birth_date: initialData?.birth_date || "",
+      // Backend returns 'date_of_birth', form uses 'birth_date'
+      birth_date: initialData?.date_of_birth || initialData?.birth_date || "",
       sex: normalizedSex || initialData?.sex || defaultSex,
       direction: initialData?.direction || "",
       type_identification:
@@ -79,9 +83,11 @@ const DeportistaForm = ({
         defaultTypeId,
       dni: initialData?.dni || "",
       phone: initialData?.phone || "",
+      // Backend returns 'type_stament' from MS, fallback to 'type_athlete' from local data
       type_stament:
         normalizedTypeStament ||
         initialData?.type_stament ||
+        initialData?.type_athlete ||
         defaultTypeStament,
       height: initialData?.height || "",
       weight: initialData?.weight || "",

@@ -1,39 +1,86 @@
 import PropTypes from "prop-types";
 import Button from "@/shared/components/Button";
-import { Edit2, Power, MoreHorizontal, User } from "lucide-react";
+import {
+  User,
+  UserRoundPen,
+  CirclePower,
+  IdCard,
+  GraduationCap,
+  Briefcase,
+  BookOpen,
+  Users,
+  UserX,
+  CheckCircle2,
+  XCircle,
+  Mars,
+  Venus,
+  CircleHelp,
+} from "lucide-react";
 
-function AthletesTable({
-  athletes = [],
-  onEdit,
-  onDeactivate,
-  loading = false,
-}) {
-  // Badge estilos por categoría
-  const getCategoryBadge = (category) => {
-    const styles = {
-      SUB10: "badge-primary",
-      SUB12: "badge-secondary",
-      SUB14: "badge-info",
-      SUB16: "badge-accent",
-      SUB18: "badge-warning",
-      ADULTO: "badge-success",
+function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
+  // Badge estilos e iconos por estamento (type_athlete)
+  const getEstamentoConfig = (typeAthlete) => {
+    const configs = {
+      administrativos: {
+        class: "badge-primary",
+        icon: Briefcase,
+        label: "Administrativos",
+      },
+      docentes: {
+        class: "badge-secondary",
+        icon: BookOpen,
+        label: "Docentes",
+      },
+      estudiantes: {
+        class: "badge-info",
+        icon: GraduationCap,
+        label: "Estudiantes",
+      },
+      trabajadores: {
+        class: "badge-accent",
+        icon: Users,
+        label: "Trabajadores",
+      },
+      externos: {
+        class: "badge-warning",
+        icon: UserX,
+        label: "Externos",
+      },
     };
-    return styles[category] || "badge-neutral";
+    const key = (typeAthlete || "").toLowerCase();
+    return configs[key] || { class: "badge-neutral", icon: User, label: "N/A" };
   };
 
-  // Estado vacío
+  // Config de sexo con iconos
+  const getSexConfig = (sex) => {
+    const configs = {
+      Male: { label: "Masculino", class: "badge-info", icon: Mars },
+      Female: { label: "Femenino", class: "badge-secondary", icon: Venus },
+      Other: { label: "Otro", class: "badge-neutral", icon: CircleHelp },
+    };
+    return (
+      configs[sex] || {
+        label: sex || "N/A",
+        class: "badge-neutral",
+        icon: CircleHelp,
+      }
+    );
+  };
+
+  // Estado vacío mejorado
   if (!loading && athletes.length === 0) {
     return (
       <div className="card bg-base-100 border border-base-300">
         <div className="card-body items-center text-center py-16">
-          <div className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4">
-            <User size={32} className="text-base-content/40" />
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4">
+            <User size={40} className="text-primary/60" />
           </div>
-          <h3 className="text-lg font-semibold text-base-content">
+          <h3 className="text-xl font-bold text-base-content">
             No hay deportistas
           </h3>
-          <p className="text-base-content/60 text-sm max-w-sm">
-            No se encontraron deportistas con los filtros seleccionados.
+          <p className="text-base-content/60 text-sm max-w-md">
+            No se encontraron deportistas con los filtros seleccionados. Intenta
+            con otros criterios de búsqueda.
           </p>
         </div>
       </div>
@@ -41,136 +88,178 @@ function AthletesTable({
   }
 
   return (
-    <div className="card bg-white shadow-md border border-base-300 overflow-hidden">
+    <div className="card bg-white shadow-lg border border-base-300 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="table table-zebra w-full">
-          <thead className="bg-base-200">
+        <table className="table w-full">
+          <thead className="bg-gradient-to-r from-base-200 to-base-300">
             <tr>
-              <th className="text-xs uppercase tracking-wider font-semibold text-base-content/70">
-                Deportista
+              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80">
+                <div className="flex items-center gap-2">
+                  <User size={14} />
+                  Deportista
+                </div>
               </th>
-              <th className="text-xs uppercase tracking-wider font-semibold text-base-content/70 text-center">
-                Categoría
+              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <GraduationCap size={14} />
+                  Estamento
+                </div>
               </th>
-              <th className="text-xs uppercase tracking-wider font-semibold text-base-content/70 text-center">
-                Sexo
+              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Users size={14} />
+                  Sexo
+                </div>
               </th>
-              <th className="text-xs uppercase tracking-wider font-semibold text-base-content/70 text-center">
-                Estado
+              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle2 size={14} />
+                  Estado
+                </div>
               </th>
-              <th className="text-xs uppercase tracking-wider font-semibold text-base-content/70 text-right">
+              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-right pr-6">
                 Acciones
               </th>
             </tr>
           </thead>
           <tbody>
-            {athletes.map((athlete) => (
-              <tr key={athlete.id} className="hover">
+            {athletes.map((athlete, index) => (
+              <tr
+                key={athlete.id}
+                className={`hover:bg-base-100 transition-colors ${
+                  index % 2 === 0 ? "bg-white" : "bg-base-50"
+                }`}
+              >
                 {/* Deportista Info */}
-                <td>
-                  <div className="flex items-center gap-3">
+                <td className="py-4">
+                  <div className="flex items-center gap-4">
                     <div className="avatar">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 ring-2 ring-base-200">
+                      <div
+                        className={`w-12 h-12 rounded-full ring-2 flex items-center justify-center ${
+                          athlete.is_active
+                            ? "bg-gradient-to-br from-primary/20 to-primary/10 ring-primary/30"
+                            : "bg-base-200 ring-base-300"
+                        }`}
+                      >
                         {athlete.photo ? (
                           <img
                             src={athlete.photo}
                             alt={athlete.full_name}
+                            className="rounded-full"
                             onError={(e) => {
                               e.target.style.display = "none";
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-primary font-semibold">
+                          <span
+                            className={`text-lg font-bold ${
+                              athlete.is_active
+                                ? "text-primary"
+                                : "text-base-content/40"
+                            }`}
+                          >
                             {athlete.full_name?.charAt(0)?.toUpperCase() || "?"}
-                          </div>
+                          </span>
                         )}
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <div className="font-medium text-base-content truncate">
+                      <div
+                        className={`font-semibold truncate ${
+                          athlete.is_active
+                            ? "text-base-content"
+                            : "text-base-content/50"
+                        }`}
+                      >
                         {athlete.full_name}
                       </div>
-                      <div className="text-xs text-base-content/50 truncate">
-                        {athlete.email || "Sin email registrado"}
+                      <div className="flex items-center gap-1 text-xs text-base-content/50">
+                        <IdCard size={12} />
+                        <span className="truncate">
+                          {athlete.dni || "Sin documento"}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </td>
 
-                {/* Categoría */}
+                {/* Estamento con icono */}
                 <td className="text-center">
-                  <span
-                    className={`badge ${getCategoryBadge(
-                      athlete.category
-                    )} badge-sm`}
-                  >
-                    {athlete.category}
-                  </span>
+                  {(() => {
+                    const config = getEstamentoConfig(athlete.type_athlete);
+                    const IconComponent = config.icon;
+                    return (
+                      <span
+                        className={`badge ${config.class} badge-sm gap-1 font-medium`}
+                      >
+                        <IconComponent size={12} />
+                        {config.label}
+                      </span>
+                    );
+                  })()}
                 </td>
 
-                {/* Sexo */}
+                {/* Sexo con icono */}
                 <td className="text-center">
-                  <span
-                    className={`badge badge-outline badge-sm ${
-                      athlete.sex === "M" ? "badge-info" : "badge-secondary"
-                    }`}
-                  >
-                    {athlete.sex === "M" ? "Masculino" : "Femenino"}
-                  </span>
+                  {(() => {
+                    const config = getSexConfig(athlete.sex);
+                    const IconComponent = config.icon;
+                    return (
+                      <span
+                        className={`badge badge-outline ${config.class} badge-sm gap-1`}
+                      >
+                        <IconComponent size={12} />
+                        {config.label}
+                      </span>
+                    );
+                  })()}
                 </td>
 
-                {/* Estado */}
+                {/* Estado con icono */}
                 <td className="text-center">
-                  <span
-                    className={`badge badge-sm ${
-                      athlete.state ? "badge-success" : "badge-error"
-                    }`}
-                  >
-                    {athlete.state ? "Activo" : "Inactivo"}
-                  </span>
+                  {athlete.is_active ? (
+                    <span className="badge badge-success badge-sm gap-1 font-medium">
+                      <CheckCircle2 size={12} />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="badge badge-error badge-sm gap-1 font-medium">
+                      <XCircle size={12} />
+                      Inactivo
+                    </span>
+                  )}
                 </td>
 
                 {/* Acciones */}
-                <td>
-                  <div className="flex justify-end gap-1">
-                    <button
-                      className="btn btn-ghost btn-sm btn-square tooltip tooltip-left"
-                      data-tip="Editar"
-                      onClick={() => onEdit && onEdit(athlete)}
+                <td className="text-right pr-4">
+                  <div className="flex items-center justify-end gap-2">
+                    <div className="tooltip tooltip-left" data-tip="Editar">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="btn-square btn-ghost text-info hover:bg-info/10 hover:scale-105 transition-transform"
+                        onClick={() => onEdit && onEdit(athlete)}
+                      >
+                        <UserRoundPen size={18} />
+                      </Button>
+                    </div>
+
+                    <div
+                      className="tooltip tooltip-left"
+                      data-tip={athlete.is_active ? "Dar de baja" : "Activar"}
                     >
-                      <Edit2 size={16} className="text-primary" />
-                    </button>
-                    <div className="dropdown dropdown-end">
-                      <button
-                        tabIndex={0}
-                        className="btn btn-ghost btn-sm btn-square"
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`btn-square btn-ghost hover:scale-105 transition-transform ${
+                          athlete.is_active
+                            ? "text-warning hover:bg-warning/10"
+                            : "text-success hover:bg-success/10"
+                        }`}
+                        onClick={() => onDelete && onDelete(athlete)}
                       >
-                        <MoreHorizontal size={16} />
-                      </button>
-                      <ul
-                        tabIndex={0}
-                        className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-48 border border-base-300"
-                      >
-                        <li>
-                          <button
-                            onClick={() => onEdit && onEdit(athlete)}
-                            className="text-base-content"
-                          >
-                            <Edit2 size={14} />
-                            Editar deportista
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => onDeactivate(athlete)}
-                            disabled={!athlete.state}
-                            className="text-error disabled:opacity-50"
-                          >
-                            <Power size={14} />
-                            Dar de baja
-                          </button>
-                        </li>
-                      </ul>
+                        <CirclePower size={18} />
+                      </Button>
                     </div>
                   </div>
                 </td>
@@ -188,15 +277,15 @@ AthletesTable.propTypes = {
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
       full_name: PropTypes.string.isRequired,
-      email: PropTypes.string,
+      dni: PropTypes.string,
       photo: PropTypes.string,
-      category: PropTypes.string,
+      type_athlete: PropTypes.string,
       sex: PropTypes.string,
-      state: PropTypes.bool,
+      is_active: PropTypes.bool,
     })
   ),
   onEdit: PropTypes.func.isRequired,
-  onDeactivate: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
   loading: PropTypes.bool,
 };
 

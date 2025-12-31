@@ -69,6 +69,16 @@ const athletesApi = {
     const response = await http.patch(API_ENDPOINTS.ATHLETES.DESACTIVATE(id));
     return response.data;
   },
+
+  /**
+   * Activa un deportista (revierte soft delete)
+   * @param {string|number} id - ID del deportista
+   * @returns {Promise<Object>} Deportista activado
+   */
+  activate: async (id) => {
+    const response = await http.patch(API_ENDPOINTS.ATHLETES.ACTIVATE(id));
+    return response.data;
+  },
 };
 
 export default athletesApi;
