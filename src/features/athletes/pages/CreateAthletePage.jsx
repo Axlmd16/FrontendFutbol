@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import athletesApi from "@/features/athletes/services/athletes.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
+import { ArrowLeft, UserPlus } from "lucide-react";
 
 const CreateAthletePage = () => {
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,9 @@ const CreateAthletePage = () => {
 
     try {
       await athletesApi.create(athleteData);
-
       toast.success(MESSAGES.SUCCESS.ATHLETE_CREATED, {
         description: MESSAGES.SUCCESS.ATHLETE_CREATED_DESC,
       });
-
       navigate(ROUTES.INSCRIPTION);
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
@@ -38,36 +37,35 @@ const CreateAthletePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className=" max-w-3xl mx-auto">
-        <div className="mb-8">
-          <button
-            onClick={handleCancel}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Volver
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4">
+        <button
+          onClick={handleCancel}
+          className="flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors w-fit"
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm font-medium">Volver a la lista</span>
+        </button>
 
-          <h1 className="text-2xl font-bold text-gray-900">Crear deportista</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Completa el formulario para agregar un nuevo deportista.
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <UserPlus size={24} className="text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-base-content">
+              Nuevo Deportista
+            </h1>
+            <p className="text-base-content/60 text-sm">
+              Completa el formulario para agregar un nuevo deportista.
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* Form Card */}
+      <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card-body">
           <DeportistaForm
             onSubmit={handleSubmit}
             onCancel={handleCancel}

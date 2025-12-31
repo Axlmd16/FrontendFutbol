@@ -5,7 +5,7 @@ import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import Loader from "@/shared/components/Loader";
 import athletesApi from "@/features/athletes/services/athletes.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft, UserCog, AlertCircle } from "lucide-react";
 
 const EditAthletePage = () => {
   const [athlete, setAthlete] = useState(null);
@@ -42,11 +42,9 @@ const EditAthletePage = () => {
 
     try {
       await athletesApi.update(id, athleteData);
-
       toast.success(MESSAGES.SUCCESS.ATHLETE_UPDATED, {
         description: MESSAGES.SUCCESS.ATHLETE_UPDATED_DESC,
       });
-
       navigate(ROUTES.INSCRIPTION);
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
@@ -63,43 +61,43 @@ const EditAthletePage = () => {
     navigate(ROUTES.INSCRIPTION);
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <Loader size="lg" />
       </div>
     );
   }
 
+  // Not found state
   if (!athlete && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <h2 className="mt-4 text-xl font-bold text-gray-900">
+      <div className="space-y-6">
+        <button
+          onClick={handleCancel}
+          className="flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors w-fit"
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm font-medium">Volver a la lista</span>
+        </button>
+
+        <div className="card bg-base-100 shadow-sm border border-base-300">
+          <div className="card-body items-center text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+              <AlertCircle size={32} className="text-error" />
+            </div>
+            <h2 className="text-xl font-bold text-base-content">
               Deportista no encontrado
             </h2>
-            <p className="mt-2 text-gray-500">
+            <p className="text-base-content/60 max-w-sm">
               {error || "El deportista que buscas no existe o fue eliminado."}
             </p>
             <button
               onClick={handleCancel}
-              className="mt-6 text-blue-600 hover:text-blue-500 font-medium"
+              className="btn btn-primary btn-sm mt-4"
             >
-              ← Volver a la lista
+              Volver a la lista
             </button>
           </div>
         </div>
@@ -108,24 +106,38 @@ const EditAthletePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <button
-            onClick={handleCancel}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ChevronLeft size={25} className="mr-1" />
-            Volver
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4">
+        <button
+          onClick={handleCancel}
+          className="flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors w-fit"
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm font-medium">Volver a la lista</span>
+        </button>
 
-          <h1 className="text-2xl font-bold text-gray-900">Editar deportista</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Modifica los datos del deportista <strong>{athlete?.full_name}</strong>
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <UserCog size={24} className="text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-base-content">
+              Editar Deportista
+            </h1>
+            <p className="text-base-content/60 text-sm">
+              Modifica los datos de{" "}
+              <strong className="text-base-content">
+                {athlete?.full_name}
+              </strong>
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* Form Card */}
+      <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card-body">
           <DeportistaForm
             initialData={athlete}
             onSubmit={handleSubmit}

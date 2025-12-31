@@ -95,8 +95,12 @@ const AppRouter = () => {
               <Route path={ROUTES.USERS_EDIT} element={<EditUserPage />} />
             </Route>
 
-            {/* RUTAS DE INSCRIPCIÓN / DEPORTISTAS - SOLO ENTRENADOR */}
-            <Route element={<RoleRoute allowedRoles={[ROLES.ENTRENADOR]} />}>
+            {/* RUTAS DE INSCRIPCIÓN / DEPORTISTAS - ADMIN Y ENTRENADOR */}
+            <Route
+              element={
+                <RoleRoute allowedRoles={[ROLES.ADMIN, ROLES.ENTRENADOR]} />
+              }
+            >
               {/* Lista de deportistas (usa ruta principal y alias existente) */}
               <Route path={ROUTES.INSCRIPTION} element={<AthletesListPage />} />
               <Route
