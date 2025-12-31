@@ -33,7 +33,7 @@ const DashboardLayout = () => {
 
   /** Contenido del sidebar (reutilizado en desktop y mobile) */
   const SidebarContent = ({ isMobile = false }) => (
-    <div className="flex h-full flex-col bg-base-100">
+    <div className="flex h-full flex-col bg-white">
       {/* Header */}
       <div className="border-b border-base-300 px-4 py-5">
         <div className="flex items-center justify-between">

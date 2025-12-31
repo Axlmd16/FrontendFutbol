@@ -8,7 +8,7 @@ function App() {
     <AuthProvider>
       <AppRouter />
       <Toaster
-        position="top-right"
+        position="bottom-left"
         expand={false}
         richColors
         closeButton

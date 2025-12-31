@@ -37,6 +37,8 @@ export const ROUTES = {
   INSCRIPTION: "/inscription",
   INSCRIPTION_DEPORTISTA: "/inscription/deportista",
   INSCRIPTION_MENOR: "/inscription/menor",
+  INSCRIPTION_CREATE: "/inscription/create",
+  INSCRIPTION_EDIT: "/inscription/edit/:id",
 
   //? Rutas privadas (requieren autenticación)
   DASHBOARD: "/dashboard",
@@ -93,6 +95,18 @@ export const MESSAGES = {
     USER_UPDATED_DESC: "Los cambios han sido guardados correctamente.",
     USER_DEACTIVATED: "Usuario desactivado",
     USER_DEACTIVATED_DESC: (name) => `${name} ha sido desactivado del sistema.`,
+    // Deportistas
+    ATHLETE_CREATED: "Deportista creado exitosamente",
+    ATHLETE_CREATED_DESC:
+      "El nuevo deportista ha sido registrado en el sistema.",
+    ATHLETE_UPDATED: "Deportista actualizado",
+    ATHLETE_UPDATED_DESC: "Los cambios han sido guardados correctamente.",
+    ATHLETE_DEACTIVATED: "Deportista dado de baja",
+    ATHLETE_DEACTIVATED_DESC: (name) =>
+      `${name} ha sido dado de baja del sistema.`,
+    ATHLETE_ACTIVATED: "Deportista activado",
+    ATHLETE_ACTIVATED_DESC: (name) =>
+      `${name} ha sido activado nuevamente en el sistema.`,
   },
 
   // Errores
@@ -111,6 +125,12 @@ export const MESSAGES = {
     USER_SELF_DEACTIVATE: "No puedes desactivarte a ti mismo",
     USER_SELF_DEACTIVATE_DESC:
       "Por seguridad, no está permitido desactivar tu propia cuenta.",
+    // Deportistas
+    ATHLETE_CREATE: "Error al crear deportista",
+    ATHLETE_UPDATE: "Error al actualizar deportista",
+    ATHLETE_DEACTIVATE: "Error al dar de baja al deportista",
+    ATHLETE_ACTIVATE: "Error al activar al deportista",
+    ATHLETE_LOAD: "No se pudo cargar la lista de deportistas",
   },
 
   // Confirmaciones
@@ -205,6 +225,18 @@ export const TYPE_STAMENT_OPTIONS = [
   { value: "externos", label: "Externos" },
 ];
 
+/**
+ * Opciones de estamento para filtros (valores en UPPERCASE como espera el backend)
+ */
+export const ESTAMENTO_FILTER_OPTIONS = [
+  { value: "", label: "Todos los estamentos" },
+  { value: "ESTUDIANTES", label: "Estudiantes" },
+  { value: "DOCENTES", label: "Docentes" },
+  { value: "ADMINISTRATIVOS", label: "Administrativos" },
+  { value: "TRABAJADORES", label: "Trabajadores" },
+  { value: "EXTERNOS", label: "Externos" },
+];
+
 // ==============================================
 //? CONFIGURACIÓN DE FECHAS
 
@@ -247,6 +279,9 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/athletes/${id}`,
     GET_ALL: "/athletes/all",
     CREATE: "/athletes/register-unl",
+    UPDATE: (id) => `/athletes/update/${id}`,
+    DESACTIVATE: (id) => `/athletes/desactivate/${id}`,
+    ACTIVATE: (id) => `/athletes/activate/${id}`,
   },
 
   // Evaluations
