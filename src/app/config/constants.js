@@ -175,6 +175,28 @@ export const TEST_TYPES = {
 };
 
 /**
+ * Etiquetas de tipos de test en español
+ */
+export const TEST_TYPE_LABELS = {
+  "Sprint Test": {
+    name: "Test de Velocidad",
+    shortName: "Velocidad",
+    color: "#3B82F6",
+  },
+  "YoYo Test": { name: "Test YoYo", shortName: "YoYo", color: "#10B981" },
+  "Endurance Test": {
+    name: "Test de Resistencia",
+    shortName: "Resistencia",
+    color: "#F59E0B",
+  },
+  "Technical Assessment": {
+    name: "Evaluación Técnica",
+    shortName: "Técnica",
+    color: "#8B5CF6",
+  },
+};
+
+/**
  * Estados de asistencia
  */
 export const ATTENDANCE_STATUS = {
