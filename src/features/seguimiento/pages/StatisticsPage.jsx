@@ -3,9 +3,10 @@
  *
  * Dashboard de estadísticas del club con métricas clave,
  * asistencia y rendimiento en tests.
+ * Usa TanStack Query para cache de datos.
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { BarChart3, RefreshCw } from "lucide-react";
 
@@ -22,22 +23,18 @@ import {
   TestsView,
 } from "../components/StadisticsComponents";
 
-// Servicios
-import statisticsApi from "../services/statistics.api";
+// Hooks de estadísticas con cache
+import {
+  useClubOverview,
+  useAttendanceStats,
+  useTestPerformance,
+  useInvalidateStatistics,
+} from "../hooks/useStatistics";
 
 /**
  * Página de estadísticas del club
  */
 function StatisticsPage() {
-  // Estado de datos
-  const [clubOverview, setClubOverview] = useState(null);
-  const [attendanceStats, setAttendanceStats] = useState(null);
-  const [testPerformance, setTestPerformance] = useState(null);
-
-  // Estado de carga
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
   // Filtros
   const [filters, setFilters] = useState({
     type_athlete: "",
@@ -49,87 +46,36 @@ function StatisticsPage() {
   // Vista activa
   const [activeView, setActiveView] = useState("overview");
 
-  // Cargar datos
-  const fetchData = useCallback(async () => {
-    try {
-      const params = {
-        type_athlete: filters.type_athlete || undefined,
-        sex: filters.sex || undefined,
-        start_date: filters.start_date || undefined,
-        end_date: filters.end_date || undefined,
-      };
+  // Queries con cache
+  const {
+    data: clubOverview,
+    isLoading: overviewLoading,
+    isFetching: overviewFetching,
+  } = useClubOverview(filters);
 
-      // Use Promise.allSettled to handle individual failures
-      const [overviewResult, attendanceResult, testsResult] =
-        await Promise.allSettled([
-          statisticsApi.getClubOverview(params),
-          statisticsApi.getAttendanceStats(params),
-          statisticsApi.getTestPerformance(params),
-        ]);
+  const {
+    data: attendanceStats,
+    isLoading: attendanceLoading,
+    isFetching: attendanceFetching,
+  } = useAttendanceStats(filters);
 
-      // Handle overview
-      if (
-        overviewResult.status === "fulfilled" &&
-        overviewResult.value?.status === "success"
-      ) {
-        setClubOverview(overviewResult.value.data);
-      }
+  const {
+    data: testPerformance,
+    isLoading: testsLoading,
+    isFetching: testsFetching,
+  } = useTestPerformance(filters);
 
-      // Handle attendance
-      if (
-        attendanceResult.status === "fulfilled" &&
-        attendanceResult.value?.status === "success"
-      ) {
-        setAttendanceStats(attendanceResult.value.data);
-      }
+  // Invalidador de cache
+  const { invalidateAll } = useInvalidateStatistics();
 
-      // Handle tests
-      if (
-        testsResult.status === "fulfilled" &&
-        testsResult.value?.status === "success"
-      ) {
-        setTestPerformance(testsResult.value.data);
-      }
+  // Estados derivados
+  const loading = overviewLoading || attendanceLoading || testsLoading;
+  const refreshing = overviewFetching || attendanceFetching || testsFetching;
 
-      // Check for any errors
-      const errors = [];
-      if (overviewResult.status === "rejected") {
-        errors.push(`Overview: ${overviewResult.reason?.message}`);
-      }
-      if (attendanceResult.status === "rejected") {
-        errors.push(`Attendance: ${attendanceResult.reason?.message}`);
-      }
-      if (testsResult.status === "rejected") {
-        errors.push(`Tests: ${testsResult.reason?.message}`);
-      }
-
-      if (errors.length > 0) {
-        console.error("Errores en estadísticas:", errors);
-        if (errors.length === 3) {
-          toast.error("Error al cargar estadísticas", {
-            description: errors[0],
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error cargando estadísticas:", error);
-      toast.error("Error al cargar estadísticas", {
-        description: error.message || "Intente nuevamente",
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Refrescar datos
+  // Refrescar datos (invalida cache y fuerza recarga)
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
+    invalidateAll();
+    toast.success("Actualizando estadísticas...");
   };
 
   // Limpiar filtros
