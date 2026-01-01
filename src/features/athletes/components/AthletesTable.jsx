@@ -15,9 +15,16 @@ import {
   Mars,
   Venus,
   CircleHelp,
+  Eye,
 } from "lucide-react";
 
-function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
+function AthletesTable({
+  athletes = [],
+  onEdit,
+  onDelete,
+  onViewDetail,
+  loading = false,
+}) {
   // Badge estilos e iconos por estamento (type_athlete)
   const getEstamentoConfig = (typeAthlete) => {
     const configs = {
@@ -233,6 +240,20 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
                 {/* Acciones */}
                 <td className="text-right pr-4">
                   <div className="flex items-center justify-end gap-2">
+                    <div
+                      className="tooltip tooltip-left"
+                      data-tip="Ver detalle"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="btn-square btn-ghost text-primary hover:bg-primary/10 hover:scale-105 transition-transform"
+                        onClick={() => onViewDetail && onViewDetail(athlete)}
+                      >
+                        <Eye size={18} />
+                      </Button>
+                    </div>
+
                     <div className="tooltip tooltip-left" data-tip="Editar">
                       <Button
                         variant="ghost"
@@ -286,6 +307,7 @@ AthletesTable.propTypes = {
   ),
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
+  onViewDetail: PropTypes.func,
   loading: PropTypes.bool,
 };
 

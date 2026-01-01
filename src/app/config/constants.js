@@ -39,6 +39,7 @@ export const ROUTES = {
   INSCRIPTION_MENOR: "/inscription/menor",
   INSCRIPTION_CREATE: "/inscription/create",
   INSCRIPTION_EDIT: "/inscription/edit/:id",
+  ATHLETE_DETAIL: "/inscription/athlete/:id",
 
   //? Rutas privadas (requieren autenticación)
   DASHBOARD: "/dashboard",

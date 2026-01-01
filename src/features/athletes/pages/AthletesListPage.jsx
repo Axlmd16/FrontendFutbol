@@ -131,6 +131,8 @@ const AthletesListPage = () => {
   const handleCreate = () => navigate(ROUTES.INSCRIPTION_CREATE);
   const handleEdit = (athlete) =>
     navigate(ROUTES.INSCRIPTION_EDIT.replace(":id", athlete.id));
+  const handleViewDetail = (athlete) =>
+    navigate(ROUTES.ATHLETE_DETAIL.replace(":id", athlete.id));
   const handlePageChange = (newPage) =>
     setPagination((prev) => ({ ...prev, page: newPage }));
 
@@ -230,6 +232,7 @@ const AthletesListPage = () => {
             athletes={athletes}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
+            onViewDetail={handleViewDetail}
             loading={loading}
           />
 

@@ -39,6 +39,7 @@ import RegisterMenorPage from "@/features/inscription/pages/RegisterMenorPage";
 import AthletesListPage from "@/features/athletes/pages/AthletesListPage";
 import CreateAthletePage from "@/features/athletes/pages/CreateAthletePage";
 import EditAthletePage from "@/features/athletes/pages/EditAthletePage";
+import AthleteDetailPage from "@/features/athletes/pages/AthleteDetailPage";
 
 // Páginas de Seguimiento
 import EvaluationsPage from "@/features/seguimiento/pages/EvaluationsPage";
@@ -116,6 +117,12 @@ const AppRouter = () => {
               <Route
                 path={ROUTES.INSCRIPTION_EDIT}
                 element={<EditAthletePage />}
+              />
+
+              {/* Detalle del deportista */}
+              <Route
+                path={ROUTES.ATHLETE_DETAIL}
+                element={<AthleteDetailPage />}
               />
 
               {/* Formularios previos (se mantienen) */}
