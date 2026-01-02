@@ -6,11 +6,11 @@
  * Instancia centralizada de Axios con:
  * - Base URL configurable por variables de entorno
  * - Interceptor para agregar token de autorización
- * - Interceptor para manejar errores 401 y redirección
+ * - Interceptor para manejar errores 401 con refresh token automático
  */
 
 import axios from "axios";
-import { AUTH_TOKEN_KEY } from "./constants";
+import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from "./constants";
 import { toast } from "sonner";
 
 // Endpoints de auth pública que no deben forzar redirect en 401
@@ -19,6 +19,7 @@ const isPublicAuthPath = (url = "") => {
     "/accounts/login",
     "/accounts/password-reset/request",
     "/accounts/password-reset/confirm",
+    "/accounts/refresh",
   ].some((path) => url.includes(path));
 };
 
@@ -34,6 +35,21 @@ const http = axios.create({
     Accept: "application/json",
   },
 });
+
+// Estado para evitar múltiples llamadas concurrentes de refresh
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 /**
  * Interceptor de REQUEST
@@ -57,32 +73,101 @@ http.interceptors.request.use(
 
 /**
  * Interceptor de RESPONSE
- * Maneja errores globales, especialmente 401 (no autorizado)
+ * Maneja errores globales, especialmente 401 con refresh automático
  */
 http.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     const { response, config } = error;
+    const originalRequest = config;
 
-    // 401 (Unauthorized)
+    // 401 (Unauthorized) - Intentar refresh antes de forzar logout
     if (response?.status === 401) {
+      // Si es un endpoint público de auth, no intentar refresh
       if (isPublicAuthPath(config?.url)) {
         return Promise.reject(
           new Error(response?.data?.detail || "Credenciales inválidas")
         );
       }
 
-      // Limpiar token almacenado
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      // Si ya intentamos refresh en esta request, forzar logout
+      if (originalRequest._retry) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
+        window.location.href = "/login";
+        return Promise.reject(
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+        );
+      }
 
-      // Redirigir a la página de login
-      window.location.href = "/login";
+      // Si ya hay un refresh en progreso, encolar esta request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return http(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
 
-      return Promise.reject(
-        new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
-      );
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem(AUTH_REFRESH_TOKEN_KEY);
+
+      // Si no hay refresh token, forzar logout
+      if (!refreshToken) {
+        isRefreshing = false;
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        window.location.href = "/login";
+        return Promise.reject(
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+        );
+      }
+
+      try {
+        // Intentar refrescar el token
+        const refreshResponse = await axios.post(
+          `${http.defaults.baseURL}/accounts/refresh`,
+          { refresh_token: refreshToken },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const newAccessToken = refreshResponse.data?.data?.access_token;
+        const newRefreshToken = refreshResponse.data?.data?.refresh_token;
+
+        if (newAccessToken) {
+          // Guardar nuevos tokens
+          localStorage.setItem(AUTH_TOKEN_KEY, newAccessToken);
+          if (newRefreshToken) {
+            localStorage.setItem(AUTH_REFRESH_TOKEN_KEY, newRefreshToken);
+          }
+
+          // Procesar requests encoladas
+          processQueue(null, newAccessToken);
+
+          // Reintentar la request original
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return http(originalRequest);
+        } else {
+          throw new Error("No se recibió nuevo token");
+        }
+      } catch (refreshError) {
+        // Refresh falló, forzar logout
+        processQueue(refreshError, null);
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
+        window.location.href = "/login";
+        return Promise.reject(
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+        );
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     //  403 (Forbidden)
@@ -150,9 +235,9 @@ http.interceptors.response.use(
       toast.error(errorMsg);
 
       // Crear un error con la estructura esperada por los hooks
-      const error = new Error(errorMsg);
-      error.response = { data: { detail: errorMsg } };
-      return Promise.reject(error);
+      const validationError = new Error(errorMsg);
+      validationError.response = { data: { detail: errorMsg } };
+      return Promise.reject(validationError);
     }
 
     // Error genérico

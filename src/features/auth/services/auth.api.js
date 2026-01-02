@@ -67,9 +67,12 @@ const authApi = {
 
   /**
    * Refresca el token de autenticación
+   * @param {string} refreshToken - Token de refresco
    */
-  refreshToken: async () => {
-    const response = await http.post(API_ENDPOINTS.AUTH.REFRESH);
+  refreshToken: async (refreshToken) => {
+    const response = await http.post(API_ENDPOINTS.AUTH.REFRESH, {
+      refresh_token: refreshToken,
+    });
     return unwrapData(response);
   },
 

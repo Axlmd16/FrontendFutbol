@@ -8,6 +8,11 @@
 export const AUTH_TOKEN_KEY = "kallpa_auth_token";
 
 /**
+ * Clave para almacenar el refresh token
+ */
+export const AUTH_REFRESH_TOKEN_KEY = "kallpa_refresh_token";
+
+/**
  * Clave para almacenar información del usuario
  */
 export const USER_DATA_KEY = "kallpa_user_data";
