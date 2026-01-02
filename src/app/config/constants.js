@@ -265,6 +265,15 @@ export const ESTAMENTO_FILTER_OPTIONS = [
   { value: "EXTERNOS", label: "Externos" },
 ];
 
+/**
+ * Tipos de relación (parentesco) para representantes
+ */
+export const RELATIONSHIP_TYPE_OPTIONS = [
+  { value: "FATHER", label: "Padre" },
+  { value: "MOTHER", label: "Madre" },
+  { value: "LEGAL_GUARDIAN", label: "Tutor Legal" },
+];
+
 // ==============================================
 //? CONFIGURACIÓN DE FECHAS
 
@@ -307,6 +316,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/athletes/${id}`,
     GET_ALL: "/athletes/all",
     CREATE: "/athletes/register-unl",
+    REGISTER_MINOR: "/athletes/register-minor",
     UPDATE: (id) => `/athletes/update/${id}`,
     DESACTIVATE: (id) => `/athletes/desactivate/${id}`,
     ACTIVATE: (id) => `/athletes/activate/${id}`,

@@ -51,35 +51,41 @@ const RegisterSchoolPage = () => {
   const validateRepresentante = () => {
     const errors = {};
 
-    if (!representanteData.cedula?.trim()) {
-      errors.cedula = "La cédula es requerida";
-    } else if (!VALIDATION.CI_PATTERN.test(representanteData.cedula)) {
-      errors.cedula = "Ingresa una cédula válida";
+    // DNI requerido
+    if (!representanteData.dni?.trim()) {
+      errors.dni = "La cédula es requerida";
+    } else if (!VALIDATION.CI_PATTERN.test(representanteData.dni)) {
+      errors.dni = "Ingresa una cédula válida (10 dígitos)";
     }
 
-    if (!representanteData.nombres?.trim())
-      errors.nombres = "Los nombres son requeridos";
-    if (!representanteData.apellidos?.trim())
-      errors.apellidos = "Los apellidos son requeridos";
-    if (!representanteData.parentesco)
-      errors.parentesco = "El parentesco es requerido";
+    // Nombres y apellidos requeridos
+    if (!representanteData.first_name?.trim()) {
+      errors.first_name = "Los nombres son requeridos";
+    }
+    if (!representanteData.last_name?.trim()) {
+      errors.last_name = "Los apellidos son requeridos";
+    }
 
-    if (!representanteData.email?.trim()) {
-      errors.email = "El email es requerido";
-    } else if (!VALIDATION.EMAIL_PATTERN.test(representanteData.email)) {
+    // Parentesco requerido
+    if (!representanteData.relationship_type) {
+      errors.relationship_type = "El parentesco es requerido";
+    }
+
+    // Email opcional pero validar formato si se proporciona
+    if (
+      representanteData.email?.trim() &&
+      !VALIDATION.EMAIL_PATTERN.test(representanteData.email)
+    ) {
       errors.email = "Ingresa un email válido";
     }
 
-    if (!representanteData.telefonoPrincipal?.trim()) {
-      errors.telefonoPrincipal = "El teléfono es requerido";
-    } else if (
-      !VALIDATION.PHONE_PATTERN.test(representanteData.telefonoPrincipal)
+    // Teléfono opcional pero validar formato si se proporciona
+    if (
+      representanteData.phone?.trim() &&
+      !VALIDATION.PHONE_PATTERN.test(representanteData.phone)
     ) {
-      errors.telefonoPrincipal = "Ingresa un teléfono válido";
+      errors.phone = "Ingresa un teléfono válido (10 dígitos)";
     }
-
-    if (!representanteData.direccion?.trim())
-      errors.direccion = "La dirección es requerida";
 
     setRepresentanteErrors(errors);
     return Object.keys(errors).length === 0;
@@ -104,9 +110,28 @@ const RegisterSchoolPage = () => {
     setError(null);
 
     try {
-      setAthleteData(athletePayload);
+      // Filtrar solo los campos que el backend espera para atletas menores
+      // El backend NO acepta: type_stament, type_identification (los fija internamente)
+      const minorAthleteData = {
+        first_name: athletePayload.first_name,
+        last_name: athletePayload.last_name,
+        dni: athletePayload.dni,
+        birth_date: athletePayload.birth_date,
+        sex: athletePayload.sex,
+        height: athletePayload.height
+          ? parseFloat(athletePayload.height)
+          : null,
+        weight: athletePayload.weight
+          ? parseFloat(athletePayload.weight)
+          : null,
+        direction: athletePayload.direction || "S/N",
+        phone: athletePayload.phone || "S/N",
+      };
+
+      setAthleteData(minorAthleteData);
+
       await inscriptionApi.registerMenor({
-        athlete: athletePayload,
+        athlete: minorAthleteData,
         representative: representanteData,
       });
 
@@ -120,10 +145,12 @@ const RegisterSchoolPage = () => {
 
       setRegistrationSuccess(true);
     } catch (err) {
+      const errorMessage =
+        err?.response?.data?.detail || err?.message || MESSAGES.ERROR.GENERIC;
       toast.error("Error en el registro", {
-        description: err?.message || MESSAGES.ERROR.GENERIC,
+        description: errorMessage,
       });
-      setError(err?.message || MESSAGES.ERROR.GENERIC);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,224 +1,194 @@
 /**
-    TODO: OJO: ESTE FORMULARIO SOLO ES DE EJEMPLO, NO FUNCIONA, NI ESTA ADAPATADO AL BACKEND
-    REVISAR EL FORMULARIO DE INSCRIPCION DE DEPORTISTAS DE UNL (DEPORTISTAFORM) ESE YA FUNCIONA.
+ * RepresentanteForm - Formulario de datos del representante
+ * Campos adaptados al backend: POST /athletes/register-minor
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
 import Input from "@/shared/components/Input";
-import { Users, Mail, Phone, MapPin, Briefcase, UserCheck } from "lucide-react";
+import { Users, Phone } from "lucide-react";
+import { RELATIONSHIP_TYPE_OPTIONS, VALIDATION } from "@/app/config/constants";
 
 const RepresentanteForm = ({
-  data = {},
+  initialData = null,
   onChange,
-  errors = {},
+  errors: externalErrors = {},
   disabled = false,
 }) => {
-  // ==============================================
-  // ESTADO LOCAL
-  // ==============================================
+  // Ref para evitar llamar onChange en el primer render
+  const isFirstRender = useRef(true);
 
-  const [formData, setFormData] = useState({
-    cedula: "",
-    nombres: "",
-    apellidos: "",
-    parentesco: "",
-    email: "",
-    telefonoPrincipal: "",
-    telefonoSecundario: "",
-    direccion: "",
-    ocupacion: "",
-    ...data,
+  // Valores por defecto
+  const defaultValues = useMemo(
+    () => ({
+      first_name: initialData?.first_name || "",
+      last_name: initialData?.last_name || "",
+      dni: initialData?.dni || "",
+      phone: initialData?.phone || "",
+      email: initialData?.email || "",
+      direction: initialData?.direction || "",
+      relationship_type: initialData?.relationship_type || "",
+    }),
+    [initialData]
+  );
+
+  const {
+    register,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm({
+    mode: "onChange",
+    defaultValues,
   });
 
-  // Sincronizar con datos externos
+  // Sincronizar con datos externos (solo cuando initialData cambia desde afuera)
   useEffect(() => {
-    if (data) {
-      setFormData((prev) => ({ ...prev, ...data }));
+    if (initialData) {
+      reset(defaultValues);
     }
-  }, [data]);
+  }, [initialData, defaultValues, reset]);
 
-  // ==============================================
-  // MANEJADORES
-  // ==============================================
+  // Suscribirse a cambios del formulario usando watch callback
+  useEffect(() => {
+    const subscription = watch((data) => {
+      // Evitar el primer render para no causar loop
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
+      if (onChange) {
+        onChange(data);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onChange]);
 
-  /**
-   * Maneja cambios en los inputs
-   */
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const newData = { ...formData, [name]: value };
+  // Header de sección
+  const SectionHeader = ({ icon: Icon, title, subtitle }) => (
+    <div className="pb-3 border-b border-base-300">
+      <div className="flex items-center gap-2 text-base-content">
+        <Icon className="w-5 h-5 text-secondary" />
+        <h3 className="font-semibold text-lg">{title}</h3>
+      </div>
+      {subtitle && (
+        <p className="text-sm text-base-content/60 mt-1 ml-7">{subtitle}</p>
+      )}
+    </div>
+  );
 
-    setFormData(newData);
-    onChange(newData);
-  };
-
-  // ==============================================
-  // OPCIONES
-  // ==============================================
-
-  const parentescoOptions = [
-    { value: "padre", label: "Padre" },
-    { value: "madre", label: "Madre" },
-    { value: "abuelo", label: "Abuelo/a" },
-    { value: "tio", label: "Tío/a" },
-    { value: "hermano", label: "Hermano/a mayor" },
-    { value: "tutor", label: "Tutor legal" },
-    { value: "otro", label: "Otro" },
-  ];
-
-  // ==============================================
-  // RENDER
-  // ==============================================
+  // Combinar errores internos y externos
+  const getError = (field) =>
+    errors[field]?.message || externalErrors[field] || null;
 
   return (
     <div className="space-y-6">
       {/* ==================== SECCIÓN: DATOS DEL REPRESENTANTE ==================== */}
-      <div className="pb-3 border-b border-base-300">
-        <div className="flex items-center gap-2 text-base-content">
-          <Users className="w-5 h-5 text-secondary" />
-          <h3 className="font-semibold text-lg">Datos del Representante</h3>
-        </div>
-        <p className="text-sm text-base-content/60 mt-1 ml-7">
-          Información del padre, madre o tutor legal del deportista menor de
-          edad.
-        </p>
-      </div>
+      <SectionHeader
+        icon={Users}
+        title="Datos del Representante"
+        subtitle="Información del padre, madre o tutor legal del deportista menor de edad."
+      />
 
       {/* Campos del formulario */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
-        {/* Cédula */}
+        {/* DNI */}
         <Input
           label="Cédula del Representante"
           type="text"
-          name="cedula"
-          value={formData.cedula}
-          onChange={handleChange}
           placeholder="1234567890"
-          error={errors.cedula}
+          error={getError("dni")}
           disabled={disabled}
           required
           maxLength={10}
+          inputMode="numeric"
+          {...register("dni", {
+            required: "La cédula es requerida",
+            pattern: {
+              value: VALIDATION.CI_PATTERN,
+              message: "Ingresa una cédula válida (10 dígitos)",
+            },
+          })}
         />
 
         {/* Nombres */}
         <Input
           label="Nombres"
           type="text"
-          name="nombres"
-          value={formData.nombres}
-          onChange={handleChange}
           placeholder="María Elena"
-          error={errors.nombres}
+          error={getError("first_name")}
           disabled={disabled}
           required
+          {...register("first_name", {
+            required: "Los nombres son requeridos",
+            minLength: { value: 2, message: "Mínimo 2 caracteres" },
+          })}
         />
 
         {/* Apellidos */}
         <Input
           label="Apellidos"
           type="text"
-          name="apellidos"
-          value={formData.apellidos}
-          onChange={handleChange}
           placeholder="García López"
-          error={errors.apellidos}
+          error={getError("last_name")}
           disabled={disabled}
           required
+          {...register("last_name", {
+            required: "Los apellidos son requeridos",
+            minLength: { value: 2, message: "Mínimo 2 caracteres" },
+          })}
         />
 
         {/* Parentesco */}
-        <div className="form-control w-full">
-          <label className="label py-1">
-            <span className="label-text font-medium text-base-content">
-              Parentesco <span className="text-error">*</span>
+        <div className="flex flex-col">
+          <label className="py-0.5">
+            <span className="label-text text-xs font-medium text-slate-600">
+              Parentesco
             </span>
           </label>
           <select
-            name="parentesco"
-            value={formData.parentesco}
-            onChange={handleChange}
-            disabled={disabled}
-            className={`select select-bordered w-full bg-white ${
-              errors.parentesco ? "select-error" : ""
-            }`}
+            error={getError("relationship_type")}
+            className="select w-full select-sm"
+            required
+            {...register("relationship_type", {
+              required: "El parentesco es requerido",
+            })}
           >
             <option value="">Seleccionar...</option>
-            {parentescoOptions.map((option) => (
+            {RELATIONSHIP_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
-          {errors.parentesco && (
-            <label className="label py-1">
-              <span className="label-text-alt text-error">
-                {errors.parentesco}
-              </span>
-            </label>
-          )}
         </div>
 
-        {/* Ocupación */}
+        {/* Teléfono */}
         <Input
-          label="Ocupación"
-          type="text"
-          name="ocupacion"
-          value={formData.ocupacion}
-          onChange={handleChange}
-          placeholder="Ingeniero, Docente, etc."
-          error={errors.ocupacion}
+          label="Teléfono"
+          type="tel"
+          placeholder="0987654321"
+          error={getError("phone")}
           disabled={disabled}
+          maxLength={10}
+          inputMode="numeric"
+          {...register("phone")}
         />
-      </div>
 
-      {/* ==================== SECCIÓN: INFORMACIÓN DE CONTACTO ==================== */}
-      <div className="pb-3 border-b border-base-300 pt-2">
-        <div className="flex items-center gap-2 text-base-content">
-          <Phone className="w-5 h-5 text-secondary" />
-          <h3 className="font-semibold text-lg">Información de Contacto</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
         {/* Email */}
         <Input
           label="Correo Electrónico"
           type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="representante@email.com"
-          error={errors.email}
+          placeholder="representante@email.com (opcional)"
+          error={getError("email")}
           disabled={disabled}
-          required
-        />
-
-        {/* Teléfono Principal */}
-        <Input
-          label="Teléfono Principal"
-          type="tel"
-          name="telefonoPrincipal"
-          value={formData.telefonoPrincipal}
-          onChange={handleChange}
-          placeholder="0987654321"
-          error={errors.telefonoPrincipal}
-          disabled={disabled}
-          required
-          maxLength={10}
-        />
-
-        {/* Teléfono Secundario */}
-        <Input
-          label="Teléfono Secundario"
-          type="tel"
-          name="telefonoSecundario"
-          value={formData.telefonoSecundario}
-          onChange={handleChange}
-          placeholder="0998765432 (opcional)"
-          error={errors.telefonoSecundario}
-          disabled={disabled}
-          maxLength={10}
+          {...register("email", {
+            pattern: {
+              value: VALIDATION.EMAIL_PATTERN,
+              message: "Ingresa un email válido",
+            },
+          })}
         />
 
         {/* Dirección - ocupa más espacio */}
@@ -226,14 +196,19 @@ const RepresentanteForm = ({
           <Input
             label="Dirección"
             type="text"
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
             placeholder="Av. Principal #123, Barrio Centro, Ciudad"
-            error={errors.direccion}
+            error={getError("direction")}
             disabled={disabled}
-            required
+            {...register("direction")}
           />
+        </div>
+      </div>
+
+      {/* ==================== SECCIÓN: INFORMACIÓN DE CONTACTO ==================== */}
+      <div className="pb-3 border-b border-base-300 pt-2">
+        <div className="flex items-center gap-2 text-base-content">
+          <Phone className="w-5 h-5 text-secondary" />
+          <h3 className="font-semibold text-lg">Información Importante</h3>
         </div>
       </div>
 
@@ -266,7 +241,7 @@ const RepresentanteForm = ({
 };
 
 RepresentanteForm.propTypes = {
-  data: PropTypes.object,
+  initialData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
   errors: PropTypes.object,
   disabled: PropTypes.bool,
