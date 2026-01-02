@@ -18,6 +18,10 @@ import {
   MapPin,
   FileText,
   Activity,
+  Zap,
+  Heart,
+  RefreshCcw,
+  Target,
 } from "lucide-react";
 import {
   useEvaluationById,
@@ -231,7 +235,6 @@ const EvaluationDetail = () => {
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               {evaluation.name}
             </h1>
-            <p className="text-slate-500 mt-1 text-sm">ID: {evaluation.id}</p>
           </div>
 
           <Button
@@ -417,41 +420,140 @@ const EvaluationDetail = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredTests.map((test) => (
-                  <div
-                    key={test.id}
-                    className="border border-base-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <span
-                        className={`badge ${getTestTypeColor(
-                          test.test_type
-                        )} badge-sm`}
-                      >
-                        {formatTestType(test)}
-                      </span>
-                      <button
-                        onClick={() => handleEditTest(test)}
-                        className="btn btn-ghost btn-xs btn-square text-primary hover:bg-primary/10"
-                        title="Editar test"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                    </div>
-                    <p className="font-semibold text-slate-900 text-sm mb-1">
-                      {getAthleteName(test.athlete_id)}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formatDate(test.date)}
-                    </p>
-                    {test.observations && (
-                      <p className="text-xs text-slate-400 mt-2 line-clamp-2">
-                        {test.observations}
-                      </p>
-                    )}
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="table table-sm">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="text-slate-600 font-medium">
+                        Tipo de Test
+                      </th>
+                      <th className="text-slate-600 font-medium">Atleta</th>
+                      <th className="text-slate-600 font-medium">Fecha</th>
+                      <th className="text-slate-600 font-medium">Resultados</th>
+                      <th className="text-slate-600 font-medium text-right">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTests.map((test) => {
+                      const testTypeConfig = {
+                        sprint_test: {
+                          icon: <Zap size={16} />,
+                          bgColor: "bg-info/10",
+                          textColor: "text-info",
+                          badge: "badge-info badge-soft",
+                        },
+                        yoyo_test: {
+                          icon: <RefreshCcw size={16} />,
+                          bgColor: "bg-success/10",
+                          textColor: "text-success",
+                          badge: "badge-success badge-soft",
+                        },
+                        endurance_test: {
+                          icon: <Heart size={16} />,
+                          bgColor: "bg-error/10",
+                          textColor: "text-error",
+                          badge: "badge-error badge-soft",
+                        },
+                        technical_assessment: {
+                          icon: <Target size={16} />,
+                          bgColor: "bg-secondary/10",
+                          textColor: "text-secondary",
+                          badge: "badge-secondary badge-soft",
+                        },
+                      };
+
+                      const config = testTypeConfig[test.test_type] || {
+                        icon: "📋",
+                        bgColor: "bg-slate-100",
+                        textColor: "text-slate-600",
+                        badge: "badge-ghost",
+                      };
+
+                      // Get test-specific results
+                      const getTestResults = (test) => {
+                        switch (test.test_type) {
+                          case "sprint_test":
+                            return test.time_0_30_s
+                              ? `${test.time_0_30_s}s (30m)`
+                              : "—";
+                          case "yoyo_test":
+                            return test.final_level
+                              ? `Nivel ${test.final_level}`
+                              : "—";
+                          case "endurance_test":
+                            return test.total_distance_m
+                              ? `${test.total_distance_m}m`
+                              : "—";
+                          case "technical_assessment":
+                            return "Ver detalles";
+                          default:
+                            return "—";
+                        }
+                      };
+
+                      return (
+                        <tr key={test.id} className="hover:bg-slate-50/50">
+                          {/* Type */}
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-8 h-8 rounded-lg ${config.bgColor} flex items-center justify-center text-sm`}
+                              >
+                                {config.icon}
+                              </span>
+                              <span
+                                className={`badge ${config.badge} badge-sm`}
+                              >
+                                {formatTestType(test)}
+                              </span>
+                            </div>
+                          </td>
+                          {/* Athlete */}
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-600">
+                                {getAthleteName(test.athlete_id).charAt(0)}
+                              </div>
+                              <span className="font-medium text-slate-800">
+                                {getAthleteName(test.athlete_id)}
+                              </span>
+                            </div>
+                          </td>
+                          {/* Date */}
+                          <td className="text-slate-600">
+                            {formatDate(test.date)}
+                          </td>
+                          {/* Results */}
+                          <td>
+                            <span className="font-medium text-slate-700">
+                              {getTestResults(test)}
+                            </span>
+                            {test.observations && (
+                              <p
+                                className="text-xs text-slate-400 mt-0.5 max-w-[200px] truncate"
+                                title={test.observations}
+                              >
+                                {test.observations}
+                              </p>
+                            )}
+                          </td>
+                          {/* Actions */}
+                          <td className="text-right">
+                            <button
+                              onClick={() => handleEditTest(test)}
+                              className="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
+                            >
+                              <Edit2 size={14} />
+                              Editar
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

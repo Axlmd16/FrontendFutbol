@@ -155,43 +155,59 @@ const AddTestsForm = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Athletes */}
-        <div className="w-64 bg-base-100 border-r border-base-200 flex flex-col shrink-0">
-          {/* Search */}
-          <div className="p-2 border-b border-base-200 space-y-1.5">
+        <div className="w-72 bg-base-100 border-r border-base-200 flex flex-col shrink-0">
+          {/* Header */}
+          <div className="p-3 border-b border-base-200 bg-slate-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Users size={16} className="text-primary" />
+              <span className="text-sm font-medium text-slate-700">
+                Atletas
+              </span>
+              <span className="badge badge-primary badge-sm">
+                {athletes.length}
+              </span>
+            </div>
+            {/* Search */}
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar atleta..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input input-bordered input-xs w-full pl-8 bg-white text-xs"
+                className="input input-bordered input-sm w-full pl-9 bg-white"
               />
             </div>
+          </div>
+
+          {/* Filter */}
+          <div className="px-3 py-2 border-b border-base-200">
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="select select-bordered select-xs w-full bg-white text-xs"
+              className="select select-bordered select-sm w-full bg-white"
             >
-              <option value="">Todos</option>
+              <option value="">Todos los tipos</option>
               <option value="EXTERNOS">Escuela</option>
-              <option value="ESTUDIANTES">Estudiante</option>
-              <option value="DOCENTES">Docente</option>
+              <option value="ESTUDIANTES">Estudiantes</option>
+              <option value="DOCENTES">Docentes</option>
+              <option value="TRABAJADORES">Trabajadores</option>
             </select>
           </div>
 
           {/* Athletes List */}
           <div className="flex-1 overflow-y-auto">
             {loadingAthletes ? (
-              <div className="flex justify-center py-6">
+              <div className="flex justify-center py-8">
                 <span className="loading loading-spinner loading-sm text-primary"></span>
               </div>
             ) : athletes.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 text-xs">
-                Sin resultados
+              <div className="text-center py-8 px-4">
+                <Users size={24} className="text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-400 text-sm">Sin resultados</p>
               </div>
             ) : (
-              <div className="divide-y divide-base-200">
+              <div className="p-2 space-y-1">
                 {athletes.map((athlete) => {
                   const isSelected = selectedAthlete?.id === athlete.id;
                   const typeInfo = ATHLETE_TYPES[athlete.type_athlete] || {
@@ -203,33 +219,50 @@ const AddTestsForm = () => {
                     <button
                       key={athlete.id}
                       onClick={() => setSelectedAthlete(athlete)}
-                      className={`w-full text-left px-2 py-2 flex items-center gap-2 transition-colors ${
+                      title={athlete.full_name}
+                      className={`w-full text-left p-2.5 rounded-lg flex items-center gap-3 transition-all ${
                         isSelected
-                          ? "bg-primary/5 border-l-2 border-l-primary"
-                          : "hover:bg-slate-50 border-l-2 border-l-transparent"
+                          ? "bg-primary/10 ring-1 ring-primary/30"
+                          : "hover:bg-slate-50"
                       }`}
                     >
+                      {/* Avatar */}
                       <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs ${
+                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold ${
                           isSelected
                             ? "bg-primary text-white"
-                            : "bg-slate-100 text-slate-500"
+                            : "bg-slate-100 text-slate-600"
                         }`}
                       >
                         {isSelected ? (
-                          <Check size={12} />
+                          <Check size={16} />
                         ) : (
-                          athlete.full_name?.charAt(0)
+                          athlete.full_name?.charAt(0)?.toUpperCase()
                         )}
                       </div>
+                      {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-slate-800 truncate">
                           {athlete.full_name}
                         </p>
-                        <span className={`badge badge-xs ${typeInfo.color}`}>
-                          {typeInfo.label}
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`badge badge-xs ${typeInfo.color}`}>
+                            {typeInfo.label}
+                          </span>
+                          {athlete.dni && (
+                            <span className="text-xs text-slate-400">
+                              {athlete.dni}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <ChevronRight
+                          size={16}
+                          className="text-primary shrink-0"
+                        />
+                      )}
                     </button>
                   );
                 })}
