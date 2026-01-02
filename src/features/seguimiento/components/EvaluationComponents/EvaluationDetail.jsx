@@ -7,7 +7,18 @@
 
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Edit2, ArrowLeft, Plus, Loader, X } from "lucide-react";
+import {
+  Edit2,
+  ArrowLeft,
+  Plus,
+  X,
+  ClipboardList,
+  Calendar,
+  Clock,
+  MapPin,
+  FileText,
+  Activity,
+} from "lucide-react";
 import {
   useEvaluationById,
   useTestsByEvaluation,
@@ -18,8 +29,9 @@ import {
 } from "../../hooks/useEvaluations";
 import { useQuery } from "@tanstack/react-query";
 import athletesApi from "../../services/athletes.api";
-import { formatDate, formatTime } from "@/shared/utils/dateUtils";
+import { formatDate } from "@/shared/utils/dateUtils";
 import EditTestForm from "../tests/EditTestForm";
+import Button from "@/shared/components/Button";
 
 const EvaluationDetail = () => {
   const navigate = useNavigate();
@@ -46,22 +58,17 @@ const EvaluationDetail = () => {
   const allTests = testsData?.all || [];
 
   // Hook para obtener datos de atletas con caché
-  const { data: athletesData, isLoading: athletesLoading } = useQuery({
+  const { data: athletesData } = useQuery({
     queryKey: ["athletes", "all"],
     queryFn: () => athletesApi.getAll({ page: 1, limit: 100 }),
     staleTime: 10 * 60 * 1000,
   });
 
   const athletes = React.useMemo(() => {
-    // La API devuelve { items: [...], total, page, limit }
     if (!athletesData) return [];
-
-    // Si tiene la estructura paginada
     if (athletesData.items && Array.isArray(athletesData.items)) {
       return athletesData.items;
     }
-
-    // Si tiene la estructura de ResponseSchema { status, message, data: ... }
     if (athletesData.data) {
       if (Array.isArray(athletesData.data)) {
         return athletesData.data;
@@ -70,98 +77,82 @@ const EvaluationDetail = () => {
         return athletesData.data.items;
       }
     }
-
-    // Si directamente es un array
     if (Array.isArray(athletesData)) {
       return athletesData;
     }
-
     return [];
   }, [athletesData]);
 
-  // Función auxiliar para obtener nombre del atleta
   const getAthleteName = React.useCallback(
     (athleteId) => {
       if (!athletes || athletes.length === 0) {
         return `Atleta ${athleteId}`;
       }
-
       const athlete = athletes.find((a) => a.id === athleteId);
-
       if (!athlete) {
         return `Atleta ${athleteId}`;
       }
-
-      // Intenta primero full_name (estructura del backend)
       if (athlete.full_name) {
         return athlete.full_name;
       }
-
-      // Si no existe full_name, intenta first_name + last_name
       const firstName = athlete.first_name || athlete.firstName || "";
       const lastName = athlete.last_name || athlete.lastName || "";
-
       if (firstName && lastName) {
         return `${firstName} ${lastName}`;
       }
-
-      if (firstName) {
-        return firstName;
-      }
-
-      if (lastName) {
-        return lastName;
-      }
-
-      return `Atleta ${athleteId}`;
+      return firstName || lastName || `Atleta ${athleteId}`;
     },
     [athletes]
   );
 
-  // Filtrar tests según el tipo seleccionado y búsqueda de atleta
+  // Filtrar tests
   const filteredTests = React.useMemo(() => {
     let filtered = allTests;
-
-    // Filtrar por tipo
     if (filterTestType !== "all") {
       filtered = filtered.filter((test) => test.test_type === filterTestType);
     }
-
-    // Filtrar por nombre de atleta si hay búsqueda
     if (searchAthlete.trim()) {
       filtered = filtered.filter((test) => {
         const athleteName = getAthleteName(test.athlete_id).toLowerCase();
         return athleteName.includes(searchAthlete.toLowerCase());
       });
     }
-
     return filtered;
   }, [allTests, filterTestType, searchAthlete, getAthleteName]);
 
-  // Función para formatear tipo de test con palabras más legibles
   const formatTestType = (test) => {
-    if (test.test_type === "sprint_test") return "Test de Velocidad";
-    if (test.test_type === "yoyo_test") return "Test Yoyo";
-    if (test.test_type === "endurance_test") return "Test de Resistencia";
-    if (test.test_type === "technical_assessment") return "Evaluación Técnica";
-    return test.test_type?.replace(/_/g, " ") || "Test";
+    const types = {
+      sprint_test: "Test de Velocidad",
+      yoyo_test: "Test Yoyo",
+      endurance_test: "Test de Resistencia",
+      technical_assessment: "Evaluación Técnica",
+    };
+    return (
+      types[test.test_type] || test.test_type?.replace(/_/g, " ") || "Test"
+    );
   };
 
-  // Función para abrir el modal de edición
+  const getTestTypeColor = (testType) => {
+    const colors = {
+      sprint_test: "badge-info",
+      yoyo_test: "badge-success",
+      endurance_test: "badge-warning",
+      technical_assessment: "badge-secondary",
+    };
+    return colors[testType] || "badge-neutral";
+  };
+
   const handleEditTest = (test) => {
-    // Buscar el test actualizado en allTests para asegurar datos frescos
     const freshTest = allTests.find((t) => t.id === test.id) || test;
     setEditingTest(freshTest);
     setIsEditModalOpen(true);
   };
 
-  // Función para cerrar el modal
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingTest(null);
   };
 
-  // Obtener la mutación correcta según el tipo de test
   const getUpdateMutation = (testType) => {
     switch (testType) {
       case "sprint_test":
@@ -177,269 +168,313 @@ const EvaluationDetail = () => {
     }
   };
 
+  const testTypeFilters = [
+    { id: "all", label: "Todos" },
+    { id: "sprint_test", label: "Velocidad" },
+    { id: "yoyo_test", label: "Yoyo" },
+    { id: "endurance_test", label: "Resistencia" },
+    { id: "technical_assessment", label: "Técnica" },
+  ];
+
+  // Loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="card bg-base-100 shadow-sm border border-base-300 p-8">
+          <span className="loading loading-spinner loading-lg text-primary"></span>
+        </div>
       </div>
     );
   }
 
+  // Error state
   if (error || !evaluation) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700">Error al cargar la evaluación</p>
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="alert alert-error">
+            <span>Error al cargar la evaluación</span>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const tests = allTests || [];
-
   return (
-    <div className="space-y-6">
-      {/* Encabezado */}
-      <div className="flex items-center gap-4 mb-6">
+    <div className=" bg-slate-50 text-slate-800 pb-8">
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+
+      {/* Back button */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
         <button
           onClick={() => navigate("/seguimiento/evaluations")}
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-700 mb-2 text-sm font-medium transition-colors"
         >
-          <ArrowLeft size={24} className="text-gray-600" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {evaluation.name}
-          </h1>
-          <p className="text-gray-600 text-sm">ID: {evaluation.id}</p>
-        </div>
-        <button
-          onClick={() => navigate(`/seguimiento/evaluations/${id}/edit`)}
-          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition"
-        >
-          <Edit2 size={20} />
-          Editar
+          <ArrowLeft size={18} />
+          Volver a evaluaciones
         </button>
       </div>
 
-      {/* Información principal */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card de información */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Información
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Fecha</p>
-              <p className="text-lg font-medium text-gray-900">
-                {formatDate(evaluation.date)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Hora</p>
-              <p className="text-lg font-medium text-gray-900">
-                {evaluation.time}
-              </p>
-            </div>
-            {evaluation.location && (
-              <div>
-                <p className="text-sm text-gray-600">Ubicación</p>
-                <p className="text-lg font-medium text-gray-900">
-                  {evaluation.location}
-                </p>
-              </div>
-            )}
-            {evaluation.observations && (
-              <div>
-                <p className="text-sm text-gray-600">Observaciones</p>
-                <p className="text-gray-900">{evaluation.observations}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Card de estado */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Estado</h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Estado</p>
-              <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                Activa
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 relative z-10">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <span className="bg-primary/10 p-1.5 rounded-lg">
+                <ClipboardList size={16} />
+              </span>
+              <span className="text-[10px] font-bold tracking-wider uppercase">
+                Detalle de Evaluación
               </span>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Tests Registrados</p>
-              <p className="text-lg font-medium text-gray-900">
-                {allTests.length}
-              </p>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              {evaluation.name}
+            </h1>
+            <p className="text-slate-500 mt-1 text-sm">ID: {evaluation.id}</p>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(`/seguimiento/evaluations/${id}/edit`)}
+            className="gap-2"
+          >
+            <Edit2 size={16} />
+            Editar Evaluación
+          </Button>
+        </div>
+
+        {/* Info Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Fecha */}
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <Calendar size={20} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">
+                    Fecha
+                  </p>
+                  <p className="font-semibold text-slate-900">
+                    {formatDate(evaluation.date)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hora */}
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-info/10 p-2 rounded-lg">
+                  <Clock size={20} className="text-info" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">
+                    Hora
+                  </p>
+                  <p className="font-semibold text-slate-900">
+                    {evaluation.time}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ubicación */}
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-warning/10 p-2 rounded-lg">
+                  <MapPin size={20} className="text-warning" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">
+                    Ubicación
+                  </p>
+                  <p className="font-semibold text-slate-900">
+                    {evaluation.location || "Sin especificar"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tests Count */}
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-success/10 p-2 rounded-lg">
+                  <Activity size={20} className="text-success" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">
+                    Tests
+                  </p>
+                  <p className="font-semibold text-slate-900">
+                    {allTests.length} registrados
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sección de Tests */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Tests Registrados
-          </h2>
-          <button
-            onClick={() => navigate(`/seguimiento/evaluations/${id}/add-tests`)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-          >
-            <Plus size={20} />
-            Agregar Test
-          </button>
-        </div>
-
-        {/* Buscador de atleta */}
-        <div className="mb-6 pb-6 border-b border-gray-200">
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            Buscar por nombre de atleta:
-          </p>
-          <input
-            type="text"
-            placeholder="Ingresa el nombre del atleta..."
-            value={searchAthlete}
-            onChange={(e) => setSearchAthlete(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Filtro de tipo de test */}
-        <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            Filtrar por tipo:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilterTestType("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filterTestType === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFilterTestType("sprint_test")}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filterTestType === "sprint_test"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Test de Velocidad
-            </button>
-            <button
-              onClick={() => setFilterTestType("yoyo_test")}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filterTestType === "yoyo_test"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Test Yoyo
-            </button>
-            <button
-              onClick={() => setFilterTestType("endurance_test")}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filterTestType === "endurance_test"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Test de Resistencia
-            </button>
-            <button
-              onClick={() => setFilterTestType("technical_assessment")}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filterTestType === "technical_assessment"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Evaluación Técnica
-            </button>
+        {/* Observations */}
+        {evaluation.observations && (
+          <div className="card bg-base-100 shadow-sm border border-base-300 mb-6">
+            <div className="card-body p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText size={16} className="text-primary" />
+                <span className="font-medium text-sm">Observaciones</span>
+              </div>
+              <p className="text-slate-600 text-sm">
+                {evaluation.observations}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {testsLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader className="w-6 h-6 text-blue-600 animate-spin" />
-          </div>
-        ) : filteredTests.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">
-              {allTests.length === 0
-                ? "No hay tests registrados en esta evaluación"
-                : "No hay tests de este tipo"}
-            </p>
-            {allTests.length === 0 && (
-              <button
+        {/* Tests Section */}
+        <div className="card bg-base-100 shadow-sm border border-base-300">
+          <div className="card-body p-4">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <h2 className="font-semibold text-lg text-slate-900">
+                Tests Registrados
+              </h2>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() =>
                   navigate(`/seguimiento/evaluations/${id}/add-tests`)
                 }
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+                className="gap-2"
               >
-                Agregar primer test
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredTests.map((test) => (
-              <div
-                key={test.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">
-                    {formatTestType(test)}
-                  </h3>
-                  <button
-                    onClick={() => handleEditTest(test)}
-                    className="p-1 hover:bg-gray-100 rounded transition text-blue-600 hover:text-blue-800"
-                    title="Editar test"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded whitespace-nowrap">
-                  {getAthleteName(test.athlete_id)}
-                </span>
-                <p className="text-sm text-gray-600 mt-3">
-                  Fecha: {formatDate(test.date)}
-                </p>
-                {test.observations && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Obs: {test.observations}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Modal de Edición de Test */}
-      {isEditModalOpen && editingTest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-2xl font-bold">
-                Editar {formatTestType(editingTest)}
-              </h2>
-              <button
-                onClick={handleCloseEditModal}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <X size={24} className="text-gray-600" />
-              </button>
+                <Plus size={16} />
+                Agregar Test
+              </Button>
             </div>
 
-            <div className="p-6">
+            {/* Search */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Buscar por nombre de atleta..."
+                value={searchAthlete}
+                onChange={(e) => setSearchAthlete(e.target.value)}
+                className="input input-bordered input-sm w-full md:w-80 bg-white"
+              />
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {testTypeFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setFilterTestType(filter.id)}
+                  className={`btn btn-sm ${
+                    filterTestType === filter.id
+                      ? "btn-primary"
+                      : "btn-ghost border border-base-300"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tests Grid */}
+            {testsLoading ? (
+              <div className="flex justify-center py-12">
+                <span className="loading loading-spinner loading-md text-primary"></span>
+              </div>
+            ) : filteredTests.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="bg-primary/10 p-4 rounded-full inline-block mb-4">
+                  <Activity size={32} className="text-primary" />
+                </div>
+                <p className="text-slate-500">
+                  {allTests.length === 0
+                    ? "No hay tests registrados en esta evaluación"
+                    : "No hay tests que coincidan con los filtros"}
+                </p>
+                {allTests.length === 0 && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/seguimiento/evaluations/${id}/add-tests`)
+                    }
+                    className="mt-4"
+                  >
+                    Agregar primer test
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTests.map((test) => (
+                  <div
+                    key={test.id}
+                    className="border border-base-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <span
+                        className={`badge ${getTestTypeColor(
+                          test.test_type
+                        )} badge-sm`}
+                      >
+                        {formatTestType(test)}
+                      </span>
+                      <button
+                        onClick={() => handleEditTest(test)}
+                        className="btn btn-ghost btn-xs btn-square text-primary hover:bg-primary/10"
+                        title="Editar test"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
+                    <p className="font-semibold text-slate-900 text-sm mb-1">
+                      {getAthleteName(test.athlete_id)}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {formatDate(test.date)}
+                    </p>
+                    {test.observations && (
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-2">
+                        {test.observations}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && editingTest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="card bg-base-100 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="card-body">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="card-title">
+                  Editar {formatTestType(editingTest)}
+                </h2>
+                <button
+                  onClick={handleCloseEditModal}
+                  className="btn btn-ghost btn-sm btn-square"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
               <EditTestForm
                 test={editingTest}
                 mutation={getUpdateMutation(editingTest.test_type)}
