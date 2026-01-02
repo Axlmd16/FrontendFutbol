@@ -1,20 +1,81 @@
 /**
- * TechnicalAssessmentForm Component
- *
- * Formulario para crear y editar evaluaciones técnicas
+ * TechnicalAssessmentForm - Diseño con mejor espaciado e iconos
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Plus, Loader, ArrowLeft } from "lucide-react";
+import {
+  Target,
+  Save,
+  Star,
+  FileText,
+  CircleDot,
+  ArrowRight,
+  Crosshair,
+  Footprints,
+  Move,
+} from "lucide-react";
 import { toast } from "sonner";
-import AthletesSelectionList from "./AthletesSelectionList";
+import Button from "@/shared/components/Button";
 
-const SCALE_OPTIONS = [
-  { value: "Poor", label: "Pobre" },
-  { value: "Average", label: "Regular" },
-  { value: "Good", label: "Bueno" },
-  { value: "Excellent", label: "Excelente" },
+const SCALE = [
+  {
+    value: "Poor",
+    label: "Pobre",
+    score: 1,
+    color: "bg-error/20 text-error border-error/30",
+  },
+  {
+    value: "Average",
+    label: "Regular",
+    score: 2,
+    color: "bg-warning/20 text-warning border-warning/30",
+  },
+  {
+    value: "Good",
+    label: "Bueno",
+    score: 3,
+    color: "bg-info/20 text-info border-info/30",
+  },
+  {
+    value: "Excellent",
+    label: "Excelente",
+    score: 4,
+    color: "bg-success/20 text-success border-success/30",
+  },
+];
+
+const SKILLS = [
+  {
+    id: "ball_control",
+    label: "Control de Balón",
+    icon: CircleDot,
+    description: "Primera recepción y dominio",
+  },
+  {
+    id: "short_pass",
+    label: "Pase Corto",
+    icon: ArrowRight,
+    description: "Precisión a corta distancia",
+  },
+  {
+    id: "long_pass",
+    label: "Pase Largo",
+    icon: Move,
+    description: "Cambios de orientación",
+  },
+  {
+    id: "shooting",
+    label: "Disparo",
+    icon: Crosshair,
+    description: "Potencia y precisión",
+  },
+  {
+    id: "dribbling",
+    label: "Regate",
+    icon: Footprints,
+    description: "Capacidad de superar rivales",
+  },
 ];
 
 const TechnicalAssessmentForm = ({
@@ -27,294 +88,201 @@ const TechnicalAssessmentForm = ({
   selectedAthlete: selectedAthleteProp = null,
   hideAthleteSelector = false,
 }) => {
-  const [selectedAthletes, setSelectedAthletes] = useState([]);
   const [selectedAthlete, setSelectedAthlete] = useState(null);
 
-  const formatAthleteType = (type) => {
-    const types = {
-      EXTERNOS: "Escuela",
-      ESTUDIANTES: "Estudiante",
-      DOCENTES: "Docente",
-      TRABAJADORES: "Trabajador",
-      ADMINISTRATIVOS: "Admin",
-    };
-    return types[type] || type || "Tipo no disponible";
-  };
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-  } = useForm({
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
-      ball_control: isEdit ? testData?.ball_control : "Average",
-      short_pass: isEdit ? testData?.short_pass : "Average",
-      long_pass: isEdit ? testData?.long_pass : "Average",
-      shooting: isEdit ? testData?.shooting : "Average",
-      dribbling: isEdit ? testData?.dribbling : "Average",
-      observations: isEdit ? testData?.observations : "",
+      ball_control: "Average",
+      short_pass: "Average",
+      long_pass: "Average",
+      shooting: "Average",
+      dribbling: "Average",
+      observations: "",
     },
   });
 
-  // Cargar datos del test si es edición
+  const watchedValues = SKILLS.map((s) => watch(s.id));
+
+  const score = useMemo(() => {
+    const scores = watchedValues.map((v) => {
+      const opt = SCALE.find((s) => s.value === v);
+      return opt?.score || 2;
+    });
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    return { avg: avg.toFixed(1), pct: Math.round((avg / 4) * 100) };
+  }, [watchedValues]);
+
   useEffect(() => {
     if (isEdit && testData) {
-      setSelectedAthletes([testData.athlete_id]);
       setSelectedAthlete({
         id: testData.athlete_id,
-        full_name: testData.athlete_name || `Atleta ${testData.athlete_id}`,
-        dni: testData.athlete_dni,
-        type_athlete: testData.athlete_type,
-        height: testData.athlete_height,
-        weight: testData.athlete_weight,
+        full_name: testData.athlete_name,
       });
-      setValue("ball_control", testData.ball_control || "Average");
-      setValue("short_pass", testData.short_pass || "Average");
-      setValue("long_pass", testData.long_pass || "Average");
-      setValue("shooting", testData.shooting || "Average");
-      setValue("dribbling", testData.dribbling || "Average");
+      SKILLS.forEach((s) => setValue(s.id, testData[s.id] || "Average"));
       setValue("observations", testData.observations || "");
     }
   }, [isEdit, testData, setValue]);
 
-  // Sincronizar atleta pasado por props (flujo de creación desde AddTestsForm)
   useEffect(() => {
-    if (!isEdit && selectedAthleteProp) {
-      setSelectedAthletes([selectedAthleteProp.id]);
-      setSelectedAthlete(selectedAthleteProp);
-    }
+    if (!isEdit && selectedAthleteProp) setSelectedAthlete(selectedAthleteProp);
   }, [selectedAthleteProp, isEdit]);
 
   const onSubmit = async (formData) => {
-    // Validar que haya atletas seleccionados
-    if (selectedAthletes.length === 0 || !selectedAthlete) {
-      toast.error("Por favor selecciona un atleta");
+    if (!selectedAthlete) {
+      toast.error("Selecciona un atleta");
       return;
     }
-
     try {
+      const payload = {
+        athlete_id: selectedAthlete.id,
+        ...SKILLS.reduce((acc, s) => ({ ...acc, [s.id]: formData[s.id] }), {}),
+        observations: formData.observations,
+      };
       if (isEdit) {
-        // Editar test existente
-        await mutation.mutateAsync({
-          testId: testData.id,
-          data: {
-            athlete_id: selectedAthlete.id,
-            ball_control: formData.ball_control,
-            short_pass: formData.short_pass,
-            long_pass: formData.long_pass,
-            shooting: formData.shooting,
-            dribbling: formData.dribbling,
-            observations: formData.observations,
-          },
-        });
+        await mutation.mutateAsync({ testId: testData.id, data: payload });
+        toast.success("Evaluación actualizada");
       } else {
-        // Crear test para un único atleta
         await mutation.mutateAsync({
-          ...formData,
+          ...payload,
           evaluation_id: parseInt(evaluationId),
-          athlete_id: selectedAthlete.id,
           date: new Date().toISOString(),
         });
+        toast.success("Evaluación registrada");
       }
       reset();
-      setSelectedAthletes([]);
-      setSelectedAthlete(null);
       onSuccess();
     } catch (error) {
-      console.error("Error:", error);
+      toast.error("Error al guardar");
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Encabezado si es edición */}
-      {isEdit && (
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
-            <ArrowLeft size={24} className="text-gray-600" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Editar Evaluación Técnica
-          </h1>
+    <div className="bg-base-100 border border-base-200 rounded-xl shadow-sm">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-base-200 bg-primary/5">
+        <div className="bg-primary/10 p-2.5 rounded-xl">
+          <Target size={20} className="text-primary" />
         </div>
-      )}
+        <div className="flex-1">
+          <h3 className="font-semibold text-slate-900">Evaluación Técnica</h3>
+          <p className="text-sm text-slate-500">{selectedAthlete?.full_name}</p>
+        </div>
+        <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-lg">
+          <Star size={16} className="text-warning" fill="currentColor" />
+          <span className="text-lg font-bold text-slate-900">{score.avg}</span>
+          <span className="text-sm text-slate-500">/ 4</span>
+        </div>
+      </div>
 
-      {/* Selección de atletas (solo cuando no se provee desde el flujo externo) */}
-      {!hideAthleteSelector && (
-        <AthletesSelectionList
-          selectedAthleteIds={selectedAthletes}
-          onSelectionChange={setSelectedAthletes}
-          multiSelect={false}
-          loading={mutation.isPending}
-          disabled={isEdit}
-          onSelectedAthleteChange={setSelectedAthlete}
-        />
-      )}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-6">
+        {/* Skills Evaluation */}
+        <div className="space-y-4">
+          {SKILLS.map((skill) => {
+            const IconComponent = skill.icon;
+            const currentValue = watch(skill.id);
 
-      {/* Datos del atleta seleccionado */}
-      <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Atleta seleccionado</h4>
-        {selectedAthlete ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-base font-semibold text-gray-900">{selectedAthlete.full_name || "Nombre no disponible"}</p>
-              <p className="text-sm text-gray-600">DNI: {selectedAthlete.dni || "No disponible"}</p>
-              <p className="text-sm text-gray-600">Tipo: {formatAthleteType(selectedAthlete.type_athlete)}</p>
-              <p className="text-sm text-gray-600">Altura: {selectedAthlete.height ? `${selectedAthlete.height} cm` : "No disponible"}</p>
-              <p className="text-sm text-gray-600">Peso: {selectedAthlete.weight ? `${selectedAthlete.weight} kg` : "No disponible"}</p>
+            return (
+              <div key={skill.id} className="bg-slate-50 rounded-lg p-4">
+                <div className="flex items-start gap-4">
+                  {/* Skill Info */}
+                  <div className="flex items-center gap-3 w-48 shrink-0">
+                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <IconComponent size={18} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-800 text-sm">
+                        {skill.label}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {skill.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Rating Options */}
+                  <div className="flex-1 grid grid-cols-4 gap-3">
+                    {SCALE.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className={`cursor-pointer text-center py-3 px-2 rounded-lg border-2 transition-all ${
+                          currentValue === opt.value
+                            ? opt.color + " border-current"
+                            : "bg-white border-transparent hover:border-slate-200"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          value={opt.value}
+                          {...register(skill.id)}
+                          className="sr-only"
+                        />
+                        <div className="text-xl font-bold">{opt.score}</div>
+                        <div className="text-xs mt-0.5">{opt.label}</div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="bg-slate-50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Star size={16} className="text-warning" fill="currentColor" />
+              <span className="text-sm font-medium text-slate-700">
+                Puntuación General
+              </span>
             </div>
-            <span className="px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full">
-              1 seleccionado
+            <span className="text-lg font-bold text-slate-900">
+              {score.pct}%
             </span>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">Selecciona un atleta para continuar.</p>
-        )}
-      </div>
-
-      {/* Formulario de datos del test */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">
-          {isEdit ? "Actualizar Evaluación Técnica" : "Datos de la Evaluación Técnica"}
-        </h3>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Grid de evaluaciones técnicas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Control de Balón */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Control de Balón
-              </label>
-              <select
-                {...register("ball_control")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {SCALE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Pase Corto */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Pase Corto
-              </label>
-              <select
-                {...register("short_pass")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {SCALE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Pase Largo */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Pase Largo
-              </label>
-              <select
-                {...register("long_pass")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {SCALE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tiro */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tiro
-              </label>
-              <select
-                {...register("shooting")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {SCALE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Dribling */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Dribling
-              </label>
-              <select
-                {...register("dribbling")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {SCALE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Observaciones */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Observaciones (Opcional)
-            </label>
-            <textarea
-              placeholder="Notas sobre el desempeño técnico..."
-              rows="3"
-              {...register("observations")}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="w-full bg-slate-200 rounded-full h-3">
+            <div
+              className="h-3 rounded-full transition-all bg-linear-to-r from-primary/80 to-primary"
+              style={{ width: `${score.pct}%` }}
             />
           </div>
+        </div>
 
-          {/* Botones */}
-          <div className="flex gap-4 pt-6 border-t">
-            {isEdit && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded-lg transition"
-              >
-                Cancelar
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
-            >
-              {mutation.isPending ? (
-                <>
-                  <Loader size={20} className="animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Plus size={20} />
-                  {isEdit ? "Actualizar Evaluación" : "Crear Evaluación Técnica"}
-                </>
-              )}
-            </button>
+        {/* Observations */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <FileText size={16} className="text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">
+              Observaciones
+            </span>
+            <span className="text-xs text-slate-400">(opcional)</span>
           </div>
-        </form>
-      </div>
+          <textarea
+            placeholder="Fortalezas, áreas de mejora, recomendaciones de entrenamiento..."
+            rows="3"
+            {...register("observations")}
+            className="textarea textarea-bordered w-full bg-white"
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 pt-4 border-t border-base-200">
+          {isEdit && onCancel && (
+            <Button type="button" variant="ghost" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            loading={mutation.isPending}
+            className="gap-2"
+          >
+            <Save size={16} />
+            {isEdit ? "Actualizar Evaluación" : "Registrar Evaluación"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

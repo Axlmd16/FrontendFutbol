@@ -14,7 +14,7 @@ import AddTestsForm from "../components/tests/AddTestsForm";
 
 const EvaluationsPage = () => {
   return (
-    <div className="p-6">
+    <div>
       <Routes>
         {/* Lista de evaluaciones */}
         <Route index element={<EvaluationsList />} />
