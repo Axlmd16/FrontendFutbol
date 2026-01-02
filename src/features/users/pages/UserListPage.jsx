@@ -10,7 +10,7 @@ import Modal from "@/shared/components/Modal";
 import Loader from "@/shared/components/Loader";
 import useDebounce from "@/shared/hooks/useDebounce";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
-import { Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, Users, Filter } from "lucide-react";
 import { ROLE_OPTIONS } from "../../../app/config/roles";
 
 const UserListPage = () => {
@@ -132,6 +132,12 @@ const UserListPage = () => {
     }
   };
 
+  // Limpiar filtros
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setRoleFilter("");
+  };
+
   //Cierra el modal de eliminación
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, user: null, loading: false });
@@ -147,130 +153,181 @@ const UserListPage = () => {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full bg-white p-6 space-y-5">
-      <div className="">
-        <h1 className="text-xl font-semibold text-gray-900">
-          Lista de usuarios del sistema
-        </h1>
-        <p className="mt-4 text-sm text-gray-600">
-          Gestiona los usuarios registrados en la plataforma desde esta sección.
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
 
-      <div className="flex flex-col sm:flex-row sm:justify-between items-end sm:items-center mt-6 ">
-        <Button
-          variant="primary"
-          onClick={handleCreate}
-          className="mt-4 sm:mt-0"
-        >
-          <UserPlus size={20} />
-          Agregar Usuario
-        </Button>
-      </div>
-
-      {/* Filtros */}
-      <div className="bg-base-100 shadow-md rounded-lg p-4 my-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Búsqueda */}
-          <div className="md:col-span-2">
-            <Input
-              type="text"
-              placeholder="Buscar por nombre, email o usuario..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              icon={<Search size={16} className="text-gray-400" />}
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <span className="bg-primary/10 p-1.5 rounded-lg">
+                <Users size={16} />
+              </span>
+              <span className="text-[10px] font-bold tracking-wider uppercase">
+                Gestión de Usuarios
+              </span>
+            </div>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Lista de Usuarios del Sistema
+            </h1>
+            <p className="text-slate-500 mt-1 text-sm">
+              Gestiona los usuarios registrados en la plataforma
+            </p>
           </div>
 
-          {/* Filtro por rol */}
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="select select-primary"
+          {/* Botón Agregar Usuario */}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleCreate}
+            className="gap-2"
           >
-            <option value="">Todos los roles</option>
-            {ROLE_OPTIONS.map((role) => (
-              <option key={role.value} value={role.value}>
-                {role.label}
-              </option>
-            ))}
-          </select>
+            <UserPlus size={16} />
+            Agregar Usuario
+          </Button>
         </div>
-      </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <p>{error}</p>
+        {/* Filtros */}
+        <div className="card bg-base-100 shadow-sm border border-base-300 mb-6">
+          <div className="card-body p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Filter size={16} className="text-primary" />
+              <span className="font-medium text-base-content text-sm">
+                Filtros
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Búsqueda */}
+              <div className="md:col-span-3">
+                <label className="label py-1">
+                  <span className="label-text text-xs">Buscar</span>
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Buscar por nombre, email o usuario..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  icon={<Search size={16} className="text-slate-400" />}
+                  className="input-sm"
+                />
+              </div>
+
+              {/* Filtro por rol */}
+              <div>
+                <label className="label py-1">
+                  <span className="label-text text-xs">Rol</span>
+                </label>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="select select-bordered select-sm w-full bg-base-100"
+                >
+                  <option value="">Todos los roles</option>
+                  {ROLE_OPTIONS.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Botón limpiar */}
+            {(searchTerm || roleFilter) && (
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={handleClearFilters}
+                  className="btn btn-sm btn-ghost text-error hover:bg-error/10"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Contenido */}
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader size="lg" />
-        </div>
-      ) : (
-        <>
-          {/* Tabla */}
-          <UserTable
-            users={users}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-            loading={loading}
-          />
+        {/* Error */}
+        {error && (
+          <div className="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
+            <p>{error}</p>
+          </div>
+        )}
 
-          {/* Paginación */}
-          {pagination.total > pagination.limit && (
-            <div className="mt-6 flex justify-center">
-              <nav className="flex items-center gap-2">
+        {/* Tabla */}
+        <UserTable
+          users={users}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          loading={loading}
+        />
+
+        {/* Paginación */}
+        {pagination.total > pagination.limit && (
+          <div className="mt-6 flex justify-center">
+            <div className="card bg-base-100 shadow-sm border border-base-300 px-4 py-3">
+              <nav className="flex items-center gap-3">
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   size="sm"
                   disabled={pagination.page === 1}
                   onClick={() => handlePageChange(pagination.page - 1)}
+                  className="btn-sm"
                 >
                   Anterior
                 </Button>
 
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-slate-600 font-medium">
                   Página {pagination.page} de{" "}
                   {Math.ceil(pagination.total / pagination.limit)}
                 </span>
 
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   size="sm"
                   disabled={
                     pagination.page >=
                     Math.ceil(pagination.total / pagination.limit)
                   }
                   onClick={() => handlePageChange(pagination.page + 1)}
+                  className="btn-sm"
                 >
                   Siguiente
                 </Button>
               </nav>
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Modal de confirmación */}
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={handleDeleteCancel}
-        title="Eliminar usuario"
+        title="Desactivar usuario"
       >
-        <p className="text-gray-600">
+        <p className="text-slate-600">
           ¿Estás seguro de desactivar al usuario{" "}
-          <strong>{deleteModal.user?.full_name}</strong>? Esta acción no se
-          puede deshacer.
+          <strong className="text-slate-900">
+            {deleteModal.user?.full_name}
+          </strong>
+          ? Esta acción no se puede deshacer.
         </p>
 
         <div className="mt-6 flex justify-end gap-3">
           <Button
-            variant="accent"
+            variant="ghost"
             onClick={handleDeleteCancel}
             disabled={deleteModal.loading}
           >

@@ -17,12 +17,11 @@ const Input = ({ label, error, icon, className = "", id, ...props }) => {
   return (
     <div>
       {label ? (
-        <label
-          htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          {label}
-          {props.required ? <span className="text-red-500"> *</span> : null}
+        <label htmlFor={inputId} className="label py-0.5">
+          <span className="label-text text-xs font-medium text-slate-600">
+            {label}
+            {props.required ? <span className="text-error"> *</span> : null}
+          </span>
         </label>
       ) : null}
 
@@ -36,8 +35,7 @@ const Input = ({ label, error, icon, className = "", id, ...props }) => {
         <input
           id={inputId}
           className={[
-            "input input-bordered w-full bg-white",
-            ,
+            "input input-bordered input-sm w-full bg-white",
             icon ? "pl-10" : "",
             error ? "border-red-300" : "border-gray-300",
             className,
@@ -46,7 +44,7 @@ const Input = ({ label, error, icon, className = "", id, ...props }) => {
         />
       </div>
 
-      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-error">{error}</p> : null}
     </div>
   );
 };

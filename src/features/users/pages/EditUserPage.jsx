@@ -5,7 +5,8 @@ import UserForm from "../components/UserForm";
 import Loader from "@/shared/components/Loader";
 import usersApi from "../services/users.api";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, UserRoundPen, UserX } from "lucide-react";
+import Button from "../../../shared/components/Button";
 
 const EditUserPage = () => {
   const [user, setUser] = useState(null);
@@ -76,7 +77,7 @@ const EditUserPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader size="lg" />
       </div>
     );
@@ -84,34 +85,30 @@ const EditUserPage = () => {
 
   if (!user && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <h2 className="mt-4 text-xl font-bold text-gray-900">
-              Usuario no encontrado
-            </h2>
-            <p className="mt-2 text-gray-500">
-              {error || "El usuario que buscas no existe o fue eliminado."}
-            </p>
-            <button
-              onClick={handleCancel}
-              className="mt-6 text-blue-600 hover:text-blue-500 font-medium"
-            >
-              ← Volver a la lista
-            </button>
+      <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
+        {/* Fondo decorativo */}
+        <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10">
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body items-center text-center py-12">
+              <div className="bg-error/10 p-4 rounded-full mb-4">
+                <UserX size={32} className="text-error" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">
+                Usuario no encontrado
+              </h2>
+              <p className="text-slate-500 mt-2 max-w-sm">
+                {error || "El usuario que buscas no existe o fue eliminado."}
+              </p>
+              <button
+                onClick={handleCancel}
+                className="mt-6 text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
+              >
+                <ChevronLeft size={18} />
+                Volver a la lista
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -119,34 +116,54 @@ const EditUserPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={handleCancel}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ChevronLeft size={25} className="mr-1" />
-            Volver
-          </button>
+    <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
 
-          <h1 className="text-2xl font-bold text-gray-900">Editar usuario</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Modifica los datos del usuario <strong>{user?.full_name}</strong>
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
+        <Button
+          onClick={handleCancel}
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-700 mb-2 text-sm font-medium transition-colors"
+        >
+          <ChevronLeft size={18} />
+          Volver a la lista
+        </Button>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 text-primary mb-2">
+            <span className="bg-primary/10 p-1 rounded-md">
+              <UserRoundPen size={14} />
+            </span>
+            <span className="text-[10px] font-bold tracking-wider uppercase">
+              Editar Usuario
+            </span>
+          </div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            Editar Usuario
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Modifica los datos del usuario{" "}
+            <strong className="text-slate-700">{user?.full_name}</strong>
           </p>
         </div>
 
         {/* Card con formulario */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <UserForm
-            initialData={user}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={saving}
-            error={error}
-            isEdit={true}
-          />
+        <div className="card bg-base-100 shadow-sm border border-base-300">
+          <div className="card-body p-4">
+            <UserForm
+              initialData={user}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={saving}
+              error={error}
+              isEdit={true}
+            />
+          </div>
         </div>
       </div>
     </div>
