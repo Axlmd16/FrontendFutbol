@@ -16,6 +16,10 @@ import {
   ClipboardList,
   ChevronLeft,
   ChevronRight,
+  Calendar,
+  Clock,
+  MapPin,
+  Activity,
 } from "lucide-react";
 import {
   useEvaluations,
@@ -263,70 +267,86 @@ const EvaluationsList = () => {
                       key={evaluation.id}
                       className="hover:bg-slate-50/50 transition-colors"
                     >
+                      {/* Name with icon */}
                       <td className="py-4 pl-6">
-                        <span className="font-semibold text-slate-900">
-                          {evaluation.name}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <ClipboardList size={18} className="text-primary" />
+                          </div>
+                          <div>
+                            <span className="font-semibold text-slate-900 block">
+                              {evaluation.name}
+                            </span>
+                            {evaluation.observations && (
+                              <span className="text-xs text-slate-400 line-clamp-1 max-w-[200px]">
+                                {evaluation.observations}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
+                      {/* Date with icon */}
                       <td className="py-4">
-                        <span className="text-slate-600 text-sm">
-                          {formatDate(evaluation.date)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} className="text-slate-400" />
+                          <span className="text-slate-700 text-sm font-medium">
+                            {formatDate(evaluation.date)}
+                          </span>
+                        </div>
                       </td>
+                      {/* Time with icon */}
                       <td className="py-4">
-                        <span className="text-slate-600 text-sm">
-                          {evaluation.time}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Clock size={14} className="text-slate-400" />
+                          <span className="text-slate-700 text-sm">
+                            {evaluation.time}
+                          </span>
+                        </div>
                       </td>
+                      {/* Location with icon */}
                       <td className="py-4">
-                        <span className="text-slate-600 text-sm">
-                          {evaluation.location || "-"}
-                        </span>
+                        {evaluation.location ? (
+                          <div className="flex items-center gap-2">
+                            <MapPin size={14} className="text-warning" />
+                            <span className="text-slate-700 text-sm">
+                              {evaluation.location}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-sm">—</span>
+                        )}
                       </td>
+                      {/* Actions */}
                       <td className="py-4 pr-6">
                         <div className="flex items-center justify-end gap-1">
-                          <div
-                            className="tooltip tooltip-left"
-                            data-tip="Ver detalles"
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/seguimiento/evaluations/${evaluation.id}`
+                              )
+                            }
+                            className="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
                           >
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/seguimiento/evaluations/${evaluation.id}`
-                                )
-                              }
-                              className="btn btn-ghost btn-sm btn-square text-primary hover:bg-primary/10"
-                            >
-                              <Eye size={18} />
-                            </button>
-                          </div>
-                          <div
-                            className="tooltip tooltip-left"
-                            data-tip="Editar"
+                            <Eye size={14} />
+                            Ver
+                          </button>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/seguimiento/evaluations/${evaluation.id}/edit`
+                              )
+                            }
+                            className="btn btn-ghost btn-sm btn-square text-warning hover:bg-warning/10"
                           >
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/seguimiento/evaluations/${evaluation.id}/edit`
-                                )
-                              }
-                              className="btn btn-ghost btn-sm btn-square text-warning hover:bg-warning/10"
-                            >
-                              <Edit2 size={18} />
-                            </button>
-                          </div>
-                          <div
-                            className="tooltip tooltip-left"
-                            data-tip="Eliminar"
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(evaluation.id)}
+                            disabled={deleteEvaluation.isPending}
+                            className="btn btn-ghost btn-sm btn-square text-error hover:bg-error/10"
                           >
-                            <button
-                              onClick={() => handleDelete(evaluation.id)}
-                              disabled={deleteEvaluation.isPending}
-                              className="btn btn-ghost btn-sm btn-square text-error hover:bg-error/10"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>

@@ -22,6 +22,11 @@ import {
   Heart,
   RefreshCcw,
   Target,
+  Eye,
+  Timer,
+  Ruler,
+  TrendingUp,
+  Gauge,
 } from "lucide-react";
 import {
   useEvaluationById,
@@ -36,6 +41,7 @@ import athletesApi from "../../services/athletes.api";
 import { formatDate } from "@/shared/utils/dateUtils";
 import EditTestForm from "../tests/EditTestForm";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 
 const EvaluationDetail = () => {
   const navigate = useNavigate();
@@ -44,6 +50,8 @@ const EvaluationDetail = () => {
   const [searchAthlete, setSearchAthlete] = React.useState("");
   const [editingTest, setEditingTest] = React.useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [viewingTest, setViewingTest] = React.useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = React.useState(false);
 
   // Hooks de mutación para actualizar tests
   const updateSprintTest = useUpdateSprintTest();
@@ -429,7 +437,6 @@ const EvaluationDetail = () => {
                       </th>
                       <th className="text-slate-600 font-medium">Atleta</th>
                       <th className="text-slate-600 font-medium">Fecha</th>
-                      <th className="text-slate-600 font-medium">Resultados</th>
                       <th className="text-slate-600 font-medium text-right">
                         Acciones
                       </th>
@@ -471,28 +478,6 @@ const EvaluationDetail = () => {
                         badge: "badge-ghost",
                       };
 
-                      // Get test-specific results
-                      const getTestResults = (test) => {
-                        switch (test.test_type) {
-                          case "sprint_test":
-                            return test.time_0_30_s
-                              ? `${test.time_0_30_s}s (30m)`
-                              : "—";
-                          case "yoyo_test":
-                            return test.final_level
-                              ? `Nivel ${test.final_level}`
-                              : "—";
-                          case "endurance_test":
-                            return test.total_distance_m
-                              ? `${test.total_distance_m}m`
-                              : "—";
-                          case "technical_assessment":
-                            return "Ver detalles";
-                          default:
-                            return "—";
-                        }
-                      };
-
                       return (
                         <tr key={test.id} className="hover:bg-slate-50/50">
                           {/* Type */}
@@ -525,29 +510,27 @@ const EvaluationDetail = () => {
                           <td className="text-slate-600">
                             {formatDate(test.date)}
                           </td>
-                          {/* Results */}
-                          <td>
-                            <span className="font-medium text-slate-700">
-                              {getTestResults(test)}
-                            </span>
-                            {test.observations && (
-                              <p
-                                className="text-xs text-slate-400 mt-0.5 max-w-[200px] truncate"
-                                title={test.observations}
-                              >
-                                {test.observations}
-                              </p>
-                            )}
-                          </td>
                           {/* Actions */}
                           <td className="text-right">
-                            <button
-                              onClick={() => handleEditTest(test)}
-                              className="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
-                            >
-                              <Edit2 size={14} />
-                              Editar
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => {
+                                  setViewingTest(test);
+                                  setIsViewModalOpen(true);
+                                }}
+                                className="btn btn-ghost btn-sm gap-1 text-info hover:bg-info/10"
+                              >
+                                <Eye size={14} />
+                                Ver
+                              </button>
+                              <button
+                                onClick={() => handleEditTest(test)}
+                                className="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
+                              >
+                                <Edit2 size={14} />
+                                Editar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -590,6 +573,412 @@ const EvaluationDetail = () => {
           </div>
         </div>
       )}
+
+      {/* View Test Details Modal */}
+      <Modal
+        isOpen={isViewModalOpen && viewingTest !== null}
+        onClose={() => setIsViewModalOpen(false)}
+        title={viewingTest ? formatTestType(viewingTest) : ""}
+        size="large"
+      >
+        {viewingTest && (
+          <div className="space-y-6">
+            {/* Info del atleta */}
+            <div className="bg-info/10 rounded-lg p-4">
+              <p className="text-sm">
+                Atleta:{" "}
+                <strong>{getAthleteName(viewingTest.athlete_id)}</strong>
+                {" • "}Fecha: <strong>{formatDate(viewingTest.date)}</strong>
+              </p>
+            </div>
+
+            {/* Sprint Test */}
+            {viewingTest.test_type === "sprint_test" && (
+              <>
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Ruler size={16} className="text-primary" />
+                    Datos Registrados
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Timer
+                        size={18}
+                        className="text-slate-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Distancia
+                        </p>
+                        <p className="font-medium">
+                          {viewingTest.distance_meters}m
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Zap
+                        size={18}
+                        className="text-yellow-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Tiempo 0-10m
+                        </p>
+                        <p className="font-medium">
+                          {viewingTest.time_0_10_s}s
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Zap
+                        size={18}
+                        className="text-orange-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Tiempo 0-30m
+                        </p>
+                        <p className="font-medium">
+                          {viewingTest.time_0_30_s}s
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp size={16} className="text-success" />
+                    Métricas Calculadas
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Timer
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Tiempo 10-30m
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.time_10_30_s?.toFixed(2) || "—"}s
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Gauge
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Vel. Promedio
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.avg_speed_ms?.toFixed(2) || "—"} m/s
+                        </p>
+                        <p className="text-xs text-base-content/50">
+                          ≈{" "}
+                          {viewingTest.avg_speed_ms
+                            ? (viewingTest.avg_speed_ms * 3.6).toFixed(1)
+                            : "—"}{" "}
+                          km/h
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Zap size={18} className="text-success shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Vel. Máxima
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.estimated_max_speed?.toFixed(2) || "—"}{" "}
+                          m/s
+                        </p>
+                        <p className="text-xs text-base-content/50">
+                          ≈{" "}
+                          {viewingTest.estimated_max_speed
+                            ? (viewingTest.estimated_max_speed * 3.6).toFixed(1)
+                            : "—"}{" "}
+                          km/h
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Yoyo Test */}
+            {viewingTest.test_type === "yoyo_test" && (
+              <>
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <RefreshCcw size={16} className="text-primary" />
+                    Datos Registrados
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Activity
+                        size={18}
+                        className="text-blue-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">Shuttles</p>
+                        <p className="font-medium">
+                          {viewingTest.shuttle_count}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Target
+                        size={18}
+                        className="text-purple-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Nivel Final
+                        </p>
+                        <p className="font-medium">{viewingTest.final_level}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <X size={18} className="text-red-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-base-content/60">Fallos</p>
+                        <p className="font-medium">{viewingTest.failures}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp size={16} className="text-success" />
+                    Métricas Calculadas
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Ruler
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Distancia Total
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.total_distance || "—"}m
+                        </p>
+                        <p className="text-xs text-base-content/50">
+                          ={" "}
+                          {viewingTest.total_distance
+                            ? (viewingTest.total_distance / 1000).toFixed(2)
+                            : "—"}{" "}
+                          km
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Heart
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          VO₂ Máximo
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.vo2_max?.toFixed(1) || "—"} ml/kg/min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Endurance Test */}
+            {viewingTest.test_type === "endurance_test" && (
+              <>
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Heart size={16} className="text-primary" />
+                    Datos Registrados
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Timer
+                        size={18}
+                        className="text-blue-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">Duración</p>
+                        <p className="font-medium">
+                          {viewingTest.min_duration} minutos
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
+                      <Ruler
+                        size={18}
+                        className="text-orange-500 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Distancia
+                        </p>
+                        <p className="font-medium">
+                          {viewingTest.total_distance_m}m
+                        </p>
+                        <p className="text-xs text-base-content/50">
+                          = {(viewingTest.total_distance_m / 1000).toFixed(2)}{" "}
+                          km
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp size={16} className="text-success" />
+                    Métricas Calculadas
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Gauge
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          Ritmo (Pace)
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.pace_min_per_km?.toFixed(2) || "—"}{" "}
+                          min/km
+                        </p>
+                        <p className="text-xs text-base-content/50">
+                          ≈{" "}
+                          {viewingTest.pace_min_per_km
+                            ? (60 / viewingTest.pace_min_per_km).toFixed(1)
+                            : "—"}{" "}
+                          km/h
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg">
+                      <Heart
+                        size={18}
+                        className="text-success shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-base-content/60">
+                          VO₂ Máximo
+                        </p>
+                        <p className="font-medium text-success">
+                          {viewingTest.estimated_vo2max?.toFixed(1) || "—"}{" "}
+                          ml/kg/min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Technical Assessment */}
+            {viewingTest.test_type === "technical_assessment" && (
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Target size={16} className="text-primary" />
+                  Habilidades Técnicas
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="table table-sm w-full">
+                    <thead>
+                      <tr className="text-base-content/60">
+                        <th>Habilidad</th>
+                        <th>Nivel</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { key: "ball_control", label: "Control de Balón" },
+                        { key: "short_pass", label: "Pase Corto" },
+                        { key: "long_pass", label: "Pase Largo" },
+                        { key: "shooting", label: "Disparo" },
+                        { key: "dribbling", label: "Regate" },
+                      ].map((skill) => {
+                        const levelMap = {
+                          Excellent: "Excelente",
+                          Good: "Bueno",
+                          Average: "Regular",
+                          Poor: "Bajo",
+                        };
+                        const value = viewingTest[skill.key];
+                        return (
+                          <tr key={skill.key}>
+                            <td className="font-medium">{skill.label}</td>
+                            <td>
+                              <span
+                                className={`badge badge-sm ${
+                                  value === "Excellent"
+                                    ? "badge-success"
+                                    : value === "Good"
+                                    ? "badge-info"
+                                    : value === "Average"
+                                    ? "badge-warning"
+                                    : "badge-error"
+                                }`}
+                              >
+                                {levelMap[value] || value || "—"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Observations */}
+            {viewingTest.observations && (
+              <div className="bg-base-200/50 rounded-lg p-4">
+                <h4 className="font-semibold text-sm mb-2">Observaciones</h4>
+                <p className="text-sm text-base-content/70">
+                  {viewingTest.observations}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-4 border-t border-base-200">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="btn btn-ghost btn-sm"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  handleEditTest(viewingTest);
+                }}
+                className="btn btn-primary btn-sm gap-1"
+              >
+                <Edit2 size={14} />
+                Editar Test
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
