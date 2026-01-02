@@ -1,6 +1,6 @@
 import React from "react";
 import Button from "../../../shared/components/Button";
-import { CirclePower, UserRoundPen } from "lucide-react";
+import { CirclePower, UserRoundPen, Users } from "lucide-react";
 import { ROLE_OPTIONS } from "../../../app/config/roles";
 import PropTypes from "prop-types";
 
@@ -11,102 +11,85 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
     return roleOption?.label || role;
   };
 
-  // Función auxiliar para colores
-  const getRoleBadgeColor = (role) => {
+  // Función auxiliar para colores de rol
+  const getRoleBadgeClasses = (role) => {
     const colors = {
-      Administrator: "badge badge-primary",
-      Coach: "badge badge-info",
-      Intern: "badge badge-success",
+      Administrator: "bg-primary/10 text-primary border-primary/20",
+      Coach: "bg-info/10 text-info border-info/20",
+      Intern: "bg-success/10 text-success border-success/20",
     };
-    return colors[role] || "bg-gray-100 text-gray-700 border-gray-200";
+    return colors[role] || "bg-slate-100 text-slate-600 border-slate-200";
   };
 
-  // Estado de carga o vacío
+  // Estado vacío
   if (!loading && users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center w-full p-10 mt-6 bg-base-100 rounded-xl shadow-sm border border-base-200">
-        <div className="bg-base-200 p-4 rounded-full mb-4">
-          <svg
-            className="h-8 w-8 text-base-content/50"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
+      <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card-body flex flex-col items-center justify-center py-12">
+          <div className="bg-primary/10 p-4 rounded-full mb-4">
+            <Users size={32} className="text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            No hay usuarios registrados
+          </h3>
+          <p className="text-sm text-slate-500 mt-1 text-center max-w-sm">
+            Comienza agregando un nuevo usuario al sistema para gestionar el
+            acceso a la plataforma.
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-base-content">
-          No hay usuarios
-        </h3>
-        <p className="text-sm text-base-content/60 mt-1">
-          Comienza creando un nuevo registro en el sistema.
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full mt-6">
-      <div className="overflow-x-auto bg-base-100 rounded-xl shadow-sm border border-base-200">
-        <table className="table w-full align-middle">
+    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="table w-full">
           {/* HEAD */}
-          <thead className="bg-base-200/30 text-base-content uppercase text-xs font-semibold">
-            <tr>
-              <th className="w-12">
-                <label>
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm rounded-md"
-                  />
-                </label>
+          <thead className="bg-slate-50/80">
+            <tr className="border-b border-base-200">
+              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider py-3 pl-6">
+                Usuario
               </th>
-              <th className="text-left min-w-[250px]">Usuario</th>
-              <th className="text-left">Identificación</th>
-              <th className="text-center">Rol</th>
-              <th className="text-center">Estado</th>
-              <th className="text-right pr-6">Acciones</th>
+              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Identificación
+              </th>
+              <th className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Rol
+              </th>
+              <th className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Estado
+              </th>
+              <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider py-3 pr-6">
+                Acciones
+              </th>
             </tr>
           </thead>
 
           {/* BODY */}
-          <tbody>
+          <tbody className="divide-y divide-base-200/60">
             {users.map((user) => (
               <tr
                 key={user.id}
-                className="hover:bg-base-200/30 transition-colors border-b border-base-100 last:border-none"
+                className="hover:bg-slate-50/50 transition-colors"
               >
-                {/* Checkbox */}
-                <th>
-                  <label>
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm rounded-md"
-                    />
-                  </label>
-                </th>
-
                 {/* Usuario (Avatar + Info) */}
-                <td>
-                  <div className="flex items-center gap-4">
+                <td className="py-4 pl-6">
+                  <div className="flex items-center gap-3">
                     <div className="avatar">
-                      <div className="mask mask-squircle w-10 h-10 bg-base-300">
+                      <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary/20 to-primary/5 ring-2 ring-base-200">
                         <img
-                          src={user.photo || "public/img/user.png"}
+                          src={user.photo || "/img/user.png"}
                           alt={user.full_name}
                           className="object-cover rounded-full"
                         />
                       </div>
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-base-content text-sm">
+                      <span className="font-semibold text-slate-900 text-sm">
                         {user.full_name}
                       </span>
-                      <span className="text-xs text-base-content/50">
+                      <span className="text-xs text-slate-500">
                         {user.email}
                       </span>
                     </div>
@@ -114,18 +97,20 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
                 </td>
 
                 {/* Identificación */}
-                <td className="font-mono text-sm text-base-content/80">
-                  {user.dni || (
-                    <span className="text-base-content/30 italic">
-                      No registrado
-                    </span>
-                  )}
+                <td className="py-4">
+                  <span className="font-mono text-sm text-slate-700">
+                    {user.dni || (
+                      <span className="text-slate-400 italic font-sans">
+                        No registrado
+                      </span>
+                    )}
+                  </span>
                 </td>
 
                 {/* Rol */}
-                <td className="text-center">
+                <td className="text-center py-4">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeColor(
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getRoleBadgeClasses(
                       user.role
                     )}`}
                   >
@@ -134,39 +119,41 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
                 </td>
 
                 {/* Estado */}
-                <td className="text-center">
+                <td className="text-center py-4">
                   {user.is_active ? (
-                    <div className="badge badge-success badge-sm gap-2 text-white/90">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                       Activo
-                    </div>
+                    </span>
                   ) : (
-                    <div className="badge badge-error badge-sm gap-2 text-white/90">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       Inactivo
-                    </div>
+                    </span>
                   )}
                 </td>
 
                 {/* Acciones */}
-                <td className="text-right pr-4">
+                <td className="text-right py-4 pr-6">
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant="ghost"
-                      size="sm" // DaisyUI btn-sm
-                      className="btn-square btn-ghost text-info hover:bg-info/10"
+                      size="sm"
+                      className="btn-square btn-sm text-info hover:bg-info/10"
                       onClick={() => onEdit(user)}
                       title="Editar usuario"
                     >
-                      <UserRoundPen size={18} />
+                      <UserRoundPen size={16} />
                     </Button>
 
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="btn-square btn-ghost text-error hover:bg-error/10"
+                      className="btn-square btn-sm text-error hover:bg-error/10"
                       onClick={() => onDelete && onDelete(user)}
-                      title="Desactivar/Eliminar usuario"
+                      title="Desactivar usuario"
                     >
-                      <CirclePower size={18} />
+                      <CirclePower size={16} />
                     </Button>
                   </div>
                 </td>

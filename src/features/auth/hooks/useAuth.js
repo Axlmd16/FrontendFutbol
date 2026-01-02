@@ -102,14 +102,15 @@ const useAuth = () => {
       const result = await executeOperation(() => authApi.login(credentials), {
         successMessage: MESSAGES.SUCCESS.LOGIN,
         onSuccess: (data) => {
-          const token = data?.access_token || data?.token;
-          const claims = token ? decodeJwtPayload(token) : null;
+          const accessToken = data?.access_token || data?.token;
+          const refreshToken = data?.refresh_token;
+          const claims = accessToken ? decodeJwtPayload(accessToken) : null;
           const userData = claims
             ? { id: claims.sub, email: claims.email, role: claims.role }
             : data?.user;
 
-          // Guardar token y datos mínimos del usuario
-          saveAuthData(token, userData);
+          // Guardar tokens y datos mínimos del usuario
+          saveAuthData(accessToken, userData, refreshToken);
 
           // Navegar al dashboard
           navigate(ROUTES.DASHBOARD, { replace: true });

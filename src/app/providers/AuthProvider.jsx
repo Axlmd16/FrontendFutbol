@@ -13,7 +13,11 @@ import {
   useMemo,
 } from "react";
 import PropTypes from "prop-types";
-import { AUTH_TOKEN_KEY, USER_DATA_KEY } from "../config/constants";
+import {
+  AUTH_TOKEN_KEY,
+  AUTH_REFRESH_TOKEN_KEY,
+  USER_DATA_KEY,
+} from "../config/constants";
 
 /**
  * Contexto de autenticación
@@ -54,6 +58,7 @@ const AuthProvider = ({ children }) => {
         // Si hay error parseando, limpiar datos corruptos
         console.error("[AuthProvider] Error initializing auth:", error);
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
       } finally {
         // Marcar como cargado
@@ -67,13 +72,17 @@ const AuthProvider = ({ children }) => {
   // FUNCIONES DE AUTENTICACIÓN
   /**
    * Guarda los datos de autenticación en el estado y localStorage
-   * @param {string} token - Token JWT
+   * @param {string} token - Access Token JWT
    * @param {Object} userData - Datos del usuario
+   * @param {string} refreshToken - Refresh Token JWT (opcional)
    */
-  const saveAuthData = useCallback((token, userData) => {
+  const saveAuthData = useCallback((token, userData, refreshToken = null) => {
     // Guardar en localStorage
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+    if (refreshToken) {
+      localStorage.setItem(AUTH_REFRESH_TOKEN_KEY, refreshToken);
+    }
 
     // Actualizar estado
     setUser(userData);
@@ -86,6 +95,7 @@ const AuthProvider = ({ children }) => {
   const clearAuthData = useCallback(() => {
     // Limpiar localStorage
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_DATA_KEY);
 
     // Limpiar estado

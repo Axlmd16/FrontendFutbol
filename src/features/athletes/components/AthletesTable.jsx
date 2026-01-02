@@ -15,9 +15,16 @@ import {
   Mars,
   Venus,
   CircleHelp,
+  Eye,
 } from "lucide-react";
 
-function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
+function AthletesTable({
+  athletes = [],
+  onEdit,
+  onDelete,
+  onViewDetail,
+  loading = false,
+}) {
   // Badge estilos e iconos por estamento (type_athlete)
   const getEstamentoConfig = (typeAthlete) => {
     const configs = {
@@ -70,17 +77,16 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
   // Estado vacío mejorado
   if (!loading && athletes.length === 0) {
     return (
-      <div className="card bg-base-100 border border-base-300">
-        <div className="card-body items-center text-center py-16">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4">
-            <User size={40} className="text-primary/60" />
+      <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card-body flex flex-col items-center justify-center py-12">
+          <div className="bg-primary/10 p-4 rounded-full mb-4">
+            <User size={32} className="text-primary" />
           </div>
-          <h3 className="text-xl font-bold text-base-content">
+          <h3 className="text-lg font-semibold text-slate-900">
             No hay deportistas
           </h3>
-          <p className="text-base-content/60 text-sm max-w-md">
-            No se encontraron deportistas con los filtros seleccionados. Intenta
-            con otros criterios de búsqueda.
+          <p className="text-sm text-slate-500 mt-1 text-center max-w-sm">
+            No se encontraron deportistas con los filtros seleccionados.
           </p>
         </div>
       </div>
@@ -88,97 +94,62 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
   }
 
   return (
-    <div className="card bg-white shadow-lg border border-base-300 overflow-hidden">
+    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="table w-full">
-          <thead className="bg-gradient-to-r from-base-200 to-base-300">
-            <tr>
-              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80">
-                <div className="flex items-center gap-2">
-                  <User size={14} />
-                  Deportista
-                </div>
+          <thead className="bg-slate-50/80">
+            <tr className="border-b border-base-200">
+              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider py-3 pl-6">
+                Deportista
               </th>
-              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <GraduationCap size={14} />
-                  Estamento
-                </div>
+              <th className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Estamento
               </th>
-              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Users size={14} />
-                  Sexo
-                </div>
+              <th className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Sexo
               </th>
-              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle2 size={14} />
-                  Estado
-                </div>
+              <th className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-3">
+                Estado
               </th>
-              <th className="text-xs uppercase tracking-wider font-bold text-base-content/80 text-right pr-6">
+              <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider py-3 pr-6">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody>
-            {athletes.map((athlete, index) => (
+          <tbody className="divide-y divide-base-200/60">
+            {athletes.map((athlete) => (
               <tr
                 key={athlete.id}
-                className={`hover:bg-base-100 transition-colors ${
-                  index % 2 === 0 ? "bg-white" : "bg-base-50"
-                }`}
+                className="hover:bg-slate-50/50 transition-colors"
               >
                 {/* Deportista Info */}
-                <td className="py-4">
-                  <div className="flex items-center gap-4">
+                <td className="py-4 pl-6">
+                  <div className="flex items-center gap-3">
                     <div className="avatar">
-                      <div
-                        className={`w-12 h-12 rounded-full ring-2 flex items-center justify-center ${
-                          athlete.is_active
-                            ? "bg-gradient-to-br from-primary/20 to-primary/10 ring-primary/30"
-                            : "bg-base-200 ring-base-300"
-                        }`}
-                      >
+                      <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary/20 to-primary/5 ring-2 ring-base-200">
                         {athlete.photo ? (
                           <img
                             src={athlete.photo}
                             alt={athlete.full_name}
-                            className="rounded-full"
+                            className="object-cover rounded-full"
                             onError={(e) => {
                               e.target.style.display = "none";
                             }}
                           />
                         ) : (
-                          <span
-                            className={`text-lg font-bold ${
-                              athlete.is_active
-                                ? "text-primary"
-                                : "text-base-content/40"
-                            }`}
-                          >
+                          <span className="flex items-center justify-center w-full h-full text-sm font-bold text-primary">
                             {athlete.full_name?.charAt(0)?.toUpperCase() || "?"}
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="min-w-0">
-                      <div
-                        className={`font-semibold truncate ${
-                          athlete.is_active
-                            ? "text-base-content"
-                            : "text-base-content/50"
-                        }`}
-                      >
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900 text-sm">
                         {athlete.full_name}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-base-content/50">
-                        <IdCard size={12} />
-                        <span className="truncate">
-                          {athlete.dni || "Sin documento"}
-                        </span>
-                      </div>
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {athlete.dni || "Sin documento"}
+                      </span>
                     </div>
                   </div>
                 </td>
@@ -233,6 +204,20 @@ function AthletesTable({ athletes = [], onEdit, onDelete, loading = false }) {
                 {/* Acciones */}
                 <td className="text-right pr-4">
                   <div className="flex items-center justify-end gap-2">
+                    <div
+                      className="tooltip tooltip-left"
+                      data-tip="Ver detalle"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="btn-square btn-ghost text-primary hover:bg-primary/10 hover:scale-105 transition-transform"
+                        onClick={() => onViewDetail && onViewDetail(athlete)}
+                      >
+                        <Eye size={18} />
+                      </Button>
+                    </div>
+
                     <div className="tooltip tooltip-left" data-tip="Editar">
                       <Button
                         variant="ghost"
@@ -286,6 +271,7 @@ AthletesTable.propTypes = {
   ),
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
+  onViewDetail: PropTypes.func,
   loading: PropTypes.bool,
 };
 

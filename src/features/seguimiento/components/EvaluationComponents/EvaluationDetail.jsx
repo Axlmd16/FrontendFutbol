@@ -15,11 +15,11 @@ import {
   useUpdateYoyoTest,
   useUpdateEnduranceTest,
   useUpdateTechnicalAssessment,
-} from "../hooks/useEvaluations";
+} from "../../hooks/useEvaluations";
 import { useQuery } from "@tanstack/react-query";
-import athletesApi from "../services/athletes.api";
+import athletesApi from "../../services/athletes.api";
 import { formatDate, formatTime } from "@/shared/utils/dateUtils";
-import EditTestForm from "./EditTestForm";
+import EditTestForm from "../tests/EditTestForm";
 
 const EvaluationDetail = () => {
   const navigate = useNavigate();
@@ -36,8 +36,12 @@ const EvaluationDetail = () => {
   const updateTechnicalAssessment = useUpdateTechnicalAssessment();
 
   const { data, isLoading, error } = useEvaluationById(id);
-  const { data: testsData, isLoading: testsLoading, refetch: refetchTests } = useTestsByEvaluation(id);
-  
+  const {
+    data: testsData,
+    isLoading: testsLoading,
+    refetch: refetchTests,
+  } = useTestsByEvaluation(id);
+
   const evaluation = data?.data;
   const allTests = testsData?.all || [];
 
@@ -51,12 +55,12 @@ const EvaluationDetail = () => {
   const athletes = React.useMemo(() => {
     // La API devuelve { items: [...], total, page, limit }
     if (!athletesData) return [];
-    
+
     // Si tiene la estructura paginada
     if (athletesData.items && Array.isArray(athletesData.items)) {
       return athletesData.items;
     }
-    
+
     // Si tiene la estructura de ResponseSchema { status, message, data: ... }
     if (athletesData.data) {
       if (Array.isArray(athletesData.data)) {
@@ -66,68 +70,71 @@ const EvaluationDetail = () => {
         return athletesData.data.items;
       }
     }
-    
+
     // Si directamente es un array
     if (Array.isArray(athletesData)) {
       return athletesData;
     }
-    
+
     return [];
   }, [athletesData]);
-  
+
   // Función auxiliar para obtener nombre del atleta
-  const getAthleteName = React.useCallback((athleteId) => {
-    if (!athletes || athletes.length === 0) {
+  const getAthleteName = React.useCallback(
+    (athleteId) => {
+      if (!athletes || athletes.length === 0) {
+        return `Atleta ${athleteId}`;
+      }
+
+      const athlete = athletes.find((a) => a.id === athleteId);
+
+      if (!athlete) {
+        return `Atleta ${athleteId}`;
+      }
+
+      // Intenta primero full_name (estructura del backend)
+      if (athlete.full_name) {
+        return athlete.full_name;
+      }
+
+      // Si no existe full_name, intenta first_name + last_name
+      const firstName = athlete.first_name || athlete.firstName || "";
+      const lastName = athlete.last_name || athlete.lastName || "";
+
+      if (firstName && lastName) {
+        return `${firstName} ${lastName}`;
+      }
+
+      if (firstName) {
+        return firstName;
+      }
+
+      if (lastName) {
+        return lastName;
+      }
+
       return `Atleta ${athleteId}`;
-    }
-    
-    const athlete = athletes.find(a => a.id === athleteId);
-    
-    if (!athlete) {
-      return `Atleta ${athleteId}`;
-    }
-    
-    // Intenta primero full_name (estructura del backend)
-    if (athlete.full_name) {
-      return athlete.full_name;
-    }
-    
-    // Si no existe full_name, intenta first_name + last_name
-    const firstName = athlete.first_name || athlete.firstName || '';
-    const lastName = athlete.last_name || athlete.lastName || '';
-    
-    if (firstName && lastName) {
-      return `${firstName} ${lastName}`;
-    }
-    
-    if (firstName) {
-      return firstName;
-    }
-    
-    if (lastName) {
-      return lastName;
-    }
-    
-    return `Atleta ${athleteId}`;
-  }, [athletes]);
+    },
+    [athletes]
+  );
 
   // Filtrar tests según el tipo seleccionado y búsqueda de atleta
   const filteredTests = React.useMemo(() => {
     let filtered = allTests;
-    
+
     // Filtrar por tipo
     if (filterTestType !== "all") {
-      filtered = filtered.filter(test => test.test_type === filterTestType);
+      filtered = filtered.filter((test) => test.test_type === filterTestType);
     }
-    
+
     // Filtrar por nombre de atleta si hay búsqueda
     if (searchAthlete.trim()) {
-      filtered = filtered.filter(test => {
+      filtered = filtered.filter((test) => {
         const athleteName = getAthleteName(test.athlete_id).toLowerCase();
         return athleteName.includes(searchAthlete.toLowerCase());
       });
     }
-    
+
     return filtered;
   }, [allTests, filterTestType, searchAthlete, getAthleteName]);
 
@@ -143,7 +150,7 @@ const EvaluationDetail = () => {
   // Función para abrir el modal de edición
   const handleEditTest = (test) => {
     // Buscar el test actualizado en allTests para asegurar datos frescos
-    const freshTest = allTests.find(t => t.id === test.id) || test;
+    const freshTest = allTests.find((t) => t.id === test.id) || test;
     setEditingTest(freshTest);
     setIsEditModalOpen(true);
   };
@@ -287,7 +294,9 @@ const EvaluationDetail = () => {
 
         {/* Buscador de atleta */}
         <div className="mb-6 pb-6 border-b border-gray-200">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Buscar por nombre de atleta:</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">
+            Buscar por nombre de atleta:
+          </p>
           <input
             type="text"
             placeholder="Ingresa el nombre del atleta..."
@@ -299,7 +308,9 @@ const EvaluationDetail = () => {
 
         {/* Filtro de tipo de test */}
         <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Filtrar por tipo:</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">
+            Filtrar por tipo:
+          </p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilterTestType("all")}
@@ -367,7 +378,9 @@ const EvaluationDetail = () => {
             </p>
             {allTests.length === 0 && (
               <button
-                onClick={() => navigate(`/seguimiento/evaluations/${id}/add-tests`)}
+                onClick={() =>
+                  navigate(`/seguimiento/evaluations/${id}/add-tests`)
+                }
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
               >
                 Agregar primer test
@@ -415,7 +428,9 @@ const EvaluationDetail = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-2xl font-bold">Editar {formatTestType(editingTest)}</h2>
+              <h2 className="text-2xl font-bold">
+                Editar {formatTestType(editingTest)}
+              </h2>
               <button
                 onClick={handleCloseEditModal}
                 className="p-2 hover:bg-gray-100 rounded-lg"

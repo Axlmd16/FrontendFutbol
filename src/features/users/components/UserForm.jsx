@@ -7,6 +7,7 @@ import { VALIDATION } from "@/app/config/constants";
 import { useForm, useWatch } from "react-hook-form";
 import { TYPE_IDENTIFICATION_OPTIONS } from "../../../app/config/constants";
 import { TYPE_STAMENT_OPTIONS } from "../../../app/config/constants";
+import { User, MapPin, Shield, Phone, Mail, IdCard } from "lucide-react";
 
 const UserForm = ({
   initialData = null,
@@ -107,7 +108,8 @@ const UserForm = ({
           placeholder: "13 dígitos",
           validate: (value) => {
             const v = (value ?? "").toString().trim();
-            if (!/^\d{13}$/.test(v)) return "El RUC debe tener exactamente 13 dígitos";
+            if (!/^\d{13}$/.test(v))
+              return "El RUC debe tener exactamente 13 dígitos";
             return true;
           },
         };
@@ -141,7 +143,8 @@ const UserForm = ({
           placeholder: "10 dígitos",
           validate: (value) => {
             const v = (value ?? "").toString().trim();
-            if (!/^\d{10}$/.test(v)) return "La cédula debe tener exactamente 10 dígitos";
+            if (!/^\d{10}$/.test(v))
+              return "La cédula debe tener exactamente 10 dígitos";
             return true;
           },
         };
@@ -166,6 +169,16 @@ const UserForm = ({
     onSubmit(dataToSubmit);
   };
 
+  // Componente para sección
+  const SectionHeader = ({ icon: Icon, title }) => (
+    <div className="flex items-center gap-2 mb-2 pb-1 border-b border-base-200">
+      <div className="bg-primary/10 p-1 rounded-md">
+        <Icon size={12} className="text-primary" />
+      </div>
+      <h3 className="text-xs font-semibold text-slate-700">{title}</h3>
+    </div>
+  );
+
   // ==============================================
   // RENDER
   // ==============================================
@@ -173,231 +186,258 @@ const UserForm = ({
   return (
     <form
       onSubmit={handleSubmit(onValidSubmit)}
-      className="space-y-6"
+      className="space-y-4"
       noValidate
     >
       {/* Error del servidor */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
           <p className="text-sm">{error}</p>
         </div>
       )}
 
-      {/* Grid de campos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Nombres */}
-        <Input
-          label="Nombres"
-          type="text"
-          name="first_name"
-          placeholder="Juan Pérez"
-          error={errors.first_name?.message}
-          disabled={loading}
-          required
-          {...register("first_name", {
-            required: "El nombre es requerido",
-            minLength: { value: 3, message: "Mínimo 3 caracteres" },
-          })}
-        />
-
-        {/* Apellidos */}
-        <Input
-          label="Apellidos"
-          type="text"
-          name="last_name"
-          placeholder="Juan Pérez"
-          error={errors.last_name?.message}
-          disabled={loading}
-          required
-          {...register("last_name", {
-            required: "El apellido es requerido",
-            minLength: { value: 3, message: "Mínimo 3 caracteres" },
-          })}
-        />
-
-        {/* Email */}
-        <Input
-          label="Correo electrónico"
-          type="email"
-          name="email"
-          placeholder="juan@email.com"
-          error={errors.email?.message}
-          disabled={loading}
-          required
-          {...register("email", {
-            required: "El email es requerido",
-            pattern: {
-              value: VALIDATION.EMAIL_PATTERN,
-              message: "Ingresa un email válido",
-            },
-          })}
-        />
-
-        {/* Dirección (Opcional) */}
-        <Input
-          label="Dirección"
-          type="text"
-          name="direction"
-          placeholder="Av. Siempre Viva 123"
-          error={errors.direction?.message}
-          disabled={loading}
-          {...register("direction")}
-        />
-
-        {/* Tipo de identificacion */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 ">
-            Tipo de identificación <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register("type_identification", {
-              required: "Selecciona un tipo de identificación",
+      {/* Sección: Datos Personales */}
+      <div>
+        <SectionHeader icon={User} title="Datos Personales" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Nombres */}
+          <Input
+            label="Nombres"
+            type="text"
+            name="first_name"
+            placeholder="Ej: Juan Carlos"
+            error={errors.first_name?.message}
+            disabled={loading}
+            required
+            {...register("first_name", {
+              required: "El nombre es requerido",
+              minLength: { value: 3, message: "Mínimo 3 caracteres" },
             })}
+          />
+
+          {/* Apellidos */}
+          <Input
+            label="Apellidos"
+            type="text"
+            name="last_name"
+            placeholder="Ej: Pérez García"
+            error={errors.last_name?.message}
             disabled={loading}
-            className="select select-bordered w-full bg-white"
-          >
-            {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.type_identification?.message ? (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.type_identification.message}
-            </p>
-          ) : null}
-        </div>
-
-        {/* Dni (Obligatorio) */}
-        <Input
-          label="Número de identificación"
-          type="text"
-          name="dni"
-          placeholder={identificationRules.placeholder}
-          error={errors.dni?.message}
-          disabled={loading}
-          required
-          inputMode={identificationRules.inputMode}
-          maxLength={identificationRules.maxLength}
-          {...register("dni", {
-            required: "El número de identificación es requerido",
-            validate: identificationRules.validate,
-          })}
-        />
-
-        {/* Teléfono (Opcional) */}
-        <Input
-          label="Teléfono"
-          type="text"
-          name="phone"
-          placeholder="10 dígitos"
-          error={errors.phone?.message}
-          disabled={loading}
-          inputMode="numeric"
-          maxLength={10}
-          {...register("phone", {
-            validate: (value) => {
-              const v = (value ?? "").toString().trim();
-              if (!v) return true;
-              if (!/^\d{10}$/.test(v)) return "El teléfono debe tener exactamente 10 dígitos";
-              return true;
-            },
-          })}
-        />
-
-        {/* Tipo de estamento */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 ">
-            Estamento <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register("type_stament", {
-              required: "Selecciona un estamento",
+            required
+            {...register("last_name", {
+              required: "El apellido es requerido",
+              minLength: { value: 3, message: "Mínimo 3 caracteres" },
             })}
+          />
+
+          {/* Tipo de identificacion */}
+          <div>
+            <label className="label py-0.5">
+              <span className="label-text text-xs font-medium text-slate-600">
+                Tipo de identificación <span className="text-error">*</span>
+              </span>
+            </label>
+            <select
+              {...register("type_identification", {
+                required: "Selecciona un tipo de identificación",
+              })}
+              disabled={loading}
+              className="select select-bordered select-sm w-full bg-white"
+            >
+              {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.type_identification?.message ? (
+              <p className="mt-1 text-xs text-error">
+                {errors.type_identification.message}
+              </p>
+            ) : null}
+          </div>
+
+          {/* Dni (Obligatorio) */}
+          <Input
+            label="Número de identificación"
+            type="text"
+            name="dni"
+            placeholder={identificationRules.placeholder}
+            error={errors.dni?.message}
             disabled={loading}
-            className="select select-bordered w-full bg-white"
-          >
-            {TYPE_STAMENT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.type_stament?.message ? (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.type_stament.message}
-            </p>
-          ) : null}
+            required
+            inputMode={identificationRules.inputMode}
+            maxLength={identificationRules.maxLength}
+            {...register("dni", {
+              required: "El número de identificación es requerido",
+              validate: identificationRules.validate,
+            })}
+          />
         </div>
+      </div>
 
-        {/* Rol */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 ">
-            Rol <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register("role", { required: "Selecciona un rol" })}
+      {/* Sección: Información de Contacto */}
+      <div>
+        <SectionHeader icon={MapPin} title="Información de Contacto" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Email */}
+          <Input
+            label="Correo electrónico"
+            type="email"
+            name="email"
+            placeholder="ejemplo@correo.com"
+            error={errors.email?.message}
             disabled={loading}
-            className="select select-bordered w-full bg-white"
-          >
-            {ROLE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.role?.message ? (
-            <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-          ) : null}
+            required
+            icon={<Mail size={14} className="text-slate-400" />}
+            {...register("email", {
+              required: "El email es requerido",
+              pattern: {
+                value: VALIDATION.EMAIL_PATTERN,
+                message: "Ingresa un email válido",
+              },
+            })}
+          />
+
+          {/* Teléfono (Opcional) */}
+          <Input
+            label="Teléfono"
+            type="text"
+            name="phone"
+            placeholder="10 dígitos"
+            error={errors.phone?.message}
+            disabled={loading}
+            inputMode="numeric"
+            maxLength={10}
+            icon={<Phone size={14} className="text-slate-400" />}
+            {...register("phone", {
+              validate: (value) => {
+                const v = (value ?? "").toString().trim();
+                if (!v) return true;
+                if (!/^\d{10}$/.test(v))
+                  return "El teléfono debe tener exactamente 10 dígitos";
+                return true;
+              },
+            })}
+          />
+
+          {/* Dirección (Opcional) - Full width */}
+          <div className="md:col-span-2">
+            <Input
+              label="Dirección"
+              type="text"
+              name="direction"
+              placeholder="Av. Siempre Viva 123, Ciudad"
+              error={errors.direction?.message}
+              disabled={loading}
+              {...register("direction")}
+              icon={<MapPin size={14} className="text-slate-400" />}
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Contraseña */}
-        <Input
-          label={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
-          type="password"
-          name="password"
-          placeholder="••••••••"
-          error={errors.password?.message}
-          disabled={loading}
-          required={!isEdit}
-          {...register("password", {
-            required: isEdit ? false : "La contraseña es requerida",
-            validate: (value) => {
-              if (!value) return true;
-              return (
-                value.length >= VALIDATION.PASSWORD_MIN_LENGTH ||
-                `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`
-              );
-            },
-          })}
-        />
+      {/* Sección: Acceso y Rol */}
+      <div>
+        <SectionHeader icon={Shield} title="Acceso y Rol" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Tipo de estamento */}
+          <div>
+            <label className="label py-0.5">
+              <span className="label-text text-xs font-medium text-slate-600">
+                Estamento <span className="text-error">*</span>
+              </span>
+            </label>
+            <select
+              {...register("type_stament", {
+                required: "Selecciona un estamento",
+              })}
+              disabled={loading}
+              className="select select-bordered select-sm w-full bg-white"
+            >
+              {TYPE_STAMENT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.type_stament?.message ? (
+              <p className="mt-1 text-xs text-error">
+                {errors.type_stament.message}
+              </p>
+            ) : null}
+          </div>
 
-        {/* Confirmar contraseña */}
-        <Input
-          label="Confirmar contraseña"
-          type="password"
-          name="passwordConfirmation"
-          placeholder="••••••••"
-          error={errors.passwordConfirmation?.message}
-          disabled={loading}
-          required={!isEdit && !!password}
-          {...register("passwordConfirmation", {
-            validate: (value) => {
-              if (!password && !value) return true;
-              if (password && !value) return "Confirma la contraseña";
-              if (value !== password) return "Las contraseñas no coinciden";
-              return true;
-            },
-          })}
-        />
+          {/* Rol */}
+          <div>
+            <label className="label py-0.5">
+              <span className="label-text text-xs font-medium text-slate-600">
+                Rol <span className="text-error">*</span>
+              </span>
+            </label>
+            <select
+              {...register("role", { required: "Selecciona un rol" })}
+              disabled={loading}
+              className="select select-bordered select-sm w-full bg-white"
+            >
+              {ROLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.role?.message ? (
+              <p className="mt-1 text-xs text-error">{errors.role.message}</p>
+            ) : null}
+          </div>
+
+          {/* Contraseña */}
+          <Input
+            label={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            error={errors.password?.message}
+            disabled={loading}
+            required={!isEdit}
+            {...register("password", {
+              required: isEdit ? false : "La contraseña es requerida",
+              validate: (value) => {
+                if (!value) return true;
+                return (
+                  value.length >= VALIDATION.PASSWORD_MIN_LENGTH ||
+                  `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`
+                );
+              },
+            })}
+          />
+
+          {/* Confirmar contraseña */}
+          <Input
+            label="Confirmar contraseña"
+            type="password"
+            name="passwordConfirmation"
+            placeholder="••••••••"
+            error={errors.passwordConfirmation?.message}
+            disabled={loading}
+            required={!isEdit && !!password}
+            {...register("passwordConfirmation", {
+              validate: (value) => {
+                if (!password && !value) return true;
+                if (password && !value) return "Confirma la contraseña";
+                if (value !== password) return "Las contraseñas no coinciden";
+                return true;
+              },
+            })}
+          />
+        </div>
       </div>
 
       {/* Botones */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className="flex justify-end gap-3 pt-4 border-t border-base-200">
         <Button
           type="button"
-          variant="secondary"
+          variant="ghost"
           onClick={onCancel}
           disabled={loading}
         >

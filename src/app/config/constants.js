@@ -8,6 +8,11 @@
 export const AUTH_TOKEN_KEY = "kallpa_auth_token";
 
 /**
+ * Clave para almacenar el refresh token
+ */
+export const AUTH_REFRESH_TOKEN_KEY = "kallpa_refresh_token";
+
+/**
  * Clave para almacenar información del usuario
  */
 export const USER_DATA_KEY = "kallpa_user_data";
@@ -39,6 +44,7 @@ export const ROUTES = {
   INSCRIPTION_MENOR: "/inscription/menor",
   INSCRIPTION_CREATE: "/inscription/create",
   INSCRIPTION_EDIT: "/inscription/edit/:id",
+  ATHLETE_DETAIL: "/inscription/athlete/:id",
 
   //? Rutas privadas (requieren autenticación)
   DASHBOARD: "/dashboard",
@@ -175,6 +181,28 @@ export const TEST_TYPES = {
 };
 
 /**
+ * Etiquetas de tipos de test en español
+ */
+export const TEST_TYPE_LABELS = {
+  "Sprint Test": {
+    name: "Test de Velocidad",
+    shortName: "Velocidad",
+    color: "#3B82F6",
+  },
+  "YoYo Test": { name: "Test YoYo", shortName: "YoYo", color: "#10B981" },
+  "Endurance Test": {
+    name: "Test de Resistencia",
+    shortName: "Resistencia",
+    color: "#F59E0B",
+  },
+  "Technical Assessment": {
+    name: "Evaluación Técnica",
+    shortName: "Técnica",
+    color: "#8B5CF6",
+  },
+};
+
+/**
  * Estados de asistencia
  */
 export const ATTENDANCE_STATUS = {
@@ -305,6 +333,9 @@ export const API_ENDPOINTS = {
   // Statistics
   STATISTICS: {
     BASE: "/statistics",
+    OVERVIEW: "/statistics/overview",
+    ATTENDANCE: "/statistics/attendance",
+    TESTS: "/statistics/tests",
     BY_ATHLETE: (id) => `/statistics/athlete/${id}`,
   },
 

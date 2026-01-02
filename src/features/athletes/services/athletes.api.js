@@ -79,6 +79,16 @@ const athletesApi = {
     const response = await http.patch(API_ENDPOINTS.ATHLETES.ACTIVATE(id));
     return response.data;
   },
+
+  /**
+   * Obtiene las estadísticas individuales de un deportista
+   * @param {string|number} id - ID del deportista
+   * @returns {Promise<Object>} Estadísticas del deportista
+   */
+  getStats: async (id) => {
+    const response = await http.get(API_ENDPOINTS.STATISTICS.BY_ATHLETE(id));
+    return response.data;
+  },
 };
 
 export default athletesApi;

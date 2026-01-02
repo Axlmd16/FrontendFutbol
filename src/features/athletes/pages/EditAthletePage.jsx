@@ -106,46 +106,51 @@ const EditAthletePage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
+    <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
         <button
           onClick={handleCancel}
-          className="flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors w-fit"
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-700 mb-2 text-sm font-medium transition-colors"
         >
           <ArrowLeft size={18} />
-          <span className="text-sm font-medium">Volver a la lista</span>
+          Volver a la lista
         </button>
-
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <UserCog size={24} className="text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-base-content">
-              Editar Deportista
-            </h1>
-            <p className="text-base-content/60 text-sm">
-              Modifica los datos de{" "}
-              <strong className="text-base-content">
-                {athlete?.full_name}
-              </strong>
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* Form Card */}
-      <div className="card bg-base-100 shadow-sm border border-base-300">
-        <div className="card-body">
-          <DeportistaForm
-            initialData={athlete}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={saving}
-            error={error}
-            isMenor={false}
-          />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 text-primary mb-2">
+            <span className="bg-primary/10 p-1 rounded-md">
+              <UserCog size={14} />
+            </span>
+            <span className="text-[10px] font-bold tracking-wider uppercase">
+              Editar Deportista
+            </span>
+          </div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            {athlete?.full_name}
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Modifica los datos del deportista.
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className="card bg-base-100 shadow-sm border border-base-300">
+          <div className="card-body p-4">
+            <DeportistaForm
+              initialData={athlete}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              loading={saving}
+              error={error}
+              isMenor={false}
+            />
+          </div>
         </div>
       </div>
     </div>

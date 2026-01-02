@@ -8,7 +8,10 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Eye, Plus, X } from "lucide-react";
-import { useEvaluations, useDeleteEvaluation } from "../hooks/useEvaluations";
+import {
+  useEvaluations,
+  useDeleteEvaluation,
+} from "../../hooks/useEvaluations";
 import { formatDate, formatTime } from "@/shared/utils/dateUtils";
 
 const EvaluationsList = () => {
@@ -53,7 +56,9 @@ const EvaluationsList = () => {
       // Filtro por ubicación (case-insensitive substring)
       if (filterLocation.trim()) {
         if (
-          !evaluation.location?.toLowerCase().includes(filterLocation.toLowerCase())
+          !evaluation.location
+            ?.toLowerCase()
+            .includes(filterLocation.toLowerCase())
         ) {
           return false;
         }
@@ -73,7 +78,8 @@ const EvaluationsList = () => {
   );
 
   // Resetear página si hay filtros activos
-  const hasActiveFilters = searchName || filterDate || filterTime || filterLocation;
+  const hasActiveFilters =
+    searchName || filterDate || filterTime || filterLocation;
   React.useEffect(() => {
     setPage(0);
   }, [hasActiveFilters]);
@@ -216,7 +222,9 @@ const EvaluationsList = () => {
             {paginatedEvaluations.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                  {hasActiveFilters ? "No hay evaluaciones que coincidan con los filtros" : "No hay evaluaciones disponibles"}
+                  {hasActiveFilters
+                    ? "No hay evaluaciones que coincidan con los filtros"
+                    : "No hay evaluaciones disponibles"}
                 </td>
               </tr>
             ) : (
@@ -238,9 +246,7 @@ const EvaluationsList = () => {
                     <div className="flex justify-center gap-2">
                       <button
                         onClick={() =>
-                          navigate(
-                            `/seguimiento/evaluations/${evaluation.id}`
-                          )
+                          navigate(`/seguimiento/evaluations/${evaluation.id}`)
                         }
                         className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition"
                         title="Ver detalles"

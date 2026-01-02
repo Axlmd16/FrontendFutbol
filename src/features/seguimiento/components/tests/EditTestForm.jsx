@@ -6,10 +6,10 @@
  */
 
 import React from "react";
-import SprintTestForm from "./tests/SprintTestForm";
-import YoyoTestForm from "./tests/YoyoTestForm";
-import EnduranceTestForm from "./tests/EnduranceTestForm";
-import TechnicalAssessmentForm from "./tests/TechnicalAssessmentForm";
+import SprintTestForm from "./SprintTestForm";
+import YoyoTestForm from "./YoyoTestForm";
+import EnduranceTestForm from "./EnduranceTestForm";
+import TechnicalAssessmentForm from "./TechnicalAssessmentForm";
 
 const EditTestForm = ({ test, mutation, onSuccess, onCancel }) => {
   const renderForm = () => {

@@ -13,13 +13,18 @@ import {
   useCreateEvaluation,
   useUpdateEvaluation,
   useEvaluationById,
-} from "../hooks/useEvaluations";
+} from "../../hooks/useEvaluations";
 import { getCurrentUser } from "@/shared/utils/authUtils";
 
 const EvaluationForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm({
     defaultValues: {
       name: "",
       date: new Date().toISOString().split("T")[0],
@@ -32,9 +37,8 @@ const EvaluationForm = ({ isEdit = false }) => {
   const currentUser = getCurrentUser();
   const createEvaluation = useCreateEvaluation();
   const updateEvaluation = useUpdateEvaluation();
-  const { data: evaluationData, isLoading: isLoadingData } = useEvaluationById(
-    id
-  );
+  const { data: evaluationData, isLoading: isLoadingData } =
+    useEvaluationById(id);
 
   // Cargar datos si es edición
   useEffect(() => {
@@ -102,9 +106,7 @@ const EvaluationForm = ({ isEdit = false }) => {
         });
         // Redirigir a la evaluación creada para agregar tests
         setTimeout(() => {
-          navigate(
-            `/seguimiento/evaluations/${result.data.id}/add-tests`
-          );
+          navigate(`/seguimiento/evaluations/${result.data.id}/add-tests`);
         }, 1500);
         return;
       }
@@ -256,8 +258,8 @@ const EvaluationForm = ({ isEdit = false }) => {
 
         {!isEdit && (
           <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-            ℹ️ Después de crear la evaluación, podrás agregar tests de velocidad,
-            resistencia, Yoyo y evaluaciones técnicas.
+            ℹ️ Después de crear la evaluación, podrás agregar tests de
+            velocidad, resistencia, Yoyo y evaluaciones técnicas.
           </p>
         )}
       </form>
