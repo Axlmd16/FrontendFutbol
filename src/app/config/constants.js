@@ -369,4 +369,9 @@ export const API_ENDPOINTS = {
     DEACTIVATE: (id) => `/representatives/deactivate/${id}`,
     ACTIVATE: (id) => `/representatives/activate/${id}`,
   },
+
+  // Reports
+  REPORTS: {
+    GENERATE: "/reports",
+  },
 };
