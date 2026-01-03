@@ -45,6 +45,7 @@ export const ROUTES = {
   INSCRIPTION_CREATE: "/inscription/create",
   INSCRIPTION_EDIT: "/inscription/edit/:id",
   ATHLETE_DETAIL: "/inscription/athlete/:id",
+  REPRESENTATIVE_EDIT: "/inscription/representative/edit/:id",
 
   //? Rutas privadas (requieren autenticación)
   DASHBOARD: "/dashboard",
@@ -355,5 +356,17 @@ export const API_ENDPOINTS = {
     BULK: "/attendances/bulk",
     BY_DATE: "/attendances/by-date",
     SUMMARY: "/attendances/summary",
+  },
+
+  // Representatives
+  REPRESENTATIVES: {
+    BASE: "/representatives",
+    GET_ALL: "/representatives/all",
+    BY_ID: (id) => `/representatives/${id}`,
+    BY_DNI: (dni) => `/representatives/by-dni/${dni}`,
+    CREATE: "/representatives/create",
+    UPDATE: (id) => `/representatives/update/${id}`,
+    DEACTIVATE: (id) => `/representatives/deactivate/${id}`,
+    ACTIVATE: (id) => `/representatives/activate/${id}`,
   },
 };

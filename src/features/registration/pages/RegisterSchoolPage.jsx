@@ -16,6 +16,7 @@ import Button from "@/shared/components/Button";
 import RepresentanteForm from "@/features/inscription/components/RepresentanteForm";
 import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import inscriptionApi from "@/features/inscription/services/inscription.api";
+import { useInvalidateInscriptions } from "@/features/athletes/hooks/useInscriptions";
 import { MESSAGES, ROUTES, VALIDATION } from "@/app/config/constants";
 import {
   CheckCircle,
@@ -32,6 +33,8 @@ import {
 
 const RegisterSchoolPage = () => {
   const navigate = useNavigate();
+  const { invalidateAthletes, invalidateRepresentatives } =
+    useInvalidateInscriptions();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -142,6 +145,10 @@ const RegisterSchoolPage = () => {
       toast.success("¡Registro exitoso!", {
         description: "El deportista ha sido registrado correctamente.",
       });
+
+      // Invalidar cache para que aparezcan los nuevos datos
+      invalidateAthletes();
+      invalidateRepresentatives();
 
       setRegistrationSuccess(true);
     } catch (err) {
