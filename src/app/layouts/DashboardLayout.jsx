@@ -1,11 +1,11 @@
 /**
  * Layout protegido con Sidebar colapsable y responsive
- * Diseño profesional y minimalista
+ * Diseño moderno usando colores del tema UNL
  */
 
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import useAuth from "@/features/auth/hooks/useAuth";
 import {
   getRoleLabel,
@@ -24,7 +24,7 @@ const DashboardLayout = () => {
   const roleLabel = getRoleLabel(role);
   const items = getSidebarItems(role);
 
-  const sidebarWidth = collapsed ? "w-16" : "w-64";
+  const sidebarWidth = collapsed ? "w-20" : "w-64";
 
   const goToProfile = () => {
     navigate(ROUTES.PROFILE);
@@ -33,27 +33,27 @@ const DashboardLayout = () => {
 
   /** Contenido del sidebar (reutilizado en desktop y mobile) */
   const SidebarContent = ({ isMobile = false }) => (
-    <div className="flex h-full flex-col bg-white">
-      {/* Header */}
-      <div className="border-b border-base-300 px-4 py-5">
+    <div className="flex h-full flex-col bg-base-100 border-r border-base-300">
+      {/* Header con logo */}
+      <div className="px-4 py-4 border-b border-base-300">
         <div className="flex items-center justify-between">
           {(!collapsed || isMobile) && (
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="flex size-10 shrink-0 items-center justify-center bg-neutral text-neutral-content font-bold text-lg">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-content font-bold text-lg">
                 K
               </div>
               <div className="min-w-0">
-                <div className="text-base font-bold tracking-tight text-base-content">
+                <div className="text-sm font-bold tracking-tight text-base-content">
                   KALLPA UNL
                 </div>
-                <div className="text-xs font-medium text-base-content/50 uppercase tracking-wide mt-0.5">
+                <div className="text-[10px] font-semibold text-primary uppercase tracking-widest">
                   {roleLabel}
                 </div>
               </div>
             </div>
           )}
           {collapsed && !isMobile && (
-            <div className="flex size-10 items-center justify-center bg-neutral text-neutral-content font-bold text-lg mx-auto">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-content font-bold text-lg mx-auto">
               K
             </div>
           )}
@@ -70,63 +70,66 @@ const DashboardLayout = () => {
         </div>
       </div>
 
-      {/* User Profile Photo & Info - Solo cuando está expandido */}
-      {(!collapsed || isMobile) && (
-        <div className="border-b border-base-300 px-4 py-6 bg-base-200/30">
-          <div className="flex flex-col items-center gap-3">
-            {/* Profile Photo - Clickeable */}
-            <button
-              type="button"
-              onClick={goToProfile}
-              className="relative group cursor-pointer focus:outline-none"
-              title="Ver mi perfil"
-            >
-              {user?.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.name || user.email || "Usuario"}
-                  className="size-24 object-cover border-4 border-base-100 shadow-lg group-hover:border-primary transition-colors"
-                  style={{ borderRadius: "50%" }}
-                />
-              ) : (
-                <div
-                  className="flex size-24 items-center justify-center bg-neutral text-neutral-content border-4 border-base-100 shadow-lg font-bold text-3xl group-hover:border-primary transition-colors"
-                  style={{ borderRadius: "50%" }}
-                >
-                  {(user?.name?.[0] || user?.email?.[0] || "U").toUpperCase()}
-                </div>
-              )}
-              {/* Hover overlay */}
-              <div
-                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderRadius: "50%" }}
-              >
-                <span className="text-white text-xs font-medium">
-                  Ver perfil
-                </span>
+      {/* User Profile - Simplificado */}
+      <div className="px-3 py-4 border-b border-base-300">
+        <button
+          type="button"
+          onClick={goToProfile}
+          className={[
+            "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 transition-colors text-left",
+            collapsed && !isMobile ? "justify-center" : "",
+          ].join(" ")}
+          title={
+            collapsed && !isMobile ? user?.full_name || "Ver perfil" : undefined
+          }
+        >
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            {user?.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.full_name || user.email || "Usuario"}
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-base-300"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral text-neutral-content font-bold">
+                {(
+                  user?.full_name?.[0] ||
+                  user?.email?.[0] ||
+                  "U"
+                ).toUpperCase()}
               </div>
-            </button>
-
-            {/* User info */}
-            <div className="text-center w-full">
-              {user?.name && (
-                <div className="font-bold text-sm text-base-content truncate px-2">
-                  {user.name}
-                </div>
-              )}
-              {user?.email && (
-                <div className="text-xs font-medium text-base-content/70 truncate px-2 mt-1">
-                  {user.email}
-                </div>
-              )}
-            </div>
+            )}
+            {/* Online indicator */}
+            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-success ring-2 ring-base-100" />
           </div>
+
+          {/* User info - solo si no está colapsado */}
+          {(!collapsed || isMobile) && (
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-base-content truncate">
+                {user?.full_name || "Usuario"}
+              </div>
+              <div className="text-xs text-base-content/60 truncate">
+                {user?.email}
+              </div>
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* Section Label */}
+      {(!collapsed || isMobile) && (
+        <div className="px-5 pt-4 pb-2">
+          <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest">
+            Menú
+          </span>
         </div>
       )}
 
       {/* Nav items */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-0.5 px-2">
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
+        <ul className="space-y-1">
           {items.map((item) => (
             <li key={item.to}>
               <NavLink
@@ -134,22 +137,21 @@ const DashboardLayout = () => {
                 onClick={() => isMobile && setMobileOpen(false)}
                 className={({ isActive }) =>
                   [
-                    "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors",
-                    "border-l-4",
+                    "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                     isActive
-                      ? "bg-primary/20 text-primary border-primary rounded-md"
-                      : "text-base-content/70 hover:text-base-content hover:bg-base-200/50 border-transparent",
-                    collapsed && !isMobile ? "justify-center px-0" : "",
+                      ? "bg-primary text-primary-content"
+                      : "text-base-content/70 hover:text-base-content hover:bg-base-200",
+                    collapsed && !isMobile ? "justify-center px-3" : "",
                   ].join(" ")
                 }
                 end={item.to === "/dashboard"}
                 title={collapsed && !isMobile ? item.label : undefined}
               >
-                <span className={collapsed && !isMobile ? "" : "ml-1"}>
+                <span className="shrink-0">
                   {NAV_ICONS[item.icon] || NAV_ICONS.dashboard}
                 </span>
                 {(!collapsed || isMobile) && (
-                  <span className="tracking-wide">{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                 )}
               </NavLink>
             </li>
@@ -157,58 +159,20 @@ const DashboardLayout = () => {
         </ul>
       </nav>
 
-      {/* Footer - Profile (collapsed) & Logout */}
-      <div className="border-t border-base-300 p-2">
-        {/* Profile button - Solo cuando está colapsado */}
-        {collapsed && !isMobile && (
-          <div className="mb-2 flex justify-center">
-            <button
-              type="button"
-              onClick={goToProfile}
-              className="relative group cursor-pointer focus:outline-none"
-              title={user?.name || user?.email || "Ver mi perfil"}
-            >
-              {user?.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.name || user.email || "Usuario"}
-                  className="size-10 object-cover border-2 border-base-300 group-hover:border-primary transition-colors"
-                  style={{ borderRadius: "50%" }}
-                />
-              ) : (
-                <div
-                  className="flex size-10 items-center justify-center bg-neutral text-neutral-content border-2 border-base-300 group-hover:border-primary transition-colors font-bold text-sm"
-                  style={{ borderRadius: "50%" }}
-                >
-                  {(user?.name?.[0] || user?.email?.[0] || "U").toUpperCase()}
-                </div>
-              )}
-              {/* Status indicator */}
-              <div
-                className="absolute bottom-0 right-0 size-3 bg-success border-2 border-base-100"
-                style={{ borderRadius: "50%" }}
-              ></div>
-            </button>
-          </div>
-        )}
-
-        {/* Logout button */}
+      {/* Footer - Logout */}
+      <div className="p-3 border-t border-base-300">
         <button
           type="button"
           onClick={logout}
           title={collapsed && !isMobile ? "Cerrar sesión" : undefined}
           className={[
-            "flex w-full items-center gap-3 px-3 py-3 text-sm font-medium transition-colors",
-            "text-error hover:bg-error/10 border-l-4 border-transparent hover:border-error",
-            collapsed && !isMobile ? "justify-center px-0" : "",
+            "flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
+            "text-error/80 hover:text-error hover:bg-error/10",
+            collapsed && !isMobile ? "justify-center" : "",
           ].join(" ")}
         >
-          <span className={collapsed && !isMobile ? "" : "ml-1"}>
-            {NAV_ICONS.logout}
-          </span>
-          {(!collapsed || isMobile) && (
-            <span className="tracking-wide">Cerrar sesión</span>
-          )}
+          <LogOut size={20} className="shrink-0" />
+          {(!collapsed || isMobile) && <span>Cerrar sesión</span>}
         </button>
       </div>
     </div>
@@ -217,27 +181,29 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-base-200">
       {/* Mobile header */}
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-base-300 bg-base-100 px-4 shadow-sm lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-4 bg-base-100 border-b border-base-300 px-4 lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
           className="btn btn-ghost btn-sm btn-square"
           aria-label="Abrir menú"
         >
-          <Menu size={20} />
+          <Menu size={22} />
         </button>
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center bg-neutral text-neutral-content font-bold text-base">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-content font-bold text-sm">
             K
           </div>
-          <span className="font-bold tracking-tight">KALLPA UNL</span>
+          <span className="font-bold text-base-content tracking-tight">
+            KALLPA UNL
+          </span>
         </div>
       </header>
 
       {/* Mobile drawer overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-50 bg-black/50 lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
@@ -246,7 +212,7 @@ const DashboardLayout = () => {
       {/* Mobile drawer */}
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 w-72 bg-base-100 shadow-2xl transition-transform duration-300 lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-base-100 shadow-xl transition-transform duration-300 ease-out lg:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >
@@ -257,7 +223,7 @@ const DashboardLayout = () => {
         {/* Desktop sidebar */}
         <aside
           className={[
-            "fixed inset-y-0 left-0 z-30 hidden border-r border-base-300 bg-base-100 transition-all duration-300 lg:block",
+            "fixed inset-y-0 left-0 z-30 hidden bg-base-100 shadow-sm transition-all duration-300 ease-out lg:block",
             sidebarWidth,
           ].join(" ")}
         >
@@ -267,10 +233,10 @@ const DashboardLayout = () => {
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="absolute -right-3 top-24 flex size-6 items-center justify-center border border-base-300 bg-base-100 shadow-md hover:bg-base-200 hover:shadow-lg transition-all"
+            className="btn btn-circle btn-sm absolute -right-3 top-5"
             aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
           >
-            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </aside>
 
@@ -278,10 +244,10 @@ const DashboardLayout = () => {
         <main
           className={[
             "min-h-screen flex-1 transition-all duration-300",
-            collapsed ? "lg:ml-16" : "lg:ml-64",
+            collapsed ? "lg:ml-20" : "lg:ml-64",
           ].join(" ")}
         >
-          <div className="p-6 lg:p-8">
+          <div className="p-4 lg:p-6">
             <Outlet />
           </div>
         </main>

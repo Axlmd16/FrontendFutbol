@@ -23,6 +23,10 @@ import {
   CheckCircle,
   XCircle,
   HelpCircle,
+  Users,
+  Phone,
+  Mail,
+  Pencil,
 } from "lucide-react";
 import {
   ROUTES,
@@ -50,6 +54,18 @@ const getGenderLabel = (sex) => {
 };
 
 const getTestLabel = (testType) => TEST_TYPE_LABELS[testType]?.name || testType;
+
+// Helper para obtener etiqueta de parentesco
+const getRelationshipLabel = (relationship) => {
+  if (!relationship) return "-";
+  const normalized = relationship.toUpperCase();
+  const labels = {
+    FATHER: "Padre",
+    MOTHER: "Madre",
+    LEGAL_GUARDIAN: "Tutor Legal",
+  };
+  return labels[normalized] || relationship;
+};
 
 function AthleteDetailPage() {
   const { id } = useParams();
@@ -125,60 +141,237 @@ function AthleteDetailPage() {
           </div>
         </div>
 
-        {/* Section 1: General Info */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-5">
-            <h2 className="card-title text-lg flex items-center gap-2 mb-4">
-              <User size={20} className="text-primary" />
-              Información General
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-base-content/60">Nombre completo</p>
-                <p className="font-medium">{athleteInfo.full_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">
-                  Tipo de deportista
-                </p>
-                <p className="font-medium capitalize">
-                  {athleteInfo.type_athlete || athleteInfo.type_stament || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">Sexo</p>
-                <p className="font-medium">{getGenderLabel(athleteInfo.sex)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">
-                  Fecha de nacimiento
-                </p>
-                <p className="font-medium">
-                  {athleteInfo.date_of_birth || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">DNI</p>
-                <p className="font-medium">{athleteInfo.dni}</p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">Teléfono</p>
-                <p className="font-medium">{athleteInfo.phone || "-"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">Altura</p>
-                <p className="font-medium">
-                  {athleteInfo.height ? `${athleteInfo.height} cm` : "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-base-content/60">Peso</p>
-                <p className="font-medium">
-                  {athleteInfo.weight ? `${athleteInfo.weight} kg` : "-"}
-                </p>
-              </div>
+        {/* Sections: General Info + Representative (side by side) */}
+        <div
+          className={`grid gap-4 ${
+            athleteInfo.representative_id ? "lg:grid-cols-2" : ""
+          }`}
+        >
+          {/* Section 1: General Info */}
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-5">
+              <h2 className="card-title text-base flex items-center gap-2 mb-4 pb-3 border-b border-base-200">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <User size={16} className="text-primary" />
+                </div>
+                Información del Deportista
+              </h2>
+
+              {athleteInfo.representative_id ? (
+                // Layout compacto cuando hay representante
+                <>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                        Nombre
+                      </p>
+                      <p className="font-medium text-sm">
+                        {athleteInfo.full_name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                        DNI
+                      </p>
+                      <p className="font-medium font-mono text-sm">
+                        {athleteInfo.dni}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                        Tipo
+                      </p>
+                      <span className="badge badge-ghost badge-xs">
+                        {athleteInfo.type_athlete ||
+                          athleteInfo.type_stament ||
+                          "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                        Sexo
+                      </p>
+                      <p className="font-medium text-sm">
+                        {getGenderLabel(athleteInfo.sex)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                        Nacimiento
+                      </p>
+                      <p className="font-medium text-sm">
+                        {athleteInfo.date_of_birth || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-base-content/50 uppercase tracking-wider flex items-center gap-1">
+                        <Phone size={10} /> Teléfono
+                      </p>
+                      <p className="font-medium text-sm">
+                        {athleteInfo.phone || "S/N"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="bg-base-200/50 rounded-lg p-2.5 text-center">
+                      <p className="text-base font-bold text-primary">
+                        {athleteInfo.height || "-"}
+                      </p>
+                      <p className="text-[10px] text-base-content/60">
+                        Altura (cm)
+                      </p>
+                    </div>
+                    <div className="bg-base-200/50 rounded-lg p-2.5 text-center">
+                      <p className="text-base font-bold text-primary">
+                        {athleteInfo.weight || "-"}
+                      </p>
+                      <p className="text-[10px] text-base-content/60">
+                        Peso (kg)
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Layout horizontal cuando NO hay representante
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1">
+                      Nombre completo
+                    </p>
+                    <p className="font-medium">{athleteInfo.full_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1">
+                      DNI
+                    </p>
+                    <p className="font-medium font-mono">{athleteInfo.dni}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1">
+                      Tipo
+                    </p>
+                    <span className="badge badge-ghost badge-sm">
+                      {athleteInfo.type_athlete ||
+                        athleteInfo.type_stament ||
+                        "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1">
+                      Sexo
+                    </p>
+                    <p className="font-medium">
+                      {getGenderLabel(athleteInfo.sex)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1">
+                      Fecha de nacimiento
+                    </p>
+                    <p className="font-medium">
+                      {athleteInfo.date_of_birth || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <Phone size={10} /> Teléfono
+                    </p>
+                    <p className="font-medium">{athleteInfo.phone || "S/N"}</p>
+                  </div>
+                  <div className="bg-base-200/50 rounded-lg p-3 text-center">
+                    <p className="text-lg font-bold text-primary">
+                      {athleteInfo.height || "-"}
+                    </p>
+                    <p className="text-xs text-base-content/60">Altura (cm)</p>
+                  </div>
+                  <div className="bg-base-200/50 rounded-lg p-3 text-center">
+                    <p className="text-lg font-bold text-primary">
+                      {athleteInfo.weight || "-"}
+                    </p>
+                    <p className="text-xs text-base-content/60">Peso (kg)</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Section: Representative Info (only for minors) */}
+          {athleteInfo.representative_id && (
+            <div className="card bg-base-100 shadow-sm border border-base-300">
+              <div className="card-body p-5">
+                <h2 className="card-title text-base flex items-center justify-between mb-4 pb-3 border-b border-base-200">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                      <Users size={16} className="text-secondary" />
+                    </div>
+                    Representante Legal
+                  </div>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        ROUTES.REPRESENTATIVE_EDIT.replace(
+                          ":id",
+                          athleteInfo.representative_id
+                        )
+                      )
+                    }
+                    className="btn btn-ghost btn-xs gap-1"
+                    title="Editar representante"
+                  >
+                    <Pencil size={14} />
+                    Editar
+                  </button>
+                </h2>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div className="col-span-2">
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                      Nombre completo
+                    </p>
+                    <p className="font-medium text-sm">
+                      {athleteInfo.representative_name || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                      DNI
+                    </p>
+                    <p className="font-medium font-mono text-sm">
+                      {athleteInfo.representative_dni || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider">
+                      Parentesco
+                    </p>
+                    <span className="badge badge-secondary badge-sm">
+                      {getRelationshipLabel(
+                        athleteInfo.representative_relationship
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider flex items-center gap-1">
+                      <Phone size={10} /> Teléfono
+                    </p>
+                    <p className="font-medium text-sm">
+                      {athleteInfo.representative_phone || "S/N"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 uppercase tracking-wider flex items-center gap-1">
+                      <Mail size={10} /> Correo
+                    </p>
+                    <p
+                      className="font-medium text-sm truncate"
+                      title={athleteInfo.representative_email}
+                    >
+                      {athleteInfo.representative_email || "-"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section 2: Individual Stats */}

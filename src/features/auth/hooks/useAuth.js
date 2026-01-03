@@ -106,7 +106,12 @@ const useAuth = () => {
           const refreshToken = data?.refresh_token;
           const claims = accessToken ? decodeJwtPayload(accessToken) : null;
           const userData = claims
-            ? { id: claims.sub, email: claims.email, role: claims.role }
+            ? {
+                id: claims.sub,
+                email: claims.email,
+                role: claims.role,
+                full_name: claims.full_name,
+              }
             : data?.user;
 
           // Guardar tokens y datos mínimos del usuario

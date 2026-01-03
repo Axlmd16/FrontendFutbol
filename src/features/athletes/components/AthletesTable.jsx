@@ -94,7 +94,7 @@ function AthletesTable({
   }
 
   return (
-    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
+    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden mt-5">
       <div className="overflow-x-auto">
         <table className="table w-full">
           <thead className="bg-slate-50/80">
@@ -161,7 +161,7 @@ function AthletesTable({
                     const IconComponent = config.icon;
                     return (
                       <span
-                        className={`badge ${config.class} badge-sm gap-1 font-medium`}
+                        className={`badge ${config.class} badge-sm badge-soft badge-outline gap-1 font-medium`}
                       >
                         <IconComponent size={12} />
                         {config.label}
@@ -177,7 +177,7 @@ function AthletesTable({
                     const IconComponent = config.icon;
                     return (
                       <span
-                        className={`badge badge-outline ${config.class} badge-sm gap-1`}
+                        className={`badge badge-outline ${config.class} badge-sm badge-soft gap-1`}
                       >
                         <IconComponent size={12} />
                         {config.label}
@@ -189,13 +189,13 @@ function AthletesTable({
                 {/* Estado con icono */}
                 <td className="text-center">
                   {athlete.is_active ? (
-                    <span className="badge badge-success badge-sm gap-1 font-medium">
-                      <CheckCircle2 size={12} />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                       Activo
                     </span>
                   ) : (
-                    <span className="badge badge-error badge-sm gap-1 font-medium">
-                      <XCircle size={12} />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       Inactivo
                     </span>
                   )}
