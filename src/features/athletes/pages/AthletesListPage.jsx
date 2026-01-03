@@ -10,6 +10,8 @@ import { toast } from "sonner";
 // Componentes
 import AthletesTable from "../components/AthletesTable";
 import RepresentativesTable from "../components/RepresentativesTable";
+import InternsTable from "../components/InternsTable";
+import PromoteAthleteModal from "../components/PromoteAthleteModal";
 import Button from "@/shared/components/Button";
 import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
@@ -18,12 +20,15 @@ import Loader from "@/shared/components/Loader";
 // Servicios
 import athletesApi from "../services/athletes.api";
 import representativesApi from "../services/representatives.api";
+import internsApi from "../services/interns.api";
 
 // Hooks
 import useDebounce from "@/shared/hooks/useDebounce";
 import {
   useAthletes,
   useRepresentatives,
+  useInterns,
+  usePromoteAthlete,
   useInvalidateInscriptions,
 } from "../hooks/useInscriptions";
 
@@ -46,6 +51,7 @@ import {
   UsersRound,
   RefreshCw,
   GraduationCap,
+  UserCheck,
 } from "lucide-react";
 
 const AthletesListPage = () => {
@@ -63,9 +69,15 @@ const AthletesListPage = () => {
   const [repPage, setRepPage] = useState(1);
   const repLimit = 10;
 
+  // Filtros y paginación - Pasantes
+  const [internSearch, setInternSearch] = useState("");
+  const [internPage, setInternPage] = useState(1);
+  const internLimit = 10;
+
   // Debounce
   const debouncedAthleteSearch = useDebounce(athleteSearch, 500);
   const debouncedRepSearch = useDebounce(repSearch, 500);
+  const debouncedInternSearch = useDebounce(internSearch, 500);
 
   // Modal de confirmación
   const [statusModal, setStatusModal] = useState({
@@ -75,9 +87,16 @@ const AthletesListPage = () => {
     loading: false,
   });
 
+  // Modal de promoción a pasante
+  const [promoteModal, setPromoteModal] = useState({
+    isOpen: false,
+    athlete: null,
+  });
+
   const navigate = useNavigate();
-  const { invalidateAthletes, invalidateRepresentatives } =
+  const { invalidateAthletes, invalidateRepresentatives, invalidateInterns } =
     useInvalidateInscriptions();
+  const promoteAthleteMutation = usePromoteAthlete();
 
   // ========================================
   // TANSTACK QUERY - DEPORTISTAS
@@ -113,6 +132,23 @@ const AthletesListPage = () => {
 
   const representatives = representativesData?.items || [];
   const representativesTotal = representativesData?.total || 0;
+
+  // ========================================
+  // TANSTACK QUERY - PASANTES
+  // ========================================
+  const {
+    data: internsData,
+    isLoading: internsLoading,
+    error: internsError,
+    refetch: refetchInterns,
+  } = useInterns({
+    page: internPage,
+    limit: internLimit,
+    search: debouncedInternSearch || undefined,
+  });
+
+  const interns = internsData?.items || [];
+  const internsTotal = internsData?.total || 0;
 
   // ========================================
   // HANDLERS DE DEPORTISTAS
@@ -174,7 +210,7 @@ const AthletesListPage = () => {
           toast.success(MESSAGES.SUCCESS.ATHLETE_ACTIVATED);
         }
         invalidateAthletes();
-      } else {
+      } else if (statusModal.type === "representative") {
         if (isActive) {
           await representativesApi.deactivate(statusModal.item.id);
           toast.success("Representante desactivado");
@@ -183,6 +219,15 @@ const AthletesListPage = () => {
           toast.success("Representante activado");
         }
         invalidateRepresentatives();
+      } else if (statusModal.type === "intern") {
+        if (isActive) {
+          await internsApi.deactivate(statusModal.item.id);
+          toast.success("Pasante desactivado");
+        } else {
+          await internsApi.activate(statusModal.item.id);
+          toast.success("Pasante activado");
+        }
+        invalidateInterns();
       }
       setStatusModal({ isOpen: false, item: null, type: null, loading: false });
     } catch (err) {
@@ -195,26 +240,67 @@ const AthletesListPage = () => {
     setStatusModal({ isOpen: false, item: null, type: null, loading: false });
   };
 
+  // ========================================
+  // HANDLERS DE PASANTES
+  // ========================================
+  const handlePromoteClick = (athlete) => {
+    setPromoteModal({ isOpen: true, athlete });
+  };
+
+  const handlePromoteConfirm = async (formData) => {
+    try {
+      await promoteAthleteMutation.mutateAsync({
+        athleteId: promoteModal.athlete.id,
+        data: formData,
+      });
+      toast.success("Atleta promovido a pasante correctamente");
+      setPromoteModal({ isOpen: false, athlete: null });
+      invalidateInterns();
+    } catch (err) {
+      const message = err.response?.data?.detail || err.message;
+      toast.error("Error al promover atleta", { description: message });
+    }
+  };
+
+  const handlePromoteCancel = () => {
+    setPromoteModal({ isOpen: false, athlete: null });
+  };
+
+  const handleInternStatusClick = (intern) => {
+    setStatusModal({
+      isOpen: true,
+      item: intern,
+      type: "intern",
+      loading: false,
+    });
+  };
+
+  const handleInternPageChange = (newPage) => setInternPage(newPage);
+
   // Refresh manual
   const handleRefresh = useCallback(() => {
     if (activeTab === "athletes") {
       refetchAthletes();
       toast.success("Datos actualizados");
-    } else {
+    } else if (activeTab === "representatives") {
       refetchRepresentatives();
       toast.success("Datos actualizados");
+    } else {
+      refetchInterns();
+      toast.success("Datos actualizados");
     }
-  }, [activeTab, refetchAthletes, refetchRepresentatives]);
+  }, [activeTab, refetchAthletes, refetchRepresentatives, refetchInterns]);
 
   // Cálculos de paginación
   const athleteTotalPages = Math.ceil(athletesTotal / athleteLimit);
   const repTotalPages = Math.ceil(representativesTotal / repLimit);
+  const internTotalPages = Math.ceil(internsTotal / internLimit);
 
   // ========================================
   // RENDER
   // ========================================
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
+    <div className="bg-slate-50 text-slate-800 pb-8">
       {/* Fondo decorativo */}
       <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
 
@@ -322,6 +408,29 @@ const AthletesListPage = () => {
               </span>
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab("interns")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${
+              activeTab === "interns"
+                ? "bg-accent text-white shadow-md"
+                : "bg-white text-slate-600 border border-base-300 hover:bg-slate-50"
+            }`}
+          >
+            <UserCheck size={16} />
+            Pasantes
+            {internsTotal > 0 && (
+              <span
+                className={`ml-1 px-2 py-0.5 rounded-full text-xs ${
+                  activeTab === "interns"
+                    ? "bg-white/20 text-white"
+                    : "bg-accent/10 text-accent"
+                }`}
+              >
+                {internsTotal}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* ========================================
@@ -390,6 +499,7 @@ const AthletesListPage = () => {
                   onEdit={handleAthleteEdit}
                   onDelete={handleAthleteStatusClick}
                   onViewDetail={handleAthleteView}
+                  onPromote={handlePromoteClick}
                   loading={athletesLoading}
                 />
 
@@ -572,6 +682,119 @@ const AthletesListPage = () => {
           </>
         )}
 
+        {/* ========================================
+            TAB: PASANTES
+        ======================================== */}
+        {activeTab === "interns" && (
+          <>
+            {/* Filters */}
+            <div className="card bg-base-100 shadow-sm border border-base-300">
+              <div className="card-body p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Filter size={16} className="text-accent" />
+                  <span className="font-medium text-base-content text-sm">
+                    Buscar Pasante
+                  </span>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Buscar por nombre, DNI..."
+                  value={internSearch}
+                  onChange={(e) => {
+                    setInternSearch(e.target.value);
+                    setInternPage(1);
+                  }}
+                  icon={<Search size={16} className="text-base-content/50" />}
+                />
+              </div>
+            </div>
+
+            {/* Error */}
+            {internsError && (
+              <div className="alert alert-error mt-4">
+                <span>{internsError.message}</span>
+              </div>
+            )}
+
+            {/* Content */}
+            {internsLoading ? (
+              <div className="flex justify-center py-16">
+                <Loader size="lg" />
+              </div>
+            ) : (
+              <>
+                <InternsTable
+                  interns={interns}
+                  onToggleStatus={handleInternStatusClick}
+                  loading={internsLoading}
+                />
+
+                {/* Pagination */}
+                {internsTotal > internLimit && (
+                  <div className="flex items-center justify-between bg-base-100 px-4 py-3 rounded-xl border border-base-300 mt-4">
+                    <div className="text-sm text-base-content/60">
+                      Mostrando{" "}
+                      <span className="font-medium text-base-content">
+                        {(internPage - 1) * internLimit + 1}
+                      </span>{" "}
+                      a{" "}
+                      <span className="font-medium text-base-content">
+                        {Math.min(internPage * internLimit, internsTotal)}
+                      </span>{" "}
+                      de{" "}
+                      <span className="font-medium text-base-content">
+                        {internsTotal}
+                      </span>{" "}
+                      resultados
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        disabled={internPage === 1}
+                        onClick={() => handleInternPageChange(internPage - 1)}
+                      >
+                        <ChevronLeft size={16} />
+                        Anterior
+                      </button>
+                      <div className="join">
+                        {[...Array(Math.min(5, internTotalPages))].map(
+                          (_, i) => {
+                            const pageNum =
+                              internPage <= 3 ? i + 1 : internPage + i - 2;
+                            if (pageNum > internTotalPages || pageNum < 1)
+                              return null;
+                            return (
+                              <button
+                                key={pageNum}
+                                className={`join-item btn btn-sm ${
+                                  internPage === pageNum
+                                    ? "btn-accent"
+                                    : "btn-ghost"
+                                }`}
+                                onClick={() => handleInternPageChange(pageNum)}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          }
+                        )}
+                      </div>
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        disabled={internPage >= internTotalPages}
+                        onClick={() => handleInternPageChange(internPage + 1)}
+                      >
+                        Siguiente
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
         {/* Modal de cambio de estado */}
         <Modal
           isOpen={statusModal.isOpen}
@@ -581,12 +804,16 @@ const AthletesListPage = () => {
               ? `Desactivar ${
                   statusModal.type === "athlete"
                     ? "deportista"
-                    : "representante"
+                    : statusModal.type === "representative"
+                    ? "representante"
+                    : "pasante"
                 }`
               : `Activar ${
                   statusModal.type === "athlete"
                     ? "deportista"
-                    : "representante"
+                    : statusModal.type === "representative"
+                    ? "representante"
+                    : "pasante"
                 }`
           }
         >
@@ -626,6 +853,15 @@ const AthletesListPage = () => {
             </Button>
           </div>
         </Modal>
+
+        {/* Modal de promoción a pasante */}
+        <PromoteAthleteModal
+          isOpen={promoteModal.isOpen}
+          onClose={handlePromoteCancel}
+          athlete={promoteModal.athlete}
+          onConfirm={handlePromoteConfirm}
+          loading={promoteAthleteMutation.isPending}
+        />
       </div>
     </div>
   );

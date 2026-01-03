@@ -369,4 +369,12 @@ export const API_ENDPOINTS = {
     DEACTIVATE: (id) => `/representatives/deactivate/${id}`,
     ACTIVATE: (id) => `/representatives/activate/${id}`,
   },
+
+  // Interns (Pasantes)
+  INTERNS: {
+    GET_ALL: "/users/interns",
+    PROMOTE: (athleteId) => `/users/promote-athlete/${athleteId}`,
+    ACTIVATE: (id) => `/users/interns/${id}/activate`,
+    DEACTIVATE: (id) => `/users/interns/${id}/deactivate`,
+  },
 };
