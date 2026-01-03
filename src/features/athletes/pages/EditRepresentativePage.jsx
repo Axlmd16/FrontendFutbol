@@ -1,21 +1,22 @@
 /**
  * EditRepresentativePage - Página para editar un representante
- * Usa RepresentanteForm en modo edición
+ * Usa RepresentanteForm en modo edición y TanStack Query para cache
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import Loader from "@/shared/components/Loader";
 import RepresentanteForm from "@/features/inscription/components/RepresentanteForm";
 import representativesApi from "@/features/athletes/services/representatives.api";
-import { useInvalidateInscriptions } from "@/features/athletes/hooks/useInscriptions";
+import {
+  useRepresentativeDetail,
+  useInvalidateInscriptions,
+} from "@/features/athletes/hooks/useInscriptions";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 import { ArrowLeft, UserCog, AlertCircle } from "lucide-react";
 
 const EditRepresentativePage = () => {
-  const [representative, setRepresentative] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,26 +24,12 @@ const EditRepresentativePage = () => {
   const navigate = useNavigate();
   const { invalidateRepresentatives } = useInvalidateInscriptions();
 
-  useEffect(() => {
-    const fetchRepresentative = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await representativesApi.getById(id);
-        const data = response?.data ?? null;
-        setRepresentative(data);
-      } catch (err) {
-        setError(err.message || "Error al cargar el representante");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchRepresentative();
-    }
-  }, [id]);
+  // Usar TanStack Query para cache (5 min staleTime)
+  const {
+    data: representative,
+    isLoading: loading,
+    error: fetchError,
+  } = useRepresentativeDetail(id);
 
   const handleSubmit = async (formData) => {
     setSaving(true);
@@ -80,7 +67,7 @@ const EditRepresentativePage = () => {
   }
 
   // Not found state
-  if (!representative && !loading) {
+  if ((!representative && !loading) || fetchError) {
     return (
       <div className="space-y-6 p-6">
         <button
@@ -100,7 +87,8 @@ const EditRepresentativePage = () => {
               Representante no encontrado
             </h2>
             <p className="text-base-content/60 max-w-sm">
-              {error ||
+              {fetchError?.message ||
+                error ||
                 "El representante que buscas no existe o fue eliminado."}
             </p>
             <button

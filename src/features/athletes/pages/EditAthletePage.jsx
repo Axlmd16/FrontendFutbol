@@ -1,42 +1,30 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import Loader from "@/shared/components/Loader";
 import athletesApi from "@/features/athletes/services/athletes.api";
-import { useInvalidateInscriptions } from "@/features/athletes/hooks/useInscriptions";
+import {
+  useAthleteDetail,
+  useInvalidateInscriptions,
+} from "@/features/athletes/hooks/useInscriptions";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 import { ArrowLeft, UserCog, AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 const EditAthletePage = () => {
-  const [athlete, setAthlete] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
-  const { invalidateAthletes } = useInvalidateInscriptions();
+  const { invalidateAthletes, invalidateAthlete } = useInvalidateInscriptions();
 
-  useEffect(() => {
-    const fetchAthlete = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await athletesApi.getById(id);
-        setAthlete(response?.data ?? null);
-      } catch (err) {
-        setError(err.message || MESSAGES.ERROR.ATHLETE_LOAD);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchAthlete();
-    }
-  }, [id]);
+  // Usar TanStack Query para cache (5 min staleTime)
+  const {
+    data: athlete,
+    isLoading: loading,
+    error: fetchError,
+  } = useAthleteDetail(id);
 
   const handleSubmit = async (athleteData) => {
     setSaving(true);
@@ -45,6 +33,7 @@ const EditAthletePage = () => {
     try {
       await athletesApi.update(id, athleteData);
       invalidateAthletes();
+      invalidateAthlete(id);
       toast.success(MESSAGES.SUCCESS.ATHLETE_UPDATED, {
         description: MESSAGES.SUCCESS.ATHLETE_UPDATED_DESC,
       });
@@ -74,7 +63,7 @@ const EditAthletePage = () => {
   }
 
   // Not found state
-  if (!athlete && !loading) {
+  if ((!athlete && !loading) || fetchError) {
     return (
       <div className="space-y-6">
         <button
@@ -94,7 +83,9 @@ const EditAthletePage = () => {
               Deportista no encontrado
             </h2>
             <p className="text-base-content/60 max-w-sm">
-              {error || "El deportista que buscas no existe o fue eliminado."}
+              {fetchError?.message ||
+                error ||
+                "El deportista que buscas no existe o fue eliminado."}
             </p>
             <button
               onClick={handleCancel}
