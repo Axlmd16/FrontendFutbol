@@ -164,7 +164,7 @@ const RegisterSchoolPage = () => {
   };
 
   // ==========================================
-  // PANTALLA DE ÉXITO
+  // PANTALLA DE ÉXITO (Simplificada)
   // ==========================================
   if (registrationSuccess) {
     return (
@@ -172,57 +172,35 @@ const RegisterSchoolPage = () => {
         <PublicNavbar />
 
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-md mx-auto">
             <div className="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
-              <div className="bg-success py-6 px-6">
+              <div className="bg-success py-8 px-6">
                 <div className="flex flex-col items-center text-success-content">
-                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3">
-                    <CheckCircle className="w-10 h-10" />
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                    <CheckCircle className="w-12 h-12" />
                   </div>
                   <h1 className="text-2xl font-bold text-center">
-                    ¡Registro Completado!
+                    ¡Registro Exitoso!
                   </h1>
                 </div>
               </div>
 
               <div className="card-body p-6">
-                <p className="text-lg text-center text-base-content mb-4">
-                  Bienvenido,{" "}
-                  <span className="font-bold text-primary">{athleteName}</span>
+                <p className="text-lg text-center text-base-content mb-6">
+                  <span className="font-bold text-primary">{athleteName}</span>{" "}
+                  ha sido registrado correctamente.
                 </p>
 
-                <div className="bg-base-200/50 rounded-xl p-4 mb-4">
-                  <ul className="steps steps-vertical lg:steps-horizontal w-full text-sm">
-                    <li className="step step-success" data-content="✓">
-                      Representante
-                    </li>
-                    <li className="step step-success" data-content="✓">
-                      Deportista
-                    </li>
-                    <li className="step" data-content="3">
-                      Contacto
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="alert alert-info text-sm mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="stroke-current shrink-0 w-5 h-5"
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(ROUTES.LANDING)}
+                    className="w-full"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  <span>Un entrenador se comunicará contigo pronto.</span>
-                </div>
+                    <Home className="w-4 h-4" />
+                    Volver al inicio
+                  </Button>
 
-                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -232,19 +210,10 @@ const RegisterSchoolPage = () => {
                       setRepresentanteData({});
                       setAthleteData(null);
                     }}
-                    className="flex-1"
+                    className="w-full"
                   >
                     <UserPlus className="w-4 h-4" />
-                    Registrar otro
-                  </Button>
-
-                  <Button
-                    variant="primary"
-                    onClick={() => navigate(ROUTES.LANDING)}
-                    className="flex-1"
-                  >
-                    <Home className="w-4 h-4" />
-                    Volver al inicio
+                    Registrar otro deportista
                   </Button>
                 </div>
               </div>
