@@ -23,11 +23,11 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col">
+    <div className="min-h-screen bg-base-200 flex flex-col ">
       <PublicNavbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-base-100">
+      <section className="relative overflow-hidden bg-base-100 ">
         <div className="absolute inset-0 bg-primary/5 opacity-50" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
