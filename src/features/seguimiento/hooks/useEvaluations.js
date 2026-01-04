@@ -37,10 +37,10 @@ export const useEvaluationsByUser = (userId) => {
   });
 };
 
-export const useTestsByEvaluation = (evaluationId) => {
+export const useTestsByEvaluation = (evaluationId, options = {}) => {
   return useQuery({
-    queryKey: ["tests-by-evaluation", evaluationId],
-    queryFn: () => evaluationsApi.getTestsByEvaluation(evaluationId),
+    queryKey: ["tests-by-evaluation", evaluationId, options],
+    queryFn: () => evaluationsApi.getTestsByEvaluation(evaluationId, options),
     enabled: !!evaluationId,
     staleTime: 0,
     refetchOnMount: "always",

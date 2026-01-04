@@ -20,6 +20,8 @@ const evaluationsApi = {
    * @param {number} params.limit - Cantidad por página
    * @param {number} [params.user_id] - Filtrar por usuario
    * @param {string} [params.search] - Búsqueda por nombre
+   * @param {string} [params.date] - Filtrar por fecha (YYYY-MM-DD)
+   * @param {string} [params.location] - Filtrar por ubicación
    * @returns {Promise<Object>} Lista paginada de evaluaciones con total
    */
   getAll: async (params = { page: 1, limit: 20 }) => {
@@ -192,6 +194,7 @@ const evaluationsApi = {
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
    * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {string} [params.search] - Búsqueda por nombre de atleta
    * @param {number} [params.page] - Número de página (default: 1)
    * @param {number} [params.limit] - Límite de registros (default: 10)
    * @returns {Promise<Object>} { items: [], total: number }
@@ -206,6 +209,7 @@ const evaluationsApi = {
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
    * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {string} [params.search] - Búsqueda por nombre de atleta
    * @param {number} [params.page] - Número de página (default: 1)
    * @param {number} [params.limit] - Límite de registros (default: 10)
    * @returns {Promise<Object>} { items: [], total: number }
@@ -220,6 +224,7 @@ const evaluationsApi = {
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
    * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {string} [params.search] - Búsqueda por nombre de atleta
    * @param {number} [params.page] - Número de página (default: 1)
    * @param {number} [params.limit] - Límite de registros (default: 10)
    * @returns {Promise<Object>} { items: [], total: number }
@@ -234,6 +239,7 @@ const evaluationsApi = {
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
    * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {string} [params.search] - Búsqueda por nombre de atleta
    * @param {number} [params.page] - Número de página (default: 1)
    * @param {number} [params.limit] - Límite de registros (default: 10)
    * @returns {Promise<Object>} { items: [], total: number }
@@ -362,14 +368,18 @@ const evaluationsApi = {
   /**
    * Obtiene todos los tests de una evaluación
    * @param {number} evaluationId - ID de la evaluación
-   * @param {Object} options - Opciones de paginación
+   * @param {Object} options - Opciones de paginación y búsqueda
+   * @param {number} [options.page] - Número de página
+   * @param {number} [options.limit] - Límite de registros
+   * @param {string} [options.search] - Búsqueda por nombre de atleta
    * @returns {Promise<Object>} Tests agrupados por tipo
    */
   getTestsByEvaluation: async (evaluationId, options = {}) => {
     const params = { 
       evaluation_id: evaluationId,
       page: options.page || 1,
-      limit: options.limit || 100 // Límite máximo permitido por el backend
+      limit: options.limit || 100, // Límite máximo permitido por el backend
+      ...(options.search && { search: options.search })
     };
     
     // Hacer llamadas en paralelo para obtener todos los tipos de test

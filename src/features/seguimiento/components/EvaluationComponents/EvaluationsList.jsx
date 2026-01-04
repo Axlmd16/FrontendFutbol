@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import useDebounce from "@/shared/hooks/useDebounce";
 import {
   Edit2,
   Trash2,
@@ -31,7 +32,7 @@ import Modal from "@/shared/components/Modal";
 
 const EvaluationsList = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1); // El backend usa páginas 1-indexed
+  const [page, setPage] = useState(1);
   const [searchName, setSearchName] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
@@ -39,9 +40,16 @@ const EvaluationsList = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const pageSize = 10;
 
+  // Debounce para búsqueda
+  const debouncedSearch = useDebounce(searchName, 500);
+  const debouncedLocation = useDebounce(filterLocation, 500);
+
   const { data, isLoading, error } = useEvaluations({
     page: page,
     limit: pageSize,
+    search: debouncedSearch || undefined,
+    date: filterDate || undefined,
+    location: debouncedLocation || undefined,
   });
 
   const deleteEvaluation = useDeleteEvaluation();
@@ -56,36 +64,11 @@ const EvaluationsList = () => {
     : [];
   const totalCount = paginatedData.total || evaluations.length;
 
-  // Aplicar filtros a las evaluaciones (filtros del cliente)
-  const filteredEvaluations = useMemo(() => {
-    return evaluations.filter((evaluation) => {
-      if (searchName.trim()) {
-        if (!evaluation.name.toLowerCase().includes(searchName.toLowerCase())) {
-          return false;
-        }
-      }
-      if (filterDate) {
-        const evaluationDate = evaluation.date.split("T")[0];
-        if (evaluationDate !== filterDate) {
-          return false;
-        }
-      }
-      if (filterLocation.trim()) {
-        if (
-          !evaluation.location
-            ?.toLowerCase()
-            .includes(filterLocation.toLowerCase())
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [evaluations, searchName, filterDate, filterLocation]);
+  // Todos los filtros se hacen en el backend
+  const filteredEvaluations = evaluations;
 
-  // La paginación la hace el backend
   const totalPages = Math.ceil(totalCount / pageSize);
-  const hasActiveFilters = searchName || filterDate || filterLocation;
+  const hasActiveFilters = debouncedSearch || filterDate || debouncedLocation;
 
   React.useEffect(() => {
     setPage(1); // Resetear a página 1 cuando cambian los filtros

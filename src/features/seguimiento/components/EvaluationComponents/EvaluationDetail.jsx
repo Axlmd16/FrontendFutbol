@@ -44,6 +44,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import athletesApi from "../../services/athletes.api";
 import { formatDate } from "@/shared/utils/dateUtils";
+import useDebounce from "@/shared/hooks/useDebounce";
 import EditTestForm from "../tests/EditTestForm";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
@@ -73,11 +74,15 @@ const EvaluationDetail = () => {
   const deleteTechnicalAssessment = useDeleteTechnicalAssessment();
 
   const { data, isLoading, error } = useEvaluationById(id);
+  
+  // Debounce búsqueda para evitar demasiadas llamadas
+  const debouncedSearch = useDebounce(searchAthlete, 500);
+  
   const {
     data: testsData,
     isLoading: testsLoading,
     refetch: refetchTests,
-  } = useTestsByEvaluation(id);
+  } = useTestsByEvaluation(id, { search: debouncedSearch || undefined });
 
   const evaluation = data?.data;
   const allTests = testsData?.all || [];
@@ -130,20 +135,14 @@ const EvaluationDetail = () => {
     [athletes]
   );
 
-  // Filtrar tests
+  // Filtrar tests por tipo (búsqueda se hace en el backend)
   const filteredTests = React.useMemo(() => {
     let filtered = allTests;
     if (filterTestType !== "all") {
       filtered = filtered.filter((test) => test.test_type === filterTestType);
     }
-    if (searchAthlete.trim()) {
-      filtered = filtered.filter((test) => {
-        const athleteName = getAthleteName(test.athlete_id).toLowerCase();
-        return athleteName.includes(searchAthlete.toLowerCase());
-      });
-    }
     return filtered;
-  }, [allTests, filterTestType, searchAthlete, getAthleteName]);
+  }, [allTests, filterTestType]);
 
   const formatTestType = (test) => {
     const types = {
