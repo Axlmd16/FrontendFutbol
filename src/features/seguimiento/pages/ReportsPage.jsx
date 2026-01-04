@@ -35,7 +35,7 @@ const ReportsPage = () => {
       try {
         const response = await athletesApi.getAll({
           page: 1,
-          limit: 1000,
+          limit: 100,
         });
         setAthletes(response.data?.items || []);
       } catch (err) {

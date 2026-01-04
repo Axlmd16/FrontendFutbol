@@ -20,11 +20,40 @@ const reportsApi = {
    * @returns {Promise<Blob>} Archivo descargable
    */
   generateReport: async (params) => {
-    const response = await http.get(API_ENDPOINTS.REPORTS.GENERATE, {
-      params,
-      responseType: "blob",
-    });
-    return response.data;
+    try {
+      console.info("[reportsApi] Llamando GET /reports con:", params);
+      
+      const response = await http.get(API_ENDPOINTS.REPORTS.GENERATE, {
+        params,
+        responseType: "blob",
+      });
+      
+      const contentType = response.headers['content-type'] || '';
+      console.info("[reportsApi] Respuesta recibida:", {
+        status: response.status,
+        contentType: contentType,
+        dataType: typeof response.data,
+        dataSize: response.data?.size,
+      });
+      
+      // Verificar si el backend devolvió HTML en lugar del archivo
+      if (contentType.includes('text/html') || contentType.includes('application/json')) {
+        const text = await response.data.text();
+        console.error("[reportsApi] Backend devolvió:", text.substring(0, 500));
+        
+        try {
+          const json = JSON.parse(text);
+          throw new Error(json.message || json.detail || 'Error del servidor');
+        } catch (parseErr) {
+          throw new Error('El servidor devolvió una respuesta inesperada. Verifica que el endpoint /reports esté funcionando correctamente.');
+        }
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("[reportsApi] Error en generateReport:", error);
+      throw error;
+    }
   },
 
   /**
@@ -33,14 +62,34 @@ const reportsApi = {
    * @param {string} fileName - Nombre del archivo
    */
   downloadFile: (fileData, fileName) => {
-    const url = window.URL.createObjectURL(fileData);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.parentElement.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    try {
+      console.info("[downloadFile] Iniciando descarga de:", fileName, "Tamaño:", fileData?.size);
+      
+      // Crear URL del blob directamente
+      const blob = new Blob([fileData], { type: fileData.type || 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.style.display = "none";
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Limpieza
+      setTimeout(() => {
+        if (link.parentNode) {
+          document.body.removeChild(link);
+        }
+        window.URL.revokeObjectURL(url);
+        console.info("[downloadFile] Limpieza completada");
+      }, 150);
+      
+      return true;
+    } catch (err) {
+      console.error("[downloadFile] Error:", err);
+      throw new Error("Error al descargar el archivo: " + err.message);
+    }
   },
 };
 

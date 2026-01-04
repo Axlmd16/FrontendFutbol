@@ -51,14 +51,9 @@ const ReportsFilters = ({ athletes = [], onFilter, isLoading = false }) => {
             value={filters.category}
             onChange={(e) => handleFilterChange("category", e.target.value)}
             disabled={isLoading}
-          >
-            <option value="">Todas las categorías</option>
-            {SPORT_CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
-          </Select>
+            placeholder={null}
+            options={[{ value: "", label: "Todas las categorías" }, ...SPORT_CATEGORIES]}
+          />
         </div>
 
         {/* Deportista */}
@@ -68,14 +63,15 @@ const ReportsFilters = ({ athletes = [], onFilter, isLoading = false }) => {
             value={filters.athlete_id}
             onChange={(e) => handleFilterChange("athlete_id", e.target.value)}
             disabled={isLoading}
-          >
-            <option value="">Todos los deportistas</option>
-            {athletes.map((athlete) => (
-              <option key={athlete.id} value={athlete.id}>
-                {athlete.full_name}
-              </option>
-            ))}
-          </Select>
+            placeholder={null}
+            options={[
+              { value: "", label: "Todos los deportistas" },
+              ...athletes.map((athlete) => ({
+                value: athlete.id,
+                label: athlete.full_name,
+              })),
+            ]}
+          />
         </div>
       </div>
 
