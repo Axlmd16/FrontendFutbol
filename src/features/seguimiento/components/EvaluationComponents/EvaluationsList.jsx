@@ -27,25 +27,37 @@ import {
 } from "../../hooks/useEvaluations";
 import { formatDate } from "@/shared/utils/dateUtils";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 
 const EvaluationsList = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1); // El backend usa páginas 1-indexed
   const [searchName, setSearchName] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
+  const [deletingEvaluation, setDeletingEvaluation] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const pageSize = 10;
 
   const { data, isLoading, error } = useEvaluations({
-    skip: page * pageSize,
+    page: page,
     limit: pageSize,
   });
 
   const deleteEvaluation = useDeleteEvaluation();
 
-  // Aplicar filtros a las evaluaciones
+  // Obtener datos de la respuesta paginada
+  // El backend devuelve: { status, message, data: { items, total, page, limit } }
+  const paginatedData = data?.data || data || {};
+  const evaluations = Array.isArray(paginatedData.items) 
+    ? paginatedData.items 
+    : Array.isArray(paginatedData) 
+    ? paginatedData 
+    : [];
+  const totalCount = paginatedData.total || evaluations.length;
+
+  // Aplicar filtros a las evaluaciones (filtros del cliente)
   const filteredEvaluations = useMemo(() => {
-    const evaluations = data?.data || [];
     return evaluations.filter((evaluation) => {
       if (searchName.trim()) {
         if (!evaluation.name.toLowerCase().includes(searchName.toLowerCase())) {
@@ -69,25 +81,26 @@ const EvaluationsList = () => {
       }
       return true;
     });
-  }, [data?.data, searchName, filterDate, filterLocation]);
+  }, [evaluations, searchName, filterDate, filterLocation]);
 
-  const totalFilteredCount = filteredEvaluations.length;
-  const totalPages = Math.ceil(totalFilteredCount / pageSize);
-
-  const paginatedEvaluations = filteredEvaluations.slice(
-    page * pageSize,
-    (page + 1) * pageSize
-  );
-
+  // La paginación la hace el backend
+  const totalPages = Math.ceil(totalCount / pageSize);
   const hasActiveFilters = searchName || filterDate || filterLocation;
 
   React.useEffect(() => {
-    setPage(0);
+    setPage(1); // Resetear a página 1 cuando cambian los filtros
   }, [hasActiveFilters]);
 
-  const handleDelete = (id) => {
-    if (window.confirm("¿Está seguro que desea eliminar esta evaluación?")) {
-      deleteEvaluation.mutate(id);
+  const handleDelete = (evaluation) => {
+    setDeletingEvaluation(evaluation);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deletingEvaluation) {
+      deleteEvaluation.mutate(deletingEvaluation.id);
+      setIsDeleteModalOpen(false);
+      setDeletingEvaluation(null);
     }
   };
 
@@ -246,7 +259,7 @@ const EvaluationsList = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-base-200/60">
-                {paginatedEvaluations.length === 0 ? (
+                {filteredEvaluations.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="text-center py-12">
                       <div className="flex flex-col items-center">
@@ -262,7 +275,7 @@ const EvaluationsList = () => {
                     </td>
                   </tr>
                 ) : (
-                  paginatedEvaluations.map((evaluation) => (
+                  filteredEvaluations.map((evaluation) => (
                     <tr
                       key={evaluation.id}
                       className="hover:bg-slate-50/50 transition-colors"
@@ -341,7 +354,7 @@ const EvaluationsList = () => {
                             <Edit2 size={14} />
                           </button>
                           <button
-                            onClick={() => handleDelete(evaluation.id)}
+                            onClick={() => handleDelete(evaluation)}
                             disabled={deleteEvaluation.isPending}
                             className="btn btn-ghost btn-sm btn-square text-error hover:bg-error/10"
                           >
@@ -363,22 +376,22 @@ const EvaluationsList = () => {
             <div className="text-sm text-slate-500">
               Mostrando{" "}
               <span className="font-medium text-slate-900">
-                {page * pageSize + 1}
+                {(page - 1) * pageSize + 1}
               </span>{" "}
               a{" "}
               <span className="font-medium text-slate-900">
-                {Math.min((page + 1) * pageSize, totalFilteredCount)}
+                {Math.min(page * pageSize, totalCount)}
               </span>{" "}
               de{" "}
               <span className="font-medium text-slate-900">
-                {totalFilteredCount}
+                {totalCount}
               </span>{" "}
               resultados
             </div>
             <div className="flex items-center gap-2">
               <button
                 className="btn btn-sm btn-ghost"
-                disabled={page === 0}
+                disabled={page === 1}
                 onClick={() => setPage(page - 1)}
               >
                 <ChevronLeft size={16} />
@@ -386,8 +399,19 @@ const EvaluationsList = () => {
               </button>
               <div className="join">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = page <= 2 ? i : page + i - 2;
-                  if (pageNum >= totalPages || pageNum < 0) return null;
+                  // Calcular qué páginas mostrar
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  
+                  if (pageNum > totalPages || pageNum < 1) return null;
                   return (
                     <button
                       key={pageNum}
@@ -396,14 +420,14 @@ const EvaluationsList = () => {
                       }`}
                       onClick={() => setPage(pageNum)}
                     >
-                      {pageNum + 1}
+                      {pageNum}
                     </button>
                   );
                 })}
               </div>
               <button
                 className="btn btn-sm btn-ghost"
-                disabled={page >= totalPages - 1}
+                disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
               >
                 Siguiente
@@ -413,6 +437,78 @@ const EvaluationsList = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen && deletingEvaluation !== null}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeletingEvaluation(null);
+        }}
+        title="Confirmar Eliminación"
+        size="medium"
+      >
+        {deletingEvaluation && (
+          <div className="space-y-6">
+            {/* Warning Icon */}
+            <div className="flex justify-center">
+              <div className="bg-error/10 p-4 rounded-full">
+                <Trash2 size={48} className="text-error" />
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-slate-900">
+                ¿Está seguro que desea eliminar esta evaluación?
+              </p>
+              <div className="bg-slate-100 rounded-lg p-4 space-y-1">
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold">Nombre:</span>{" "}
+                  {deletingEvaluation.name}
+                </p>
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold">Fecha:</span>{" "}
+                  {formatDate(deletingEvaluation.date)}
+                </p>
+                {deletingEvaluation.location && (
+                  <p className="text-sm text-slate-600">
+                    <span className="font-semibold">Ubicación:</span>{" "}
+                    {deletingEvaluation.location}
+                  </p>
+                )}
+              </div>
+              <p className="text-sm text-slate-500 pt-2">
+                Esta acción eliminará la evaluación y todos sus tests asociados.
+              </p>
+              <p className="text-sm font-semibold text-error">
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeletingEvaluation(null);
+                }}
+                className="btn btn-ghost btn-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteEvaluation.isPending}
+                className="btn btn-error btn-sm gap-1"
+              >
+                <Trash2 size={14} />
+                {deleteEvaluation.isPending ? "Eliminando..." : "Eliminar Evaluación"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

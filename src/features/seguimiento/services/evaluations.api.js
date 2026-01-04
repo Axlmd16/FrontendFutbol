@@ -16,11 +16,13 @@ const evaluationsApi = {
   /**
    * Obtiene la lista de evaluaciones con paginación
    * @param {Object} params - Parámetros de consulta
-   * @param {number} params.skip - Número de registros a saltar
+   * @param {number} params.page - Número de página (default: 1)
    * @param {number} params.limit - Cantidad por página
-   * @returns {Promise<Object>} Lista paginada de evaluaciones
+   * @param {number} [params.user_id] - Filtrar por usuario
+   * @param {string} [params.search] - Búsqueda por nombre
+   * @returns {Promise<Object>} Lista paginada de evaluaciones con total
    */
-  getAll: async (params = { skip: 0, limit: 20 }) => {
+  getAll: async (params = { page: 1, limit: 20 }) => {
     const response = await http.get(API_ENDPOINTS.EVALUATIONS.BASE, { params });
     return response.data;
   },
@@ -186,53 +188,57 @@ const evaluationsApi = {
   // ===============================================
 
   /**
-   * Obtiene tests de velocidad (sprint)
+   * Obtiene tests de velocidad (sprint) con paginación
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
-   * @param {number} [params.skip] - Registros a saltar
-   * @param {number} [params.limit] - Límite de registros
-   * @returns {Promise<Object>} Lista de tests
+   * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {number} [params.page] - Número de página (default: 1)
+   * @param {number} [params.limit] - Límite de registros (default: 10)
+   * @returns {Promise<Object>} { items: [], total: number }
    */
-  getSprintTests: async (params = {}) => {
+  getSprintTests: async (params = { page: 1, limit: 10 }) => {
     const response = await http.get(API_ENDPOINTS.TESTS.SPRINT, { params });
     return response.data;
   },
 
   /**
-   * Obtiene tests Yoyo
+   * Obtiene tests Yoyo con paginación
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
-   * @param {number} [params.skip] - Registros a saltar
-   * @param {number} [params.limit] - Límite de registros
-   * @returns {Promise<Object>} Lista de tests
+   * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {number} [params.page] - Número de página (default: 1)
+   * @param {number} [params.limit] - Límite de registros (default: 10)
+   * @returns {Promise<Object>} { items: [], total: number }
    */
-  getYoyoTests: async (params = {}) => {
+  getYoyoTests: async (params = { page: 1, limit: 10 }) => {
     const response = await http.get(API_ENDPOINTS.TESTS.YOYO, { params });
     return response.data;
   },
 
   /**
-   * Obtiene tests de resistencia (endurance)
+   * Obtiene tests de resistencia (endurance) con paginación
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
-   * @param {number} [params.skip] - Registros a saltar
-   * @param {number} [params.limit] - Límite de registros
-   * @returns {Promise<Object>} Lista de tests
+   * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {number} [params.page] - Número de página (default: 1)
+   * @param {number} [params.limit] - Límite de registros (default: 10)
+   * @returns {Promise<Object>} { items: [], total: number }
    */
-  getEnduranceTests: async (params = {}) => {
+  getEnduranceTests: async (params = { page: 1, limit: 10 }) => {
     const response = await http.get(API_ENDPOINTS.TESTS.ENDURANCE, { params });
     return response.data;
   },
 
   /**
-   * Obtiene evaluaciones técnicas
+   * Obtiene evaluaciones técnicas con paginación
    * @param {Object} params - Parámetros de filtrado
    * @param {number} [params.evaluation_id] - Filtrar por evaluación
-   * @param {number} [params.skip] - Registros a saltar
-   * @param {number} [params.limit] - Límite de registros
-   * @returns {Promise<Object>} Lista de tests
+   * @param {number} [params.athlete_id] - Filtrar por atleta
+   * @param {number} [params.page] - Número de página (default: 1)
+   * @param {number} [params.limit] - Límite de registros (default: 10)
+   * @returns {Promise<Object>} { items: [], total: number }
    */
-  getTechnicalAssessments: async (params = {}) => {
+  getTechnicalAssessments: async (params = { page: 1, limit: 10 }) => {
     const response = await http.get(API_ENDPOINTS.TESTS.TECHNICAL, { params });
     return response.data;
   },
@@ -297,34 +303,102 @@ const evaluationsApi = {
     return response.data;
   },
 
+  // ===============================================
+  // TESTS - ELIMINAR
+  // ===============================================
+
+  /**
+   * Elimina un test de velocidad
+   * @param {number} testId - ID del test
+   * @returns {Promise<Object>} Confirmación de eliminación
+   */
+  deleteSprintTest: async (testId) => {
+    const response = await http.delete(
+      `${API_ENDPOINTS.TESTS.SPRINT}/${testId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Elimina un test Yoyo
+   * @param {number} testId - ID del test
+   * @returns {Promise<Object>} Confirmación de eliminación
+   */
+  deleteYoyoTest: async (testId) => {
+    const response = await http.delete(
+      `${API_ENDPOINTS.TESTS.YOYO}/${testId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Elimina un test de resistencia
+   * @param {number} testId - ID del test
+   * @returns {Promise<Object>} Confirmación de eliminación
+   */
+  deleteEnduranceTest: async (testId) => {
+    const response = await http.delete(
+      `${API_ENDPOINTS.TESTS.ENDURANCE}/${testId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Elimina una evaluación técnica
+   * @param {number} testId - ID del test
+   * @returns {Promise<Object>} Confirmación de eliminación
+   */
+  deleteTechnicalAssessment: async (testId) => {
+    const response = await http.delete(
+      `${API_ENDPOINTS.TESTS.TECHNICAL}/${testId}`
+    );
+    return response.data;
+  },
+
+  // ===============================================
+  // TESTS - CONSULTAS COMBINADAS
+  // ===============================================
+
   /**
    * Obtiene todos los tests de una evaluación
    * @param {number} evaluationId - ID de la evaluación
+   * @param {Object} options - Opciones de paginación
    * @returns {Promise<Object>} Tests agrupados por tipo
    */
-  getTestsByEvaluation: async (evaluationId) => {
-    const params = { evaluation_id: evaluationId };
+  getTestsByEvaluation: async (evaluationId, options = {}) => {
+    const params = { 
+      evaluation_id: evaluationId,
+      page: options.page || 1,
+      limit: options.limit || 100 // Límite máximo permitido por el backend
+    };
     
     // Hacer llamadas en paralelo para obtener todos los tipos de test
     const [sprint, yoyo, endurance, technical] = await Promise.all([
-      evaluationsApi.getSprintTests(params).catch(() => ({ data: [] })),
-      evaluationsApi.getYoyoTests(params).catch(() => ({ data: [] })),
-      evaluationsApi.getEnduranceTests(params).catch(() => ({ data: [] })),
-      evaluationsApi.getTechnicalAssessments(params).catch(() => ({ data: [] })),
+      evaluationsApi.getSprintTests(params).catch(() => ({ data: { items: [], total: 0 } })),
+      evaluationsApi.getYoyoTests(params).catch(() => ({ data: { items: [], total: 0 } })),
+      evaluationsApi.getEnduranceTests(params).catch(() => ({ data: { items: [], total: 0 } })),
+      evaluationsApi.getTechnicalAssessments(params).catch(() => ({ data: { items: [], total: 0 } })),
     ]);
+
+    // Extraer datos de la respuesta del backend
+    const sprintData = sprint.data || { items: [], total: 0 };
+    const yoyoData = yoyo.data || { items: [], total: 0 };
+    const enduranceData = endurance.data || { items: [], total: 0 };
+    const technicalData = technical.data || { items: [], total: 0 };
 
     // Combinar todos los tests
     return {
-      sprint_tests: sprint.data || [],
-      yoyo_tests: yoyo.data || [],
-      endurance_tests: endurance.data || [],
-      technical_assessments: technical.data || [],
+      sprint_tests: sprintData.items || [],
+      yoyo_tests: yoyoData.items || [],
+      endurance_tests: enduranceData.items || [],
+      technical_assessments: technicalData.items || [],
       all: [
-        ...(sprint.data || []),
-        ...(yoyo.data || []),
-        ...(endurance.data || []),
-        ...(technical.data || []),
+        ...(sprintData.items || []),
+        ...(yoyoData.items || []),
+        ...(enduranceData.items || []),
+        ...(technicalData.items || []),
       ],
+      total: (sprintData.total || 0) + (yoyoData.total || 0) + (enduranceData.total || 0) + (technicalData.total || 0),
     };
   },
 };

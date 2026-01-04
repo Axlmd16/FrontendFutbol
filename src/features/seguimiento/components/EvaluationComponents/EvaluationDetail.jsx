@@ -27,6 +27,7 @@ import {
   Ruler,
   TrendingUp,
   Gauge,
+  Trash2,
 } from "lucide-react";
 import {
   useEvaluationById,
@@ -35,6 +36,10 @@ import {
   useUpdateYoyoTest,
   useUpdateEnduranceTest,
   useUpdateTechnicalAssessment,
+  useDeleteSprintTest,
+  useDeleteYoyoTest,
+  useDeleteEnduranceTest,
+  useDeleteTechnicalAssessment,
 } from "../../hooks/useEvaluations";
 import { useQuery } from "@tanstack/react-query";
 import athletesApi from "../../services/athletes.api";
@@ -52,12 +57,20 @@ const EvaluationDetail = () => {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [viewingTest, setViewingTest] = React.useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = React.useState(false);
+  const [deletingTest, setDeletingTest] = React.useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
   // Hooks de mutación para actualizar tests
   const updateSprintTest = useUpdateSprintTest();
   const updateYoyoTest = useUpdateYoyoTest();
   const updateEnduranceTest = useUpdateEnduranceTest();
   const updateTechnicalAssessment = useUpdateTechnicalAssessment();
+
+  // Hooks de mutación para eliminar tests
+  const deleteSprintTest = useDeleteSprintTest();
+  const deleteYoyoTest = useDeleteYoyoTest();
+  const deleteEnduranceTest = useDeleteEnduranceTest();
+  const deleteTechnicalAssessment = useDeleteTechnicalAssessment();
 
   const { data, isLoading, error } = useEvaluationById(id);
   const {
@@ -177,6 +190,44 @@ const EvaluationDetail = () => {
         return updateTechnicalAssessment;
       default:
         return null;
+    }
+  };
+
+  const handleDeleteTest = (test) => {
+    setDeletingTest(test);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteTest = async () => {
+    if (!deletingTest) return;
+
+    try {
+      switch (deletingTest.test_type) {
+        case "sprint_test":
+          await deleteSprintTest.mutateAsync(deletingTest.id);
+          break;
+        case "yoyo_test":
+          await deleteYoyoTest.mutateAsync(deletingTest.id);
+          break;
+        case "endurance_test":
+          await deleteEnduranceTest.mutateAsync(deletingTest.id);
+          break;
+        case "technical_assessment":
+          await deleteTechnicalAssessment.mutateAsync(deletingTest.id);
+          break;
+        default:
+          console.error("Tipo de test desconocido:", deletingTest.test_type);
+          return;
+      }
+      
+      // Refrescar la lista de tests después de eliminar
+      refetchTests();
+      
+      // Cerrar modal
+      setIsDeleteModalOpen(false);
+      setDeletingTest(null);
+    } catch (error) {
+      console.error("Error al eliminar test:", error);
     }
   };
 
@@ -529,6 +580,13 @@ const EvaluationDetail = () => {
                               >
                                 <Edit2 size={14} />
                                 Editar
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTest(test)}
+                                className="btn btn-ghost btn-sm gap-1 text-error hover:bg-error/10"
+                              >
+                                <Trash2 size={14} />
+                                Eliminar
                               </button>
                             </div>
                           </td>
@@ -958,22 +1016,100 @@ const EvaluationDetail = () => {
             )}
 
             {/* Actions */}
-            <div className="flex justify-end gap-2 pt-4 border-t border-base-200">
-              <button
-                onClick={() => setIsViewModalOpen(false)}
-                className="btn btn-ghost btn-sm"
-              >
-                Cerrar
-              </button>
+            <div className="flex justify-between gap-2 pt-4 border-t border-base-200">
               <button
                 onClick={() => {
                   setIsViewModalOpen(false);
-                  handleEditTest(viewingTest);
+                  handleDeleteTest(viewingTest);
                 }}
-                className="btn btn-primary btn-sm gap-1"
+                className="btn btn-error btn-sm gap-1"
               >
-                <Edit2 size={14} />
-                Editar Test
+                <Trash2 size={14} />
+                Eliminar Test
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Cerrar
+                </button>
+                <button
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleEditTest(viewingTest);
+                  }}
+                  className="btn btn-primary btn-sm gap-1"
+                >
+                  <Edit2 size={14} />
+                  Editar Test
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen && deletingTest !== null}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeletingTest(null);
+        }}
+        title="Confirmar Eliminación"
+        size="medium"
+      >
+        {deletingTest && (
+          <div className="space-y-6">
+            {/* Warning Icon */}
+            <div className="flex justify-center">
+              <div className="bg-error/10 p-4 rounded-full">
+                <Trash2 size={48} className="text-error" />
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-slate-900">
+                ¿Está seguro que desea eliminar este test?
+              </p>
+              <div className="bg-slate-100 rounded-lg p-4 space-y-1">
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold">Tipo:</span>{" "}
+                  {formatTestType(deletingTest)}
+                </p>
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold">Atleta:</span>{" "}
+                  {getAthleteName(deletingTest.athlete_id)}
+                </p>
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold">Fecha:</span>{" "}
+                  {formatDate(deletingTest.date)}
+                </p>
+              </div>
+              <p className="text-sm text-slate-500 pt-2">
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeletingTest(null);
+                }}
+                className="btn btn-ghost btn-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteTest}
+                className="btn btn-error btn-sm gap-1"
+              >
+                <Trash2 size={14} />
+                Eliminar Test
               </button>
             </div>
           </div>

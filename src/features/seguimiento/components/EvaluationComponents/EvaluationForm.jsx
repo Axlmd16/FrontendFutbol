@@ -3,7 +3,7 @@
  * Layout más ancho con mejor uso del espacio
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -16,6 +16,7 @@ import {
   Save,
   AlertCircle,
   Plus,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,6 +30,7 @@ import Button from "@/shared/components/Button";
 const EvaluationForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [error, setError] = useState(null);
   const {
     register,
     handleSubmit,
@@ -109,7 +111,13 @@ const EvaluationForm = ({ isEdit = false }) => {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Error al guardar");
+      // Extraer mensaje de error del backend
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Error al guardar la evaluación";
+      setError(errorMessage);
     }
   };
 
@@ -153,6 +161,23 @@ const EvaluationForm = ({ isEdit = false }) => {
       {/* Form Content */}
       <div className="px-6 py-6">
         <div className="max-w-4xl mx-auto">
+          {/* Error Alert */}
+          {error && (
+            <div className="bg-error/10 border border-error/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+              <AlertCircle size={20} className="text-error shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-error mb-1">Error</h3>
+                <p className="text-sm text-error/90">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="btn btn-ghost btn-sm btn-square shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="bg-base-100 border border-base-200 rounded-xl p-6 shadow-sm">
               {/* Name */}

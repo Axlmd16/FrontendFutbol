@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import evaluationsApi from "../services/evaluations.api";
 import { toast } from "sonner";
 
-export const useEvaluations = (params = { skip: 0, limit: 20 }) => {
+export const useEvaluations = (params = { page: 1, limit: 20 }) => {
   return useQuery({
     queryKey: ["evaluations", params],
     queryFn: () => evaluationsApi.getAll(params),
@@ -323,6 +323,90 @@ export const useUpdateTechnicalAssessment = () => {
         error.response?.data?.detail || 
         error.message || 
         "Error al actualizar evaluación técnica";
+      toast.error(message);
+    },
+  });
+};
+
+// ===============================================
+// Hooks para Eliminar Tests
+// ===============================================
+
+export const useDeleteSprintTest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: evaluationsApi.deleteSprintTest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
+      queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      toast.success("Test de velocidad eliminado exitosamente");
+    },
+    onError: (error) => {
+      const message =
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al eliminar test de velocidad";
+      toast.error(message);
+    },
+  });
+};
+
+export const useDeleteYoyoTest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: evaluationsApi.deleteYoyoTest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
+      queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      toast.success("Test Yoyo eliminado exitosamente");
+    },
+    onError: (error) => {
+      const message =
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al eliminar test Yoyo";
+      toast.error(message);
+    },
+  });
+};
+
+export const useDeleteEnduranceTest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: evaluationsApi.deleteEnduranceTest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
+      queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      toast.success("Test de resistencia eliminado exitosamente");
+    },
+    onError: (error) => {
+      const message =
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al eliminar test de resistencia";
+      toast.error(message);
+    },
+  });
+};
+
+export const useDeleteTechnicalAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: evaluationsApi.deleteTechnicalAssessment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
+      queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      toast.success("Evaluación técnica eliminada exitosamente");
+    },
+    onError: (error) => {
+      const message =
+        error.response?.data?.detail || 
+        error.message || 
+        "Error al eliminar evaluación técnica";
       toast.error(message);
     },
   });
