@@ -85,6 +85,7 @@ function AttendancePage() {
         limit: pagination.limit,
         search: debouncedSearch || undefined,
         type_athlete: typeFilter || undefined,
+        is_active: true, // Solo atletas activos para asistencia
       };
 
       // 1. Cargar lista de atletas
