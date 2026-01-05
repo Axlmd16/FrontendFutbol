@@ -8,6 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import evaluationsApi from "../services/evaluations.api";
 import { toast } from "sonner";
+import { STATISTICS_KEYS } from "./useStatistics";
 
 export const useEvaluations = (params = { page: 1, limit: 20 }) => {
   return useQuery({
@@ -60,8 +61,8 @@ export const useCreateEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al crear evaluación";
       toast.error(message);
     },
@@ -81,8 +82,8 @@ export const useUpdateEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al actualizar evaluación";
       toast.error(message);
     },
@@ -100,8 +101,8 @@ export const useDeleteEvaluation = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al eliminar evaluación";
       toast.error(message);
     },
@@ -120,19 +121,24 @@ export const useCreateSprintTest = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
       queryClient.invalidateQueries({
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
+      if (variables.athlete_id) {
+        queryClient.invalidateQueries({
+          queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
+        });
+      }
       toast.success("Test de velocidad creado exitosamente");
       return data;
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al crear test de velocidad";
       toast.error(message);
     },
@@ -147,19 +153,24 @@ export const useCreateYoyoTest = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
       queryClient.invalidateQueries({
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
+      if (variables.athlete_id) {
+        queryClient.invalidateQueries({
+          queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
+        });
+      }
       toast.success("Test Yoyo creado exitosamente");
       return data;
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al crear test Yoyo";
       toast.error(message);
     },
@@ -174,19 +185,24 @@ export const useCreateEnduranceTest = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
       queryClient.invalidateQueries({
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
+      if (variables.athlete_id) {
+        queryClient.invalidateQueries({
+          queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
+        });
+      }
       toast.success("Test de resistencia creado exitosamente");
       return data;
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al crear test de resistencia";
       toast.error(message);
     },
@@ -201,19 +217,24 @@ export const useCreateTechnicalAssessment = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
       queryClient.invalidateQueries({
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
-        refetchType: 'active',
+        refetchType: "active",
       });
+      if (variables.athlete_id) {
+        queryClient.invalidateQueries({
+          queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
+        });
+      }
       toast.success("Evaluación técnica creada exitosamente");
       return data;
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al crear evaluación técnica";
       toast.error(message);
     },
@@ -228,13 +249,14 @@ export const useUpdateSprintTest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ testId, data }) => evaluationsApi.updateSprintTest(testId, data),
+    mutationFn: ({ testId, data }) =>
+      evaluationsApi.updateSprintTest(testId, data),
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
         queryClient.invalidateQueries({
           queryKey: ["tests-by-evaluation", evaluationId],
-          refetchType: 'active',
+          refetchType: "active",
         });
       }
       toast.success("Test de velocidad actualizado exitosamente");
@@ -242,8 +264,8 @@ export const useUpdateSprintTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al actualizar test de velocidad";
       toast.error(message);
     },
@@ -254,13 +276,14 @@ export const useUpdateYoyoTest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ testId, data }) => evaluationsApi.updateYoyoTest(testId, data),
+    mutationFn: ({ testId, data }) =>
+      evaluationsApi.updateYoyoTest(testId, data),
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
         queryClient.invalidateQueries({
           queryKey: ["tests-by-evaluation", evaluationId],
-          refetchType: 'active',
+          refetchType: "active",
         });
       }
       toast.success("Test Yoyo actualizado exitosamente");
@@ -268,8 +291,8 @@ export const useUpdateYoyoTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al actualizar test Yoyo";
       toast.error(message);
     },
@@ -280,13 +303,14 @@ export const useUpdateEnduranceTest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ testId, data }) => evaluationsApi.updateEnduranceTest(testId, data),
+    mutationFn: ({ testId, data }) =>
+      evaluationsApi.updateEnduranceTest(testId, data),
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
         queryClient.invalidateQueries({
           queryKey: ["tests-by-evaluation", evaluationId],
-          refetchType: 'active',
+          refetchType: "active",
         });
       }
       toast.success("Test de resistencia actualizado exitosamente");
@@ -294,8 +318,8 @@ export const useUpdateEnduranceTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al actualizar test de resistencia";
       toast.error(message);
     },
@@ -306,13 +330,14 @@ export const useUpdateTechnicalAssessment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ testId, data }) => evaluationsApi.updateTechnicalAssessment(testId, data),
+    mutationFn: ({ testId, data }) =>
+      evaluationsApi.updateTechnicalAssessment(testId, data),
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
         queryClient.invalidateQueries({
           queryKey: ["tests-by-evaluation", evaluationId],
-          refetchType: 'active',
+          refetchType: "active",
         });
       }
       toast.success("Evaluación técnica actualizada exitosamente");
@@ -320,8 +345,8 @@ export const useUpdateTechnicalAssessment = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al actualizar evaluación técnica";
       toast.error(message);
     },
@@ -344,8 +369,8 @@ export const useDeleteSprintTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al eliminar test de velocidad";
       toast.error(message);
     },
@@ -364,8 +389,8 @@ export const useDeleteYoyoTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al eliminar test Yoyo";
       toast.error(message);
     },
@@ -384,8 +409,8 @@ export const useDeleteEnduranceTest = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al eliminar test de resistencia";
       toast.error(message);
     },
@@ -404,8 +429,8 @@ export const useDeleteTechnicalAssessment = () => {
     },
     onError: (error) => {
       const message =
-        error.response?.data?.detail || 
-        error.message || 
+        error.response?.data?.detail ||
+        error.message ||
         "Error al eliminar evaluación técnica";
       toast.error(message);
     },
