@@ -51,6 +51,7 @@ export const useReports = () => {
         const payload = {
           format: format.toLowerCase(),
           ...(filters.athlete_type && { athlete_type: filters.athlete_type }),
+          ...(filters.athlete_id && { athlete_id: filters.athlete_id }),
           ...(filters.sex && { sex: filters.sex }),
           ...(filters.start_date && { start_date: filters.start_date }),
           ...(filters.end_date && { end_date: filters.end_date }),
