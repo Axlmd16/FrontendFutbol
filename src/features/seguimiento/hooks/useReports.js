@@ -61,6 +61,8 @@ export const useReports = () => {
 
         const params = Object.entries(rawParams).reduce((acc, [key, value]) => {
           if (value === "" || value === null || value === undefined) return acc;
+          // Filtrar parámetros no soportados por el backend
+          if (key === "category") return acc; // Backend no soporta este parámetro
           if (key === "athlete_id") {
             acc[key] = Number(value);
             return acc;

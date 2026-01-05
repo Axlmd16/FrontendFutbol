@@ -352,14 +352,27 @@ const DeportistaForm = ({
               <div className="flex flex-col">
                 <label className="py-0.5">
                   <span className="label-text text-xs font-medium text-slate-600">
-                    Estamento
+                    Estamento <span className="text-error">*</span>
                   </span>
                 </label>
                 <select
-                  error={errors.type_stament?.message}
                   className="select w-full select-sm bg-white text-slate-600"
-                  required
-                  {...register("type_stament", { required: "Requerido" })}
+                  {...register("type_stament", {
+                    required: "El estamento es requerido",
+                    validate: (value) => {
+                      const valid = [
+                        "administrativos",
+                        "docentes",
+                        "estudiantes",
+                        "trabajadores",
+                        "externos",
+                      ];
+                      if (!valid.includes(value.toLowerCase())) {
+                        return "El estamento debe pertenecer a la UNL";
+                      }
+                      return true;
+                    },
+                  })}
                 >
                   <option value="">Seleccionar...</option>
                   {TYPE_STAMENT_OPTIONS.map((option) => (
@@ -368,6 +381,11 @@ const DeportistaForm = ({
                     </option>
                   ))}
                 </select>
+                {errors.type_stament && (
+                  <span className="text-xs text-error mt-1">
+                    {errors.type_stament.message}
+                  </span>
+                )}
               </div>
 
               <div className="col-span-2">
@@ -394,19 +412,39 @@ const DeportistaForm = ({
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Altura (metros)"
-              type="text"
+              type="number"
+              step="0.01"
               placeholder="Ej: 1.75"
               error={errors.height?.message}
               disabled={loading}
-              {...register("height")}
+              {...register("height", {
+                validate: (value) => {
+                  if (!value || value === "") return true; // Opcional
+                  const num = parseFloat(value);
+                  if (isNaN(num) || num <= 0) {
+                    return "La altura debe ser mayor a 0";
+                  }
+                  return true;
+                },
+              })}
             />
             <Input
               label="Peso (kg)"
-              type="text"
+              type="number"
+              step="0.1"
               placeholder="Ej: 70"
               error={errors.weight?.message}
               disabled={loading}
-              {...register("weight")}
+              {...register("weight", {
+                validate: (value) => {
+                  if (!value || value === "") return true; // Opcional
+                  const num = parseFloat(value);
+                  if (isNaN(num) || num <= 0) {
+                    return "El peso debe ser mayor a 0";
+                  }
+                  return true;
+                },
+              })}
             />
           </div>
         </section>
