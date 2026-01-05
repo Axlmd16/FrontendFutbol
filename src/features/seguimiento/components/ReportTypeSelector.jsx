@@ -1,62 +1,62 @@
 /**
- * Componente Selector de Formato de Exportación
+ * Selector de Tipo de Reporte
  *
- * Permite elegir entre PDF, CSV o XLSX para descargar el reporte.
+ * Permite seleccionar entre los tipos de reportes disponibles.
  */
 
-import { FileText, FileSpreadsheet, Table } from "lucide-react";
+import { ClipboardList, Activity, BarChart3 } from "lucide-react";
 
-const EXPORT_FORMATS = [
+const REPORT_TYPES = [
   {
-    value: "pdf",
-    label: "PDF",
-    description: "Formato visual con estilo",
-    icon: FileText,
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
+    value: "attendance",
+    label: "Asistencia",
+    description: "Reporte de asistencias por deportista",
+    icon: ClipboardList,
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
   },
   {
-    value: "csv",
-    label: "CSV",
-    description: "Para análisis en Excel",
-    icon: Table,
+    value: "tests",
+    label: "Evaluaciones y Tests",
+    description: "Resultados de pruebas físicas",
+    icon: Activity,
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
   },
   {
-    value: "xlsx",
-    label: "XLSX",
-    description: "Hoja de cálculo Excel",
-    icon: FileSpreadsheet,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
+    value: "statistics",
+    label: "Estadísticas Generales",
+    description: "Resumen ejecutivo del club",
+    icon: BarChart3,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
   },
 ];
 
-const ExportFormatSelector = ({
-  selectedFormat,
-  onFormatChange,
+const ReportTypeSelector = ({
+  selectedType,
+  onTypeChange,
   disabled = false,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {EXPORT_FORMATS.map((format) => {
-        const Icon = format.icon;
-        const isSelected = selectedFormat === format.value;
+      {REPORT_TYPES.map((type) => {
+        const Icon = type.icon;
+        const isSelected = selectedType === type.value;
 
         return (
           <button
-            key={format.value}
-            onClick={() => !disabled && onFormatChange(format.value)}
+            key={type.value}
+            onClick={() => !disabled && onTypeChange(type.value)}
             disabled={disabled}
             className={`
               relative p-5 rounded-lg border-2 transition-all duration-200
               ${
                 isSelected
-                  ? `${format.borderColor} ${format.bgColor} shadow-md scale-105`
+                  ? `${type.borderColor} ${type.bgColor} shadow-md scale-105`
                   : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
               }
               ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
@@ -85,12 +85,12 @@ const ExportFormatSelector = ({
             <div className="flex flex-col items-center gap-3">
               <div
                 className={`p-3 rounded-lg ${
-                  isSelected ? format.bgColor : "bg-slate-50"
+                  isSelected ? type.bgColor : "bg-slate-50"
                 }`}
               >
                 <Icon
                   size={32}
-                  className={isSelected ? format.color : "text-slate-600"}
+                  className={isSelected ? type.color : "text-slate-600"}
                 />
               </div>
               <div>
@@ -99,10 +99,10 @@ const ExportFormatSelector = ({
                     isSelected ? "text-slate-900" : "text-slate-700"
                   }`}
                 >
-                  {format.label}
+                  {type.label}
                 </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {format.description}
+                  {type.description}
                 </p>
               </div>
             </div>
@@ -113,4 +113,4 @@ const ExportFormatSelector = ({
   );
 };
 
-export default ExportFormatSelector;
+export default ReportTypeSelector;

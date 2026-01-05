@@ -1,23 +1,28 @@
 /**
  * Hook personalizado para gestión de Reportes
- * 
+ *
  * Encapsula la lógica de generación y descarga de reportes.
  */
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import reportsApi from "@/features/seguimiento/services/reports.api";
-import { MESSAGES } from "@/app/config/constants";
 
 export const useReports = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   /**
-   * Genera y descarga un reporte en el formato especificado
+   * Genera y descarga un reporte según el tipo especificado
    */
   const generateAndDownloadReport = useCallback(
-    async (format, filters = {}) => {
+    async (reportType, format, filters = {}) => {
+      if (!reportType) {
+        setError("Selecciona un tipo de reporte");
+        toast.error("Selecciona un tipo de reporte");
+        return false;
+      }
+
       if (!format) {
         setError("Selecciona un formato para generar el reporte");
         toast.error("Selecciona un formato para generar el reporte");
@@ -31,7 +36,8 @@ export const useReports = () => {
         if (start > end) {
           setError("La fecha inicio no puede ser mayor a la fecha fin");
           toast.error("Rango de fechas inválido", {
-            description: "La fecha inicio debe ser menor o igual a la fecha fin",
+            description:
+              "La fecha inicio debe ser menor o igual a la fecha fin",
           });
           return false;
         }
@@ -41,53 +47,53 @@ export const useReports = () => {
       setError(null);
 
       try {
-        // Construir parámetros del reporte
-        const normalizeDate = (value) => {
-          if (!value) return undefined;
-          // Si viene en dd/mm/yyyy, lo reordenamos; si viene en yyyy-mm-dd lo dejamos.
-          if (value.includes("/")) {
-            const [day, month, year] = value.split(/[\/]/);
-            return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-          }
-          return value;
-        };
-
-        const rawParams = {
+        // Construir payload
+        const payload = {
           format: format.toLowerCase(),
-          ...filters,
-          start_date: normalizeDate(filters.start_date),
-          end_date: normalizeDate(filters.end_date),
+          ...(filters.athlete_type && { athlete_type: filters.athlete_type }),
+          ...(filters.athlete_id && { athlete_id: filters.athlete_id }),
+          ...(filters.sex && { sex: filters.sex }),
+          ...(filters.start_date && { start_date: filters.start_date }),
+          ...(filters.end_date && { end_date: filters.end_date }),
         };
 
-        const params = Object.entries(rawParams).reduce((acc, [key, value]) => {
-          if (value === "" || value === null || value === undefined) return acc;
-          // Filtrar parámetros no soportados por el backend
-          if (key === "category") return acc; // Backend no soporta este parámetro
-          if (key === "athlete_id") {
-            acc[key] = Number(value);
-            return acc;
-          }
-          acc[key] = value;
-          return acc;
-        }, {});
+        console.info(`[reports] Generando reporte ${reportType}:`, payload);
 
-        // Llamar al backend
-        console.info("[reports] Solicitando reporte con params:", params);
-        
-        const response = await reportsApi.generateReport(params);
-        
+        // Llamar al endpoint correspondiente
+        let response;
+        switch (reportType) {
+          case "attendance":
+            response = await reportsApi.generateAttendanceReport(payload);
+            break;
+          case "tests":
+            response = await reportsApi.generateTestsReport(payload);
+            break;
+          case "statistics":
+            response = await reportsApi.generateStatisticsReport(payload);
+            break;
+          default:
+            throw new Error(`Tipo de reporte no válido: ${reportType}`);
+        }
+
         console.info("[reports] Respuesta recibida:", {
           type: response?.type,
           size: response?.size,
           isBlob: response instanceof Blob,
         });
-        
+
         // Generar nombre del archivo
         const timestamp = new Date().toISOString().split("T")[0];
-        const fileName = `reporte_deportivo_${timestamp}.${format.toLowerCase()}`;
+        const reportTypeNames = {
+          attendance: "asistencia",
+          tests: "tests",
+          statistics: "estadisticas",
+        };
+        const fileName = `reporte_${
+          reportTypeNames[reportType]
+        }_${timestamp}.${format.toLowerCase()}`;
 
         console.info("[reports] Iniciando descarga:", fileName);
-        
+
         // Descargar archivo
         reportsApi.downloadFile(response, fileName);
 
@@ -96,34 +102,23 @@ export const useReports = () => {
         return true;
       } catch (err) {
         let errorMessage = err.message || "Error al generar el reporte";
-        let statusInfo = "";
 
-        // Intentar leer mensajes del backend cuando viene blob
+        // Intentar leer mensajes del backend
         if (err.response?.data instanceof Blob) {
           try {
             const text = await err.response.data.text();
-            statusInfo = `${err.response?.status || ""} ${err.response?.statusText || ""}`.trim();
             const parsed = JSON.parse(text);
-            errorMessage = parsed.message || errorMessage;
-          } catch (parseErr) {
-            try {
-              const text = await err.response.data.text();
-              statusInfo = `${err.response?.status || ""} ${err.response?.statusText || ""}`.trim();
-              errorMessage = text || errorMessage;
-            } catch (_) {
-              // mantener mensaje previo
-            }
+            errorMessage = parsed.message || parsed.detail || errorMessage;
+          } catch (_) {
+            // mantener mensaje previo
           }
         } else if (err.response?.data?.message) {
-          statusInfo = `${err.response?.status || ""} ${err.response?.statusText || ""}`.trim();
           errorMessage = err.response.data.message;
         }
 
-        const composedMessage = [statusInfo, errorMessage].filter(Boolean).join(" - ");
-
-        setError(composedMessage);
+        setError(errorMessage);
         toast.error("Error al generar reporte", {
-          description: composedMessage,
+          description: errorMessage,
         });
         return false;
       } finally {

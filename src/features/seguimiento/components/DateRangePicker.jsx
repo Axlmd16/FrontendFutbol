@@ -1,13 +1,12 @@
 /**
  * Componente Selector de Rango de Fechas
- * 
+ *
  * Permite seleccionar un rango de fechas para filtrar reportes.
  */
 
 import { useState } from "react";
-import Input from "@/shared/components/Input";
-import Button from "@/shared/components/Button";
-import { Calendar, X } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { toast } from "sonner";
 
 const DateRangePicker = ({ onDateRangeChange, disabled = false }) => {
   const [dateRange, setDateRange] = useState({
@@ -16,72 +15,62 @@ const DateRangePicker = ({ onDateRangeChange, disabled = false }) => {
   });
 
   const handleDateChange = (field, value) => {
-    setDateRange((prev) => ({
-      ...prev,
+    const newRange = {
+      ...dateRange,
       [field]: value,
-    }));
-  };
+    };
+    setDateRange(newRange);
 
-  const handleApply = () => {
-    if (dateRange.start_date && dateRange.end_date) {
-      if (new Date(dateRange.start_date) > new Date(dateRange.end_date)) {
-        alert("La fecha de inicio no puede ser mayor a la fecha de fin");
+    // Auto-aplicar si ambas fechas están completas
+    if (newRange.start_date && newRange.end_date) {
+      if (new Date(newRange.start_date) > new Date(newRange.end_date)) {
+        toast.error("La fecha de inicio no puede ser mayor a la fecha de fin");
         return;
       }
-      onDateRangeChange(dateRange);
-    } else if (!dateRange.start_date && !dateRange.end_date) {
-      // Permitir limpiar fechas
+      onDateRangeChange(newRange);
+    } else if (!newRange.start_date && !newRange.end_date) {
+      // Limpiar fechas si ambas están vacías
       onDateRangeChange({ start_date: "", end_date: "" });
     }
   };
 
-  const handleClear = () => {
-    const clearedDates = { start_date: "", end_date: "" };
-    setDateRange(clearedDates);
-    onDateRangeChange(clearedDates);
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-        <Calendar size={20} />
-        Rango de Fechas
-      </h3>
+    <div className="card bg-base-100 shadow-sm border border-base-300">
+      <div className="card-body p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar size={16} className="text-primary" />
+          <span className="font-medium text-base-content text-sm">
+            Rango de Fechas
+          </span>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Input
-          label="Fecha Inicio"
-          type="date"
-          value={dateRange.start_date}
-          onChange={(e) => handleDateChange("start_date", e.target.value)}
-          disabled={disabled}
-        />
-        <Input
-          label="Fecha Fin"
-          type="date"
-          value={dateRange.end_date}
-          onChange={(e) => handleDateChange("end_date", e.target.value)}
-          disabled={disabled}
-        />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="label py-1">
+              <span className="label-text text-xs">Fecha</span>
+            </label>
+            <input
+              type="date"
+              value={dateRange.start_date}
+              onChange={(e) => handleDateChange("start_date", e.target.value)}
+              disabled={disabled}
+              className="input input-bordered input-sm w-full bg-base-100"
+            />
+          </div>
 
-      <div className="flex gap-3 justify-end">
-        <Button
-          onClick={handleClear}
-          variant="secondary"
-          disabled={disabled}
-        >
-          <X size={16} />
-          Limpiar
-        </Button>
-        <Button
-          onClick={handleApply}
-          variant="primary"
-          disabled={disabled}
-        >
-          <Calendar size={16} />
-          Aplicar
-        </Button>
+          <div>
+            <label className="label py-1">
+              <span className="label-text text-xs">Hasta</span>
+            </label>
+            <input
+              type="date"
+              value={dateRange.end_date}
+              onChange={(e) => handleDateChange("end_date", e.target.value)}
+              disabled={disabled}
+              className="input input-bordered input-sm w-full bg-base-100"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

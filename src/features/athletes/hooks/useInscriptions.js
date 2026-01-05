@@ -1,19 +1,21 @@
 /**
  * useInscriptions Hook
  *
- * Custom hook para manejar deportistas y representantes con TanStack Query.
+ * Custom hook para manejar deportistas, representantes y pasantes con TanStack Query.
  * Implementa cache de 5 minutos para evitar recargas innecesarias.
  */
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import athletesApi from "../services/athletes.api";
 import representativesApi from "../services/representatives.api";
+import internsApi from "../services/interns.api";
 
 // Query keys centralizados para invalidación consistente
 export const INSCRIPTIONS_KEYS = {
   all: ["inscriptions"],
   athletes: (filters) => ["inscriptions", "athletes", filters],
   representatives: (filters) => ["inscriptions", "representatives", filters],
+  interns: (filters) => ["inscriptions", "interns", filters],
   athleteDetail: (id) => ["inscriptions", "athlete", id],
   representativeDetail: (id) => ["inscriptions", "representative", id],
 };
@@ -78,6 +80,45 @@ export const useRepresentatives = (params = {}) => {
 };
 
 /**
+ * Hook para obtener lista de pasantes con paginación y filtros
+ * @param {Object} params - Parámetros de consulta
+ * @param {number} params.page - Número de página
+ * @param {number} params.limit - Cantidad por página
+ * @param {string} params.search - Término de búsqueda
+ */
+export const useInterns = (params = {}) => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== "" && v !== undefined && v !== null
+    )
+  );
+
+  return useQuery({
+    queryKey: INSCRIPTIONS_KEYS.interns(cleanParams),
+    queryFn: () => internsApi.getAll(cleanParams),
+    ...CACHE_CONFIG,
+    select: (response) => ({
+      items: response?.data?.items || [],
+      total: response?.data?.total || 0,
+    }),
+  });
+};
+
+/**
+ * Hook para promover un atleta a pasante
+ */
+export const usePromoteAthlete = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ athleteId, data }) => internsApi.promote(athleteId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inscriptions", "interns"] });
+    },
+  });
+};
+
+/**
  * Hook para obtener detalle de un deportista
  * @param {string|number} athleteId - ID del deportista
  */
@@ -123,6 +164,11 @@ export const useInvalidateInscriptions = () => {
     invalidateRepresentatives: () => {
       queryClient.invalidateQueries({
         queryKey: ["inscriptions", "representatives"],
+      });
+    },
+    invalidateInterns: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["inscriptions", "interns"],
       });
     },
     invalidateAthlete: (athleteId) => {
