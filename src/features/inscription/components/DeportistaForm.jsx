@@ -171,40 +171,40 @@ const DeportistaForm = ({
     </div>
   );
 
-  // Select field
-  const SelectField = ({
-    label,
-    options,
-    error: fieldError,
-    required = false,
-    ...rest
-  }) => (
-    <div className="form-control w-full">
-      <label className="label py-1">
-        <span className="label-text font-medium text-base-content">
-          {label} {required && <span className="text-error">*</span>}
-        </span>
-      </label>
-      <select
-        className={`select select-bordered w-full bg-white border-2 ${
-          fieldError ? "border-error" : "border-base-300 focus:border-primary"
-        }`}
-        disabled={loading}
-        {...rest}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      {fieldError && (
-        <label className="label py-0">
-          <span className="label-text-alt text-error">{fieldError}</span>
-        </label>
-      )}
-    </div>
-  );
+  // // Select field
+  // const SelectField = ({
+  //   label,
+  //   options,
+  //   error: fieldError,
+  //   required = false,
+  //   ...rest
+  // }) => (
+  //   <div className="form-control w-full">
+  //     <label className="label py-1">
+  //       <span className="label-text font-medium text-base-content">
+  //         {label} {required && <span className="text-error">*</span>}
+  //       </span>
+  //     </label>
+  //     <select
+  //       className={`select select-bordered w-full bg-white border-2 ${
+  //         fieldError ? "border-error" : "border-base-300 focus:border-primary"
+  //       }`}
+  //       disabled={loading}
+  //       {...rest}
+  //     >
+  //       {options.map((option) => (
+  //         <option key={option.value} value={option.value}>
+  //           {option.label}
+  //         </option>
+  //       ))}
+  //     </select>
+  //     {fieldError && (
+  //       <label className="label py-0">
+  //         <span className="label-text-alt text-error">{fieldError}</span>
+  //       </label>
+  //     )}
+  //   </div>
+  // );
 
   return (
     <form
@@ -268,20 +268,51 @@ const DeportistaForm = ({
             required
             {...register("birth_date", { required: "Requerido" })}
           />
-          <SelectField
-            label="Sexo"
-            options={GENDER_OPTIONS}
-            error={errors.sex?.message}
-            required
-            {...register("sex", { required: "Requerido" })}
-          />
-          <SelectField
-            label="Tipo de documento"
-            options={TYPE_IDENTIFICATION_OPTIONS}
-            error={errors.type_identification?.message}
-            required
-            {...register("type_identification", { required: "Requerido" })}
-          />
+
+          {/* Sexo */}
+          <div className="flex flex-col">
+            <label className="py-0.5">
+              <span className="label-text text-xs font-medium text-slate-600">
+                Sexo
+              </span>
+            </label>
+            <select
+              error={errors.sex?.message}
+              className="select w-full select-sm bg-white text-slate-600"
+              required
+              {...register("sex", { required: "Requerido" })}
+            >
+              <option value="">Seleccionar...</option>
+              {GENDER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tipo de documento */}
+          <div className="flex flex-col">
+            <label className="py-0.5">
+              <span className="label-text text-xs font-medium text-slate-600">
+                Tipo de documento
+              </span>
+            </label>
+            <select
+              error={errors.type_identification?.message}
+              className="select w-full select-sm bg-white text-slate-600"
+              required
+              {...register("type_identification", { required: "Requerido" })}
+            >
+              <option value="">Seleccionar...</option>
+              {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <Input
             label="Nº Documento"
             type="text"
@@ -316,13 +347,29 @@ const DeportistaForm = ({
                 maxLength={10}
                 {...register("phone")}
               />
-              <SelectField
-                label="Estamento"
-                options={TYPE_STAMENT_OPTIONS}
-                error={errors.type_stament?.message}
-                required
-                {...register("type_stament", { required: "Requerido" })}
-              />
+
+              {/* Estamento */}
+              <div className="flex flex-col">
+                <label className="py-0.5">
+                  <span className="label-text text-xs font-medium text-slate-600">
+                    Estamento
+                  </span>
+                </label>
+                <select
+                  error={errors.type_stament?.message}
+                  className="select w-full select-sm bg-white text-slate-600"
+                  required
+                  {...register("type_stament", { required: "Requerido" })}
+                >
+                  <option value="">Seleccionar...</option>
+                  {TYPE_STAMENT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="col-span-2">
                 <Input
                   label="Dirección"

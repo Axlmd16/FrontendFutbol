@@ -16,6 +16,8 @@ import {
   Venus,
   CircleHelp,
   Eye,
+  UserCheck,
+  MoreVertical,
 } from "lucide-react";
 
 function AthletesTable({
@@ -23,6 +25,7 @@ function AthletesTable({
   onEdit,
   onDelete,
   onViewDetail,
+  onPromote,
   loading = false,
 }) {
   // Badge estilos e iconos por estamento (type_athlete)
@@ -94,7 +97,7 @@ function AthletesTable({
   }
 
   return (
-    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
+    <div className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden mt-5">
       <div className="overflow-x-auto">
         <table className="table w-full">
           <thead className="bg-slate-50/80">
@@ -161,7 +164,7 @@ function AthletesTable({
                     const IconComponent = config.icon;
                     return (
                       <span
-                        className={`badge ${config.class} badge-sm gap-1 font-medium`}
+                        className={`badge ${config.class} badge-sm badge-soft badge-outline gap-1 font-medium`}
                       >
                         <IconComponent size={12} />
                         {config.label}
@@ -177,7 +180,7 @@ function AthletesTable({
                     const IconComponent = config.icon;
                     return (
                       <span
-                        className={`badge badge-outline ${config.class} badge-sm gap-1`}
+                        className={`badge badge-outline ${config.class} badge-sm badge-soft gap-1`}
                       >
                         <IconComponent size={12} />
                         {config.label}
@@ -189,13 +192,13 @@ function AthletesTable({
                 {/* Estado con icono */}
                 <td className="text-center">
                   {athlete.is_active ? (
-                    <span className="badge badge-success badge-sm gap-1 font-medium">
-                      <CheckCircle2 size={12} />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                       Activo
                     </span>
                   ) : (
-                    <span className="badge badge-error badge-sm gap-1 font-medium">
-                      <XCircle size={12} />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                       Inactivo
                     </span>
                   )}
@@ -203,7 +206,8 @@ function AthletesTable({
 
                 {/* Acciones */}
                 <td className="text-right pr-4">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1">
+                    {/* Botón Ver detalle - siempre visible */}
                     <div
                       className="tooltip tooltip-left"
                       data-tip="Ver detalle"
@@ -218,33 +222,60 @@ function AthletesTable({
                       </Button>
                     </div>
 
-                    <div className="tooltip tooltip-left" data-tip="Editar">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="btn-square btn-ghost text-info hover:bg-info/10 hover:scale-105 transition-transform"
-                        onClick={() => onEdit && onEdit(athlete)}
+                    {/* Dropdown de acciones secundarias */}
+                    <div className="dropdown dropdown-end">
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        className="btn btn-ghost btn-sm btn-square hover:bg-base-200"
                       >
-                        <UserRoundPen size={18} />
-                      </Button>
-                    </div>
+                        <MoreVertical size={18} className="text-slate-500" />
+                      </div>
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content menu bg-base-100 rounded-xl z-50 w-52 p-2 shadow-lg border border-base-200"
+                      >
+                        {/* Editar */}
+                        <li>
+                          <button
+                            onClick={() => onEdit && onEdit(athlete)}
+                            className="flex items-center gap-2 text-info"
+                          >
+                            <UserRoundPen size={16} />
+                            Editar
+                          </button>
+                        </li>
 
-                    <div
-                      className="tooltip tooltip-left"
-                      data-tip={athlete.is_active ? "Dar de baja" : "Activar"}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`btn-square btn-ghost hover:scale-105 transition-transform ${
-                          athlete.is_active
-                            ? "text-warning hover:bg-warning/10"
-                            : "text-success hover:bg-success/10"
-                        }`}
-                        onClick={() => onDelete && onDelete(athlete)}
-                      >
-                        <CirclePower size={18} />
-                      </Button>
+                        {/* Activar/Desactivar */}
+                        <li>
+                          <button
+                            onClick={() => onDelete && onDelete(athlete)}
+                            className={`flex items-center gap-2 ${
+                              athlete.is_active
+                                ? "text-warning"
+                                : "text-success"
+                            }`}
+                          >
+                            <CirclePower size={16} />
+                            {athlete.is_active ? "Dar de baja" : "Activar"}
+                          </button>
+                        </li>
+
+                        {/* Promover a Pasante - solo si está activo, no es pasante ya, y hay handler */}
+                        {athlete.is_active &&
+                          onPromote &&
+                          !athlete.has_account && (
+                            <li>
+                              <button
+                                onClick={() => onPromote(athlete)}
+                                className="flex items-center gap-2 text-accent"
+                              >
+                                <UserCheck size={16} />
+                                Promover a Pasante
+                              </button>
+                            </li>
+                          )}
+                      </ul>
                     </div>
                   </div>
                 </td>
@@ -272,6 +303,7 @@ AthletesTable.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onViewDetail: PropTypes.func,
+  onPromote: PropTypes.func,
   loading: PropTypes.bool,
 };
 

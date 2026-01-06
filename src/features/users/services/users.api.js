@@ -65,6 +65,16 @@ const usersApi = {
   },
 
   /**
+   * Activa un usuario inactivo
+   * @param {string|number} id - ID del usuario
+   * @returns {Promise<Object>} Usuario activado
+   */
+  activate: async (id) => {
+    const response = await http.patch(API_ENDPOINTS.USERS.ACTIVATE(id));
+    return response.data;
+  },
+
+  /**
    * Cambia el estado activo/inactivo de un usuario
    * @param {string|number} id - ID del usuario
    * @param {boolean} active - Nuevo estado

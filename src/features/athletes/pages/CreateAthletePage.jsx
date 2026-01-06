@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import athletesApi from "@/features/athletes/services/athletes.api";
+import { useInvalidateInscriptions } from "@/features/athletes/hooks/useInscriptions";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 import { ArrowLeft, UserPlus } from "lucide-react";
 
@@ -10,6 +11,7 @@ const CreateAthletePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { invalidateAthletes } = useInvalidateInscriptions();
 
   const handleSubmit = async (athleteData) => {
     setLoading(true);
@@ -20,6 +22,8 @@ const CreateAthletePage = () => {
       toast.success(MESSAGES.SUCCESS.ATHLETE_CREATED, {
         description: MESSAGES.SUCCESS.ATHLETE_CREATED_DESC,
       });
+      // Invalidar cache para que aparezca el nuevo deportista
+      invalidateAthletes();
       navigate(ROUTES.INSCRIPTION);
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;

@@ -1,14 +1,20 @@
 /**
- * SprintTestForm Component
- *
- * Formulario para crear y editar tests de velocidad (sprint)
+ * SprintTestForm - Diseño con secciones y mejor espaciado
  */
 
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Plus, Loader, ArrowLeft } from "lucide-react";
+import {
+  Zap,
+  Save,
+  Ruler,
+  Timer,
+  TrendingUp,
+  FileText,
+  Info,
+} from "lucide-react";
 import { toast } from "sonner";
-import AthletesSelectionList from "./AthletesSelectionList";
+import Button from "@/shared/components/Button";
 
 const SprintTestForm = ({
   evaluationId,
@@ -20,19 +26,7 @@ const SprintTestForm = ({
   selectedAthlete: selectedAthleteProp = null,
   hideAthleteSelector = false,
 }) => {
-  const [selectedAthletes, setSelectedAthletes] = useState([]);
   const [selectedAthlete, setSelectedAthlete] = useState(null);
-
-  const formatAthleteType = (type) => {
-    const types = {
-      EXTERNOS: "Escuela",
-      ESTUDIANTES: "Estudiante",
-      DOCENTES: "Docente",
-      TRABAJADORES: "Trabajador",
-      ADMINISTRATIVOS: "Admin",
-    };
-    return types[type] || type || "Tipo no disponible";
-  };
 
   const {
     register,
@@ -40,6 +34,7 @@ const SprintTestForm = ({
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm({
     defaultValues: {
       distance_meters: isEdit ? testData?.distance_meters : 30,
@@ -49,17 +44,16 @@ const SprintTestForm = ({
     },
   });
 
-  // Cargar datos del test si es edición
+  const time10 = watch("time_0_10_s");
+  const time30 = watch("time_0_30_s");
+  const speed10m = time10 > 0 ? (10 / parseFloat(time10)).toFixed(2) : null;
+  const speed30m = time30 > 0 ? (30 / parseFloat(time30)).toFixed(2) : null;
+
   useEffect(() => {
     if (isEdit && testData) {
-      setSelectedAthletes([testData.athlete_id]);
       setSelectedAthlete({
         id: testData.athlete_id,
-        full_name: testData.athlete_name || `Atleta ${testData.athlete_id}`,
-        dni: testData.athlete_dni,
-        type_athlete: testData.athlete_type,
-        height: testData.athlete_height,
-        weight: testData.athlete_weight,
+        full_name: testData.athlete_name,
       });
       setValue("distance_meters", testData.distance_meters);
       setValue("time_0_10_s", testData.time_0_10_s);
@@ -68,222 +62,192 @@ const SprintTestForm = ({
     }
   }, [isEdit, testData, setValue]);
 
-  // Sincronizar atleta pasado por props (flujo de creación desde AddTestsForm)
   useEffect(() => {
-    if (!isEdit && selectedAthleteProp) {
-      setSelectedAthletes([selectedAthleteProp.id]);
-      setSelectedAthlete(selectedAthleteProp);
-    }
+    if (!isEdit && selectedAthleteProp) setSelectedAthlete(selectedAthleteProp);
   }, [selectedAthleteProp, isEdit]);
 
   const onSubmit = async (formData) => {
-    // Validar que haya atletas seleccionados
-    if (selectedAthletes.length === 0 || !selectedAthlete) {
-      toast.error("Por favor selecciona un atleta");
+    if (!selectedAthlete) {
+      toast.error("Selecciona un atleta");
       return;
     }
-
     try {
+      const payload = {
+        athlete_id: selectedAthlete.id,
+        distance_meters: parseFloat(formData.distance_meters),
+        time_0_10_s: parseFloat(formData.time_0_10_s),
+        time_0_30_s: parseFloat(formData.time_0_30_s),
+        observations: formData.observations,
+      };
       if (isEdit) {
-        // Editar test existente
-        await mutation.mutateAsync({
-          testId: testData.id,
-          data: {
-            athlete_id: selectedAthlete.id,
-            distance_meters: parseFloat(formData.distance_meters),
-            time_0_10_s: parseFloat(formData.time_0_10_s),
-            time_0_30_s: parseFloat(formData.time_0_30_s),
-            observations: formData.observations,
-          },
-        });
+        await mutation.mutateAsync({ testId: testData.id, data: payload });
+        toast.success("Test actualizado");
       } else {
-        // Crear test para un único atleta
         await mutation.mutateAsync({
-          ...formData,
+          ...payload,
           evaluation_id: parseInt(evaluationId),
-          athlete_id: selectedAthlete.id,
-          distance_meters: parseFloat(formData.distance_meters),
-          time_0_10_s: parseFloat(formData.time_0_10_s),
-          time_0_30_s: parseFloat(formData.time_0_30_s),
           date: new Date().toISOString(),
         });
+        toast.success("Test registrado");
       }
-      reset();
-      setSelectedAthletes([]);
-      setSelectedAthlete(null);
+      reset({
+        distance_meters: 30,
+        time_0_10_s: "",
+        time_0_30_s: "",
+        observations: "",
+      });
       onSuccess();
     } catch (error) {
-      console.error("Error:", error);
+      toast.error("Error al guardar");
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Encabezado si es edición */}
-      {isEdit && (
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
-            <ArrowLeft size={24} className="text-gray-600" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Editar Test de Velocidad
-          </h1>
+    <div className="bg-base-100 border border-base-200 rounded-xl shadow-sm">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-base-200 bg-warning/5">
+        <div className="bg-warning/10 p-2.5 rounded-xl">
+          <Zap size={20} className="text-warning" />
         </div>
-      )}
-
-      {/* Selección de atletas (solo cuando no se provee desde el flujo externo) */}
-      {!hideAthleteSelector && (
-        <AthletesSelectionList
-          selectedAthleteIds={selectedAthletes}
-          onSelectionChange={setSelectedAthletes}
-          multiSelect={false}
-          loading={mutation.isPending}
-          disabled={isEdit}
-          onSelectedAthleteChange={setSelectedAthlete}
-        />
-      )}
-
-      {/* Datos del atleta seleccionado */}
-      <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Atleta seleccionado</h4>
-        {selectedAthlete ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-base font-semibold text-gray-900">{selectedAthlete.full_name || "Nombre no disponible"}</p>
-              <p className="text-sm text-gray-600">DNI: {selectedAthlete.dni || "No disponible"}</p>
-              <p className="text-sm text-gray-600">Tipo: {formatAthleteType(selectedAthlete.type_athlete)}</p>
-              <p className="text-sm text-gray-600">Altura: {selectedAthlete.height ? `${selectedAthlete.height} cm` : "No disponible"}</p>
-              <p className="text-sm text-gray-600">Peso: {selectedAthlete.weight ? `${selectedAthlete.weight} kg` : "No disponible"}</p>
+        <div className="flex-1">
+          <h3 className="font-semibold text-slate-900">Test de Velocidad</h3>
+          <p className="text-sm text-slate-500">{selectedAthlete?.full_name}</p>
+        </div>
+        {(speed10m || speed30m) && (
+          <div className="text-right">
+            <div className="flex items-center gap-1 text-success">
+              <TrendingUp size={14} />
+              <span className="text-sm font-medium">Métricas activas</span>
             </div>
-            <span className="px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full">
-              1 seleccionado
-            </span>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">Selecciona un atleta para continuar.</p>
         )}
       </div>
 
-      {/* Formulario de datos del test */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">
-          {isEdit ? "Actualizar Test de Velocidad" : "Datos del Test de Velocidad"}
-        </h3>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Distancia */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Distancia (metros) *
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="Ej: 30"
-              {...register("distance_meters", {
-                required: "La distancia es requerida",
-                min: { value: 0.01, message: "Debe ser mayor a 0" },
-              })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.distance_meters && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.distance_meters.message}
-              </p>
-            )}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-6">
+        {/* Distance Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Ruler size={16} className="text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">
+              Configuración de Distancia
+            </span>
           </div>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <label className="text-xs text-slate-500 mb-1.5 block">
+              Distancia total del sprint
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                {...register("distance_meters", { required: true, min: 1 })}
+                className="input input-bordered bg-white w-32"
+              />
+              <span className="text-sm text-slate-600">metros</span>
+              <div className="flex-1"></div>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <Info size={12} />
+                <span>Estándar: 30m</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Tiempos */}
+        {/* Times Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Timer size={16} className="text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">
+              Tiempos Registrados
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tiempo 0-10m (seg) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Ej: 1.85"
-                {...register("time_0_10_s", {
-                  required: "El tiempo es requerido",
-                  min: { value: 0.01, message: "Debe ser mayor a 0" },
-                })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.time_0_10_s && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.time_0_10_s.message}
-                </p>
-              )}
+            {/* Time 0-10m */}
+            <div className="bg-slate-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-slate-500">
+                  Parcial 0 - 10 metros
+                </label>
+                {speed10m && (
+                  <span className="badge badge-success badge-sm gap-1">
+                    <TrendingUp size={10} />
+                    {speed10m} m/s
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="1.85"
+                  {...register("time_0_10_s", { required: true, min: 0.01 })}
+                  className="input input-bordered bg-white flex-1"
+                />
+                <span className="text-sm text-slate-600 w-12">seg</span>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tiempo 0-30m (seg) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Ej: 3.95"
-                {...register("time_0_30_s", {
-                  required: "El tiempo es requerido",
-                  min: { value: 0.01, message: "Debe ser mayor a 0" },
-                })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.time_0_30_s && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.time_0_30_s.message}
-                </p>
-              )}
+            {/* Time 0-30m */}
+            <div className="bg-slate-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-slate-500">
+                  Total 0 - 30 metros
+                </label>
+                {speed30m && (
+                  <span className="badge badge-success badge-sm gap-1">
+                    <TrendingUp size={10} />
+                    {speed30m} m/s
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="3.95"
+                  {...register("time_0_30_s", { required: true, min: 0.01 })}
+                  className="input input-bordered bg-white flex-1"
+                />
+                <span className="text-sm text-slate-600 w-12">seg</span>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Observaciones */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Observaciones (Opcional)
-            </label>
-            <textarea
-              placeholder="Notas sobre el rendimiento..."
-              rows="3"
-              {...register("observations")}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        {/* Observations Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <FileText size={16} className="text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">
+              Observaciones
+            </span>
+            <span className="text-xs text-slate-400">(opcional)</span>
           </div>
+          <textarea
+            placeholder="Notas sobre el rendimiento, condiciones del test, fatiga observada..."
+            rows="3"
+            {...register("observations")}
+            className="textarea textarea-bordered w-full bg-white"
+          />
+        </div>
 
-          {/* Botones */}
-          <div className="flex gap-4 pt-6 border-t">
-            {isEdit && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded-lg transition"
-              >
-                Cancelar
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
-            >
-              {mutation.isPending ? (
-                <>
-                  <Loader size={20} className="animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Plus size={20} />
-                  {isEdit ? "Actualizar Test" : "Crear Test de Velocidad"}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Actions */}
+        <div className="flex items-center gap-3 pt-4 border-t border-base-200">
+          {isEdit && onCancel && (
+            <Button type="button" variant="ghost" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            loading={mutation.isPending}
+            className="gap-2"
+          >
+            <Save size={16} />
+            {isEdit ? "Actualizar Test" : "Registrar Test"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

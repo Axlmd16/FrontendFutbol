@@ -16,6 +16,7 @@ import Button from "@/shared/components/Button";
 import RepresentanteForm from "@/features/inscription/components/RepresentanteForm";
 import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import inscriptionApi from "@/features/inscription/services/inscription.api";
+import { useInvalidateInscriptions } from "@/features/athletes/hooks/useInscriptions";
 import { MESSAGES, ROUTES, VALIDATION } from "@/app/config/constants";
 import {
   CheckCircle,
@@ -32,6 +33,8 @@ import {
 
 const RegisterSchoolPage = () => {
   const navigate = useNavigate();
+  const { invalidateAthletes, invalidateRepresentatives } =
+    useInvalidateInscriptions();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -51,35 +54,41 @@ const RegisterSchoolPage = () => {
   const validateRepresentante = () => {
     const errors = {};
 
-    if (!representanteData.cedula?.trim()) {
-      errors.cedula = "La cédula es requerida";
-    } else if (!VALIDATION.CI_PATTERN.test(representanteData.cedula)) {
-      errors.cedula = "Ingresa una cédula válida";
+    // DNI requerido
+    if (!representanteData.dni?.trim()) {
+      errors.dni = "La cédula es requerida";
+    } else if (!VALIDATION.CI_PATTERN.test(representanteData.dni)) {
+      errors.dni = "Ingresa una cédula válida (10 dígitos)";
     }
 
-    if (!representanteData.nombres?.trim())
-      errors.nombres = "Los nombres son requeridos";
-    if (!representanteData.apellidos?.trim())
-      errors.apellidos = "Los apellidos son requeridos";
-    if (!representanteData.parentesco)
-      errors.parentesco = "El parentesco es requerido";
+    // Nombres y apellidos requeridos
+    if (!representanteData.first_name?.trim()) {
+      errors.first_name = "Los nombres son requeridos";
+    }
+    if (!representanteData.last_name?.trim()) {
+      errors.last_name = "Los apellidos son requeridos";
+    }
 
-    if (!representanteData.email?.trim()) {
-      errors.email = "El email es requerido";
-    } else if (!VALIDATION.EMAIL_PATTERN.test(representanteData.email)) {
+    // Parentesco requerido
+    if (!representanteData.relationship_type) {
+      errors.relationship_type = "El parentesco es requerido";
+    }
+
+    // Email opcional pero validar formato si se proporciona
+    if (
+      representanteData.email?.trim() &&
+      !VALIDATION.EMAIL_PATTERN.test(representanteData.email)
+    ) {
       errors.email = "Ingresa un email válido";
     }
 
-    if (!representanteData.telefonoPrincipal?.trim()) {
-      errors.telefonoPrincipal = "El teléfono es requerido";
-    } else if (
-      !VALIDATION.PHONE_PATTERN.test(representanteData.telefonoPrincipal)
+    // Teléfono opcional pero validar formato si se proporciona
+    if (
+      representanteData.phone?.trim() &&
+      !VALIDATION.PHONE_PATTERN.test(representanteData.phone)
     ) {
-      errors.telefonoPrincipal = "Ingresa un teléfono válido";
+      errors.phone = "Ingresa un teléfono válido (10 dígitos)";
     }
-
-    if (!representanteData.direccion?.trim())
-      errors.direccion = "La dirección es requerida";
 
     setRepresentanteErrors(errors);
     return Object.keys(errors).length === 0;
@@ -104,9 +113,28 @@ const RegisterSchoolPage = () => {
     setError(null);
 
     try {
-      setAthleteData(athletePayload);
+      // Filtrar solo los campos que el backend espera para atletas menores
+      // El backend NO acepta: type_stament, type_identification (los fija internamente)
+      const minorAthleteData = {
+        first_name: athletePayload.first_name,
+        last_name: athletePayload.last_name,
+        dni: athletePayload.dni,
+        birth_date: athletePayload.birth_date,
+        sex: athletePayload.sex,
+        height: athletePayload.height
+          ? parseFloat(athletePayload.height)
+          : null,
+        weight: athletePayload.weight
+          ? parseFloat(athletePayload.weight)
+          : null,
+        direction: athletePayload.direction || "S/N",
+        phone: athletePayload.phone || "S/N",
+      };
+
+      setAthleteData(minorAthleteData);
+
       await inscriptionApi.registerMenor({
-        athlete: athletePayload,
+        athlete: minorAthleteData,
         representative: representanteData,
       });
 
@@ -118,19 +146,25 @@ const RegisterSchoolPage = () => {
         description: "El deportista ha sido registrado correctamente.",
       });
 
+      // Invalidar cache para que aparezcan los nuevos datos
+      invalidateAthletes();
+      invalidateRepresentatives();
+
       setRegistrationSuccess(true);
     } catch (err) {
+      const errorMessage =
+        err?.response?.data?.detail || err?.message || MESSAGES.ERROR.GENERIC;
       toast.error("Error en el registro", {
-        description: err?.message || MESSAGES.ERROR.GENERIC,
+        description: errorMessage,
       });
-      setError(err?.message || MESSAGES.ERROR.GENERIC);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   // ==========================================
-  // PANTALLA DE ÉXITO
+  // PANTALLA DE ÉXITO (Simplificada)
   // ==========================================
   if (registrationSuccess) {
     return (
@@ -138,57 +172,35 @@ const RegisterSchoolPage = () => {
         <PublicNavbar />
 
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-md mx-auto">
             <div className="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
-              <div className="bg-success py-6 px-6">
+              <div className="bg-success py-8 px-6">
                 <div className="flex flex-col items-center text-success-content">
-                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3">
-                    <CheckCircle className="w-10 h-10" />
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                    <CheckCircle className="w-12 h-12" />
                   </div>
                   <h1 className="text-2xl font-bold text-center">
-                    ¡Registro Completado!
+                    ¡Registro Exitoso!
                   </h1>
                 </div>
               </div>
 
               <div className="card-body p-6">
-                <p className="text-lg text-center text-base-content mb-4">
-                  Bienvenido,{" "}
-                  <span className="font-bold text-primary">{athleteName}</span>
+                <p className="text-lg text-center text-base-content mb-6">
+                  <span className="font-bold text-primary">{athleteName}</span>{" "}
+                  ha sido registrado correctamente.
                 </p>
 
-                <div className="bg-base-200/50 rounded-xl p-4 mb-4">
-                  <ul className="steps steps-vertical lg:steps-horizontal w-full text-sm">
-                    <li className="step step-success" data-content="✓">
-                      Representante
-                    </li>
-                    <li className="step step-success" data-content="✓">
-                      Deportista
-                    </li>
-                    <li className="step" data-content="3">
-                      Contacto
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="alert alert-info text-sm mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="stroke-current shrink-0 w-5 h-5"
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(ROUTES.LANDING)}
+                    className="w-full"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  <span>Un entrenador se comunicará contigo pronto.</span>
-                </div>
+                    <Home className="w-4 h-4" />
+                    Volver al inicio
+                  </Button>
 
-                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -198,19 +210,10 @@ const RegisterSchoolPage = () => {
                       setRepresentanteData({});
                       setAthleteData(null);
                     }}
-                    className="flex-1"
+                    className="w-full"
                   >
                     <UserPlus className="w-4 h-4" />
-                    Registrar otro
-                  </Button>
-
-                  <Button
-                    variant="primary"
-                    onClick={() => navigate(ROUTES.LANDING)}
-                    className="flex-1"
-                  >
-                    <Home className="w-4 h-4" />
-                    Volver al inicio
+                    Registrar otro deportista
                   </Button>
                 </div>
               </div>

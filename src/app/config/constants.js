@@ -45,6 +45,7 @@ export const ROUTES = {
   INSCRIPTION_CREATE: "/inscription/create",
   INSCRIPTION_EDIT: "/inscription/edit/:id",
   ATHLETE_DETAIL: "/inscription/athlete/:id",
+  REPRESENTATIVE_EDIT: "/inscription/representative/edit/:id",
 
   //? Rutas privadas (requieren autenticación)
   DASHBOARD: "/dashboard",
@@ -265,6 +266,15 @@ export const ESTAMENTO_FILTER_OPTIONS = [
   { value: "EXTERNOS", label: "Externos" },
 ];
 
+/**
+ * Tipos de relación (parentesco) para representantes
+ */
+export const RELATIONSHIP_TYPE_OPTIONS = [
+  { value: "FATHER", label: "Padre" },
+  { value: "MOTHER", label: "Madre" },
+  { value: "LEGAL_GUARDIAN", label: "Tutor Legal" },
+];
+
 // ==============================================
 //? CONFIGURACIÓN DE FECHAS
 
@@ -299,6 +309,7 @@ export const API_ENDPOINTS = {
     CREATE: "/users/create",
     UPDATE: (id) => `/users/update/${id}`,
     DESACTIVATE: (id) => `/users/desactivate/${id}`,
+    ACTIVATE: (id) => `/users/activate/${id}`,
   },
 
   // Athletes
@@ -307,6 +318,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/athletes/${id}`,
     GET_ALL: "/athletes/all",
     CREATE: "/athletes/register-unl",
+    REGISTER_MINOR: "/athletes/register-minor",
     UPDATE: (id) => `/athletes/update/${id}`,
     DESACTIVATE: (id) => `/athletes/desactivate/${id}`,
     ACTIVATE: (id) => `/athletes/activate/${id}`,
@@ -337,6 +349,7 @@ export const API_ENDPOINTS = {
     ATTENDANCE: "/statistics/attendance",
     TESTS: "/statistics/tests",
     BY_ATHLETE: (id) => `/statistics/athlete/${id}`,
+    UPDATE_SPORTS_STATS: (id) => `/statistics/athlete/${id}/sports-stats`,
   },
 
   // Attendance
@@ -345,5 +358,30 @@ export const API_ENDPOINTS = {
     BULK: "/attendances/bulk",
     BY_DATE: "/attendances/by-date",
     SUMMARY: "/attendances/summary",
+  },
+
+  // Representatives
+  REPRESENTATIVES: {
+    BASE: "/representatives",
+    GET_ALL: "/representatives/all",
+    BY_ID: (id) => `/representatives/${id}`,
+    BY_DNI: (dni) => `/representatives/by-dni/${dni}`,
+    CREATE: "/representatives/create",
+    UPDATE: (id) => `/representatives/update/${id}`,
+    DEACTIVATE: (id) => `/representatives/deactivate/${id}`,
+    ACTIVATE: (id) => `/representatives/activate/${id}`,
+  },
+
+  // Interns (Pasantes)
+  INTERNS: {
+    GET_ALL: "/users/interns",
+    PROMOTE: (athleteId) => `/users/promote-athlete/${athleteId}`,
+    ACTIVATE: (id) => `/users/interns/${id}/activate`,
+    DEACTIVATE: (id) => `/users/interns/${id}/deactivate`,
+  },
+
+  // Reports
+  REPORTS: {
+    GENERATE: "/reports",
   },
 };

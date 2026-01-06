@@ -12,54 +12,33 @@ import EnduranceTestForm from "./EnduranceTestForm";
 import TechnicalAssessmentForm from "./TechnicalAssessmentForm";
 
 const EditTestForm = ({ test, mutation, onSuccess, onCancel }) => {
+  // Al editar, ocultamos el selector de atleta ya que el atleta ya está asignado
+  const commonProps = {
+    evaluationId: test.evaluation_id,
+    mutation,
+    onSuccess,
+    isEdit: true,
+    testData: test,
+    onCancel,
+    hideAthleteSelector: true, // Ocultar selector en edición
+  };
+
   const renderForm = () => {
     switch (test.test_type) {
       case "sprint_test":
-        return (
-          <SprintTestForm
-            evaluationId={test.evaluation_id}
-            mutation={mutation}
-            onSuccess={onSuccess}
-            isEdit={true}
-            testData={test}
-            onCancel={onCancel}
-          />
-        );
+        return <SprintTestForm {...commonProps} />;
       case "yoyo_test":
-        return (
-          <YoyoTestForm
-            evaluationId={test.evaluation_id}
-            mutation={mutation}
-            onSuccess={onSuccess}
-            isEdit={true}
-            testData={test}
-            onCancel={onCancel}
-          />
-        );
+        return <YoyoTestForm {...commonProps} />;
       case "endurance_test":
-        return (
-          <EnduranceTestForm
-            evaluationId={test.evaluation_id}
-            mutation={mutation}
-            onSuccess={onSuccess}
-            isEdit={true}
-            testData={test}
-            onCancel={onCancel}
-          />
-        );
+        return <EnduranceTestForm {...commonProps} />;
       case "technical_assessment":
-        return (
-          <TechnicalAssessmentForm
-            evaluationId={test.evaluation_id}
-            mutation={mutation}
-            onSuccess={onSuccess}
-            isEdit={true}
-            testData={test}
-            onCancel={onCancel}
-          />
-        );
+        return <TechnicalAssessmentForm {...commonProps} />;
       default:
-        return <div>Tipo de test no soportado</div>;
+        return (
+          <div className="alert alert-warning">
+            <span>Tipo de test no soportado: {test.test_type}</span>
+          </div>
+        );
     }
   };
 

@@ -149,9 +149,17 @@ function UserTable({ users = [], onEdit, onDelete, loading = false }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="btn-square btn-sm text-error hover:bg-error/10"
+                      className={`btn-square btn-sm ${
+                        user.is_active
+                          ? "text-error hover:bg-error/10"
+                          : "text-success hover:bg-success/10"
+                      }`}
                       onClick={() => onDelete && onDelete(user)}
-                      title="Desactivar usuario"
+                      title={
+                        user.is_active
+                          ? "Desactivar usuario"
+                          : "Activar usuario"
+                      }
                     >
                       <CirclePower size={16} />
                     </Button>

@@ -1,13 +1,23 @@
 /**
- * EvaluationForm Component
- *
- * Formulario reutilizable para crear y editar evaluaciones
+ * EvaluationForm Component - Rediseño
+ * Layout más ancho con mejor uso del espacio
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Calendar,
+  Clock,
+  MapPin,
+  FileText,
+  Save,
+  AlertCircle,
+  Plus,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   useCreateEvaluation,
@@ -15,10 +25,12 @@ import {
   useEvaluationById,
 } from "../../hooks/useEvaluations";
 import { getCurrentUser } from "@/shared/utils/authUtils";
+import Button from "@/shared/components/Button";
 
 const EvaluationForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [error, setError] = useState(null);
   const {
     register,
     handleSubmit,
@@ -40,7 +52,6 @@ const EvaluationForm = ({ isEdit = false }) => {
   const { data: evaluationData, isLoading: isLoadingData } =
     useEvaluationById(id);
 
-  // Cargar datos si es edición
   useEffect(() => {
     if (isEdit && evaluationData?.data) {
       const evaluation = evaluationData.data;
@@ -53,19 +64,15 @@ const EvaluationForm = ({ isEdit = false }) => {
   }, [evaluationData, isEdit, setValue]);
 
   const onSubmit = async (formData) => {
-    // Validar que la fecha no sea anterior a hoy
     const today = new Date().toISOString().split("T")[0];
     if (formData.date < today) {
       toast.error("La fecha no puede ser anterior a hoy");
       return;
     }
 
-    // Normalizar fecha sin desplazar por zona horaria
     const normalizeDate = (value) => {
       if (!value) return value;
-      // Formato nativo input date: YYYY-MM-DD
       if (value.includes("-")) return value.slice(0, 10);
-      // Formato local MM/DD/YYYY
       if (value.includes("/")) {
         const [mm, dd, yyyy] = value.split("/");
         if (yyyy && mm && dd) {
@@ -75,7 +82,6 @@ const EvaluationForm = ({ isEdit = false }) => {
       return value;
     };
 
-    // Combinar fecha + hora en un datetime ISO para que el backend compare con hora correcta
     const selectedDate = normalizeDate(formData.date);
     const timeHHMM = (formData.time || "00:00").slice(0, 5);
     const dateTimeIso = `${selectedDate}T${timeHHMM}:00`;
@@ -85,184 +91,233 @@ const EvaluationForm = ({ isEdit = false }) => {
       date: dateTimeIso,
     };
 
-    // Debug: ver payload que se envía
-    // eslint-disable-next-line no-console
-    console.log("Payload evaluación:", payload);
-
-    // Asegurar que el user_id se envía siempre que exista
     if (!isEdit) {
       payload.user_id = currentUser?.id;
     }
 
     try {
       if (isEdit) {
-        await updateEvaluation.mutateAsync({
-          id,
-          data: payload,
-        });
+        await updateEvaluation.mutateAsync({ id, data: payload });
+        toast.success("Evaluación actualizada");
+        setTimeout(() => navigate("/seguimiento/evaluations"), 1000);
       } else {
-        const result = await createEvaluation.mutateAsync({
-          ...payload,
+        const result = await createEvaluation.mutateAsync(payload);
+        toast.success("Evaluación creada", {
+          description: "Ahora puedes agregar tests",
         });
-        // Redirigir a la evaluación creada para agregar tests
         setTimeout(() => {
           navigate(`/seguimiento/evaluations/${result.data.id}/add-tests`);
-        }, 1500);
-        return;
+        }, 1000);
       }
-
-      // Redirigir a lista si es edición
-      setTimeout(() => {
-        navigate("/seguimiento/evaluations");
-      }, 1500);
     } catch (error) {
-      console.error("Error en formulario:", error);
+      console.error("Error:", error);
+      // Extraer mensaje de error del backend
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Error al guardar la evaluación";
+      setError(errorMessage);
     }
   };
 
-  const today = new Date().toISOString().split("T")[0];
-
   if (isEdit && isLoadingData) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="h-screen flex items-center justify-center bg-slate-50">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Encabezado */}
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate("/seguimiento/evaluations")}
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
-          <ArrowLeft size={24} className="text-gray-600" />
-        </button>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {isEdit ? "Editar Evaluación" : "Nueva Evaluación"}
-        </h1>
+    <div className=" bg-slate-50">
+      {/* Header */}
+      <div className="bg-base-100 border-b border-base-200 px-6 py-4 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto flex items-center gap-4">
+          <button
+            onClick={() => navigate("/seguimiento/evaluations")}
+            className="btn btn-ghost btn-sm btn-square"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <ClipboardList size={20} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-slate-900">
+                {isEdit ? "Editar Evaluación" : "Nueva Evaluación"}
+              </h1>
+              <p className="text-xs text-slate-500">
+                {isEdit
+                  ? "Modifica los datos de la evaluación"
+                  : "Crea una evaluación para registrar tests"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Formulario */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white rounded-lg shadow-lg p-8 space-y-6"
-      >
-        {/* Nombre */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Nombre de la Evaluación *
-          </label>
-          <input
-            type="text"
-            placeholder="Ej: Evaluación Física Pre-Temporada"
-            {...register("name", {
-              required: "El nombre es requerido",
-              minLength: {
-                value: 3,
-                message: "El nombre debe tener al menos 3 caracteres",
-              },
-            })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.name && (
-            <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+      {/* Form Content */}
+      <div className="px-6 py-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Error Alert */}
+          {error && (
+            <div className="bg-error/10 border border-error/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+              <AlertCircle size={20} className="text-error shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-error mb-1">Error</h3>
+                <p className="text-sm text-error/90">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="btn btn-ghost btn-sm btn-square shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
           )}
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="bg-base-100 border border-base-200 rounded-xl p-6 shadow-sm">
+              {/* Name */}
+              <div className="mb-6">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                  <ClipboardList size={14} />
+                  Nombre de la Evaluación
+                  <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Evaluación Física Pre-Temporada 2024"
+                  {...register("name", {
+                    required: "El nombre es requerido",
+                    minLength: { value: 3, message: "Mínimo 3 caracteres" },
+                  })}
+                  className="input input-bordered w-full bg-white"
+                />
+                {errors.name && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Date/Time Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <Calendar size={14} />
+                    Fecha
+                    <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    {...register("date", { required: "La fecha es requerida" })}
+                    className="input input-bordered w-full bg-white"
+                  />
+                  {errors.date && (
+                    <p className="text-error text-xs mt-1">
+                      {errors.date.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                    <Clock size={14} />
+                    Hora
+                    <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    {...register("time", { required: "La hora es requerida" })}
+                    className="input input-bordered w-full bg-white"
+                  />
+                  {errors.time && (
+                    <p className="text-error text-xs mt-1">
+                      {errors.time.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="mb-6">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                  <MapPin size={14} />
+                  Ubicación
+                  <span className="text-slate-400 font-normal">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Estadio, Cancha Principal, Gimnasio"
+                  {...register("location")}
+                  className="input input-bordered w-full bg-white"
+                />
+              </div>
+
+              {/* Observations */}
+              <div className="mb-6">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                  <FileText size={14} />
+                  Observaciones
+                  <span className="text-slate-400 font-normal">(opcional)</span>
+                </label>
+                <textarea
+                  placeholder="Notas adicionales, objetivos de la evaluación, equipos a evaluar..."
+                  rows="3"
+                  {...register("observations")}
+                  className="textarea textarea-bordered w-full bg-white"
+                />
+              </div>
+
+              {/* Info Note for Create */}
+              {!isEdit && (
+                <div className="bg-info/5 border border-info/20 rounded-lg p-4 mb-6 flex items-start gap-3">
+                  <Plus size={18} className="text-info shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-info">
+                      Después de crear
+                    </p>
+                    <p className="text-xs text-info/80">
+                      Serás redirigido para agregar tests de velocidad,
+                      resistencia, Yoyo y evaluaciones técnicas.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-base-200">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => navigate("/seguimiento/evaluations")}
+                  className="flex-1 md:flex-none"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={
+                    createEvaluation.isPending || updateEvaluation.isPending
+                  }
+                  disabled={
+                    createEvaluation.isPending || updateEvaluation.isPending
+                  }
+                  className="flex-1 md:flex-none gap-2"
+                >
+                  <Save size={16} />
+                  {isEdit ? "Guardar Cambios" : "Crear Evaluación"}
+                </Button>
+              </div>
+            </div>
+          </form>
         </div>
-
-        {/* Fecha */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Fecha *
-            </label>
-            <input
-              type="date"
-              {...register("date", {
-                required: "La fecha es requerida",
-              })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.date && (
-              <p className="text-red-600 text-sm mt-1">{errors.date.message}</p>
-            )}
-          </div>
-
-          {/* Hora */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Hora *
-            </label>
-            <input
-              type="time"
-              {...register("time", {
-                required: "La hora es requerida",
-              })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.time && (
-              <p className="text-red-600 text-sm mt-1">{errors.time.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Ubicación */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Ubicación (Opcional)
-          </label>
-          <input
-            type="text"
-            placeholder="Ej: Cancha Principal"
-            {...register("location")}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Observaciones */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Observaciones (Opcional)
-          </label>
-          <textarea
-            placeholder="Notas adicionales sobre la evaluación..."
-            rows="4"
-            {...register("observations")}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Botones */}
-        <div className="flex gap-4 pt-6 border-t">
-          <button
-            type="submit"
-            disabled={createEvaluation.isPending || updateEvaluation.isPending}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
-          >
-            {createEvaluation.isPending || updateEvaluation.isPending
-              ? "Guardando..."
-              : isEdit
-              ? "Actualizar Evaluación"
-              : "Crear Evaluación"}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/seguimiento/evaluations")}
-            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold py-2 rounded-lg transition"
-          >
-            Cancelar
-          </button>
-        </div>
-
-        {!isEdit && (
-          <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-            ℹ️ Después de crear la evaluación, podrás agregar tests de
-            velocidad, resistencia, Yoyo y evaluaciones técnicas.
-          </p>
-        )}
-      </form>
+      </div>
     </div>
   );
 };

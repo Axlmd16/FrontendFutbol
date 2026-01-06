@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import PropTypes from "prop-types";
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, size = "default" }) => {
   // Mantenemos tu lógica de bloqueo de scroll y Escape, es excelente para UX.
   useEffect(() => {
     if (!isOpen) return;
@@ -24,12 +24,18 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   // Si no está abierto, no renderizamos nada para evitar conflictos de z-index
   if (!isOpen) return null;
 
+  const sizeClasses = {
+    default: "",
+    large: "max-w-3xl",
+    xlarge: "max-w-4xl",
+  };
+
   return (
     // 'modal-open' fuerza la visibilidad ya que controlamos el estado con React
     // 'modal-bottom sm:modal-middle' hace que en móvil salga de abajo, y en PC al centro
     <dialog className="modal modal-open modal-bottom sm:modal-middle">
       {/* Caja del Modal */}
-      <div className="modal-box relative">
+      <div className={`modal-box relative ${sizeClasses[size] || ""}`}>
         {/* Botón de cerrar (X) flotante en la esquina */}
         <button
           onClick={onClose}
@@ -60,6 +66,7 @@ Modal.propTypes = {
   onClose: PropTypes.func.isRequired,
   title: PropTypes.string,
   children: PropTypes.node.isRequired,
+  size: PropTypes.oneOf(["default", "large", "xlarge"]),
 };
 
 export default Modal;

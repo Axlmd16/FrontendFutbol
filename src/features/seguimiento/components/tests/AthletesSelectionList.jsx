@@ -1,23 +1,31 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Users, Loader, ChevronDown, ChevronUp, Search } from "lucide-react";
+import {
+  Users,
+  Search,
+  Filter,
+  ChevronDown,
+  User,
+  Check,
+  X,
+} from "lucide-react";
 import useDebounce from "@/shared/hooks/useDebounce";
 import athletesApi from "../../services/athletes.api";
 
 /**
- * Componente para seleccionar atletas de una lista
- * Reutilizable en todos los formularios de test
+ * AthletesSelectionList - Componente rediseñado para seleccionar atletas
+ * Diseño moderno con mejor UX
  */
 function AthletesSelectionList({
   selectedAthleteIds = [],
   onSelectionChange,
-  multiSelect = false, // for backward compatibility, but we enforce single select
+  multiSelect = false,
   loading: parentLoading = false,
   onSelectedAthleteChange = () => {},
 }) {
   const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedFilters, setExpandedFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [pagination, setPagination] = useState({
@@ -27,6 +35,33 @@ function AthletesSelectionList({
   });
 
   const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // Configuración de tipos de atleta
+  const athleteTypes = {
+    EXTERNOS: { label: "Externos", color: "bg-info/10 text-info" },
+    ESTUDIANTES: {
+      label: "Estudiante",
+      color: "bg-secondary/10 text-secondary",
+    },
+    DOCENTES: { label: "Docente", color: "bg-success/10 text-success" },
+    TRABAJADORES: { label: "Trabajador", color: "bg-warning/10 text-warning" },
+    ADMINISTRATIVOS: { label: "Admin", color: "bg-primary/10 text-primary" },
+  };
+
+  const genderOptions = [
+    { value: "", label: "Todos" },
+    { value: "Male", label: "Masculino" },
+    { value: "Female", label: "Femenino" },
+  ];
+
+  const typeOptions = [
+    { value: "", label: "Todos los tipos" },
+    { value: "EXTERNOS", label: "Externos" },
+    { value: "ESTUDIANTES", label: "Estudiante" },
+    { value: "DOCENTES", label: "Docente" },
+    { value: "TRABAJADORES", label: "Trabajador" },
+    { value: "ADMINISTRATIVOS", label: "Admin" },
+  ];
 
   // Cargar atletas
   const fetchAthletes = useCallback(async () => {
@@ -38,13 +73,12 @@ function AthletesSelectionList({
         search: debouncedSearch || undefined,
         type_athlete: typeFilter || undefined,
         gender: genderFilter || undefined,
-        is_active: true, // Solo mostrar atletas activos
+        is_active: true,
       };
 
       const response = await athletesApi.getAll(params);
 
       if (response.status === "success" && response.data) {
-        // Filtrar atletas inactivos en caso de que el backend no lo haga
         const activeAthletes = (response.data.items || []).filter(
           (a) => a.is_active === true
         );
@@ -71,236 +105,249 @@ function AthletesSelectionList({
     fetchAthletes();
   }, [fetchAthletes]);
 
-  // Refetch cuando el componente se monta para asegurar datos frescos
-  useEffect(() => {
-    const unsubscribe = window.addEventListener("focus", fetchAthletes);
-    return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
-      }
-    };
-  }, [fetchAthletes]);
-
   // Manejar selección
   const handleToggleAthlete = (athleteId) => {
-    // Forzado a single select: si está seleccionado se desmarca, si no, se reemplaza.
     const newSelection = selectedAthleteIds.includes(athleteId)
       ? []
       : [athleteId];
 
     onSelectionChange(newSelection);
 
-    // Notificar atleta(s) seleccionado(s) (útil para modo single select)
     if (onSelectedAthleteChange) {
-      if (!multiSelect) {
-        const selectedAthlete =
-          newSelection.length === 1
-            ? athletes.find((a) => a.id === newSelection[0]) || null
-            : null;
-        onSelectedAthleteChange(selectedAthlete);
-      } else {
-        const selectedList = athletes.filter((a) =>
-          newSelection.includes(a.id)
-        );
-        onSelectedAthleteChange(selectedList);
-      }
+      const selectedAthlete =
+        newSelection.length === 1
+          ? athletes.find((a) => a.id === newSelection[0]) || null
+          : null;
+      onSelectedAthleteChange(selectedAthlete);
     }
-  };
-
-  // Tipos de atleta
-  const formatAthleteType = (type) => {
-    const types = {
-      EXTERNOS: {
-        label: "Escuela",
-        class: "bg-blue-100 text-blue-700",
-      },
-      ESTUDIANTES: {
-        label: "Estudiante",
-        class: "bg-purple-100 text-purple-700",
-      },
-      DOCENTES: {
-        label: "Docente",
-        class: "bg-emerald-100 text-emerald-700",
-      },
-      TRABAJADORES: {
-        label: "Trabajador",
-        class: "bg-orange-100 text-orange-700",
-      },
-      ADMINISTRATIVOS: {
-        label: "Admin",
-        class: "bg-slate-100 text-slate-700",
-      },
-    };
-    return types[type] || { label: type, class: "bg-gray-100 text-gray-700" };
   };
 
   const isSelected = (athleteId) => selectedAthleteIds.includes(athleteId);
   const selectedCount = selectedAthleteIds.length;
+  const hasFilters = typeFilter || genderFilter;
+
+  const clearFilters = () => {
+    setTypeFilter("");
+    setGenderFilter("");
+    setSearchTerm("");
+  };
+
+  const getAthleteTypeInfo = (type) => {
+    return (
+      athleteTypes[type] || {
+        label: type || "N/A",
+        color: "bg-slate-100 text-slate-600",
+      }
+    );
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-      {/* Header */}
-      <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              Seleccionar Atletas
-            </h3>
-          </div>
-          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-            {selectedCount} seleccionado{selectedCount !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        {/* Búsqueda */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+    <div className="space-y-4">
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar por nombre, apellido o club..."
+            placeholder="Buscar atleta por nombre o cédula..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="input input-bordered input-sm w-full pl-10 bg-white"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
+
+        {/* Filter Toggle */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`btn btn-sm gap-2 ${
+            showFilters || hasFilters
+              ? "btn-primary"
+              : "btn-ghost border border-base-300"
+          }`}
+        >
+          <Filter size={14} />
+          Filtros
+          {hasFilters && (
+            <span className="badge badge-xs badge-white">
+              {(typeFilter ? 1 : 0) + (genderFilter ? 1 : 0)}
+            </span>
+          )}
+          <ChevronDown
+            size={14}
+            className={`transition-transform ${
+              showFilters ? "rotate-180" : ""
+            }`}
+          />
+        </button>
       </div>
 
-      {/* Filtros (expandible) */}
-      <div className="border-b border-gray-200">
-        <button
-          onClick={() => setExpandedFilters(!expandedFilters)}
-          className="w-full flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
-        >
-          <span className="text-sm font-semibold text-gray-700">Filtros</span>
-          {expandedFilters ? (
-            <ChevronUp className="w-4 h-4 text-gray-500" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          )}
-        </button>
-
-        {expandedFilters && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-            <div className="flex flex-wrap gap-3">
+      {/* Expandable Filters */}
+      {showFilters && (
+        <div className="card bg-base-100 border border-base-300 p-4">
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex-1 min-w-[150px]">
+              <label className="label py-0 pb-1">
+                <span className="label-text text-xs">Tipo de Atleta</span>
+              </label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="select select-bordered select-sm w-full bg-white"
               >
-                <option value="">Todos los tipos</option>
-                <option value="EXTERNOS">Escuela</option>
-                <option value="ESTUDIANTES">Estudiante</option>
-                <option value="DOCENTES">Docente</option>
-                <option value="TRABAJADORES">Trabajador</option>
-                <option value="ADMINISTRATIVOS">Admin</option>
+                {typeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <label className="label py-0 pb-1">
+                <span className="label-text text-xs">Sexo</span>
+              </label>
               <select
                 value={genderFilter}
                 onChange={(e) => setGenderFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="select select-bordered select-sm w-full bg-white"
               >
-                <option value="">Todos los sexos</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
+                {genderOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="btn btn-sm btn-ghost text-error"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
+        </div>
+      )}
+
+      {/* Results Header */}
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-500">
+          {loading ? (
+            "Cargando atletas..."
+          ) : (
+            <>
+              <span className="font-medium text-slate-900">
+                {athletes.length}
+              </span>{" "}
+              atletas encontrados
+            </>
+          )}
+        </span>
+        {selectedCount > 0 && (
+          <span className="badge badge-primary gap-1">
+            <Check size={12} />
+            {selectedCount} seleccionado
+          </span>
         )}
       </div>
 
-      {/* Lista de atletas */}
-      <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+      {/* Athletes Grid */}
+      <div className="border border-base-200 rounded-lg overflow-hidden">
         {loading || parentLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader className="w-5 h-5 text-blue-500 animate-spin" />
+            <span className="loading loading-spinner loading-md text-primary"></span>
           </div>
         ) : athletes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <Users className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">No se encontraron atletas</p>
+          <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+            <div className="bg-slate-100 p-4 rounded-full mb-3">
+              <Users size={24} className="text-slate-400" />
+            </div>
+            <p className="font-medium">No se encontraron atletas</p>
+            <p className="text-xs mt-1">
+              Intenta con otros filtros de búsqueda
+            </p>
           </div>
         ) : (
-          athletes.map((athlete) => {
-            const selected = isSelected(athlete.id);
-            const typeInfo = formatAthleteType(athlete.type_athlete);
+          <div className="max-h-80 overflow-y-auto divide-y divide-base-200">
+            {athletes.map((athlete) => {
+              const selected = isSelected(athlete.id);
+              const typeInfo = getAthleteTypeInfo(athlete.type_athlete);
 
-            return (
-              <div
-                key={athlete.id}
-                onClick={() => handleToggleAthlete(athlete.id)}
-                className={`px-6 py-4 cursor-pointer transition-all duration-200 ${
-                  selected
-                    ? "bg-blue-50 border-l-4 border-l-blue-500"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  {/* Checkbox visual */}
+              return (
+                <div
+                  key={athlete.id}
+                  onClick={() => handleToggleAthlete(athlete.id)}
+                  className={`flex items-center gap-3 p-3 cursor-pointer transition-all ${
+                    selected
+                      ? "bg-primary/5 border-l-4 border-l-primary"
+                      : "hover:bg-slate-50 border-l-4 border-l-transparent"
+                  }`}
+                >
+                  {/* Avatar */}
                   <div
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                       selected
-                        ? "bg-blue-500 border-blue-500"
-                        : "border-gray-300 hover:border-blue-400"
+                        ? "bg-primary text-white"
+                        : "bg-linear-to-br from-primary/10 to-primary/5"
                     }`}
                   >
-                    {selected && (
-                      <svg
-                        className="w-3 h-3 text-white"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                    {selected ? (
+                      <Check size={18} />
+                    ) : (
+                      <span className="text-sm font-bold text-primary">
+                        {athlete.full_name?.charAt(0)?.toUpperCase() || "?"}
+                      </span>
                     )}
                   </div>
 
-                  {/* Datos del atleta */}
-                  <div className="grow min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <p className="font-semibold text-gray-900 truncate">
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-900 text-sm truncate">
                         {athlete.full_name}
-                      </p>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${typeInfo.class}`}
-                      >
+                      </span>
+                      <span className={`badge badge-xs ${typeInfo.color}`}>
                         {typeInfo.label}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      {athlete.club && (
-                        <>
-                          <span className="truncate">{athlete.club}</span>
-                          <span>•</span>
-                        </>
-                      )}
-                      {athlete.dni && <span>DNI: {athlete.dni}</span>}
-                      {!athlete.dni && !athlete.club && <span>Sin DNI</span>}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                      {athlete.dni && <span>CI: {athlete.dni}</span>}
+                      {athlete.height && <span>• {athlete.height} cm</span>}
+                      {athlete.weight && <span>• {athlete.weight} kg</span>}
                     </div>
                   </div>
 
-                  {/* Indicador de selección */}
-                  {selected && (
-                    <div className="shrink-0 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
-                      ✓
-                    </div>
-                  )}
+                  {/* Selection Indicator */}
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      selected
+                        ? "bg-primary border-primary"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    {selected && <Check size={12} className="text-white" />}
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* Resumen */}
-      {athletes.length > 0 && (
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600">
-          Mostrando {athletes.length} de {pagination.total} atletas
-        </div>
+      {/* Helper Text */}
+      {!selectedCount && athletes.length > 0 && (
+        <p className="text-xs text-slate-400 text-center">
+          Haz clic en un atleta para seleccionarlo
+        </p>
       )}
     </div>
   );

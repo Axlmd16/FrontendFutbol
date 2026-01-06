@@ -1,47 +1,51 @@
+/**
+ * EditRepresentativePage - Página para editar un representante
+ * Usa RepresentanteForm en modo edición y TanStack Query para cache
+ */
+
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import DeportistaForm from "@/features/inscription/components/DeportistaForm";
 import Loader from "@/shared/components/Loader";
-import athletesApi from "@/features/athletes/services/athletes.api";
+import RepresentanteForm from "@/features/inscription/components/RepresentanteForm";
+import representativesApi from "@/features/athletes/services/representatives.api";
 import {
-  useAthleteDetail,
+  useRepresentativeDetail,
   useInvalidateInscriptions,
 } from "@/features/athletes/hooks/useInscriptions";
 import { ROUTES, MESSAGES } from "@/app/config/constants";
 import { ArrowLeft, UserCog, AlertCircle } from "lucide-react";
-import { useState } from "react";
 
-const EditAthletePage = () => {
+const EditRepresentativePage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
-  const { invalidateAthletes, invalidateAthlete } = useInvalidateInscriptions();
+  const { invalidateRepresentatives } = useInvalidateInscriptions();
 
   // Usar TanStack Query para cache (5 min staleTime)
   const {
-    data: athlete,
+    data: representative,
     isLoading: loading,
     error: fetchError,
-  } = useAthleteDetail(id);
+  } = useRepresentativeDetail(id);
 
-  const handleSubmit = async (athleteData) => {
+  const handleSubmit = async (formData) => {
     setSaving(true);
     setError(null);
 
     try {
-      await athletesApi.update(id, athleteData);
-      invalidateAthletes();
-      invalidateAthlete(id);
-      toast.success(MESSAGES.SUCCESS.ATHLETE_UPDATED, {
-        description: MESSAGES.SUCCESS.ATHLETE_UPDATED_DESC,
+      await representativesApi.update(id, formData);
+      toast.success("Representante actualizado", {
+        description: "Los datos se guardaron correctamente.",
       });
+      invalidateRepresentatives();
       navigate(ROUTES.INSCRIPTION);
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
       setError(errorMessage);
-      toast.error(MESSAGES.ERROR.ATHLETE_UPDATE, {
+      toast.error("Error al actualizar", {
         description: errorMessage,
       });
     } finally {
@@ -63,9 +67,9 @@ const EditAthletePage = () => {
   }
 
   // Not found state
-  if ((!athlete && !loading) || fetchError) {
+  if ((!representative && !loading) || fetchError) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <button
           onClick={handleCancel}
           className="flex items-center gap-1 text-base-content/60 hover:text-primary transition-colors w-fit"
@@ -80,12 +84,12 @@ const EditAthletePage = () => {
               <AlertCircle size={32} className="text-error" />
             </div>
             <h2 className="text-xl font-bold text-base-content">
-              Deportista no encontrado
+              Representante no encontrado
             </h2>
             <p className="text-base-content/60 max-w-sm">
               {fetchError?.message ||
                 error ||
-                "El deportista que buscas no existe o fue eliminado."}
+                "El representante que buscas no existe o fue eliminado."}
             </p>
             <button
               onClick={handleCancel}
@@ -102,7 +106,7 @@ const EditAthletePage = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 pb-8">
       {/* Fondo decorativo */}
-      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-64 bg-linear-to-b from-secondary/5 to-transparent pointer-events-none" />
 
       <div className="px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
         <button
@@ -114,35 +118,35 @@ const EditAthletePage = () => {
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
         {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 text-primary mb-2">
-            <span className="bg-primary/10 p-1 rounded-md">
-              <UserCog size={14} />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 text-secondary mb-2">
+            <span className="bg-secondary/10 p-1.5 rounded-md">
+              <UserCog size={16} />
             </span>
             <span className="text-[10px] font-bold tracking-wider uppercase">
-              Editar Deportista
+              Editar Representante
             </span>
           </div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {athlete?.full_name}
+            {representative?.full_name}
           </h1>
           <p className="text-slate-500 text-sm">
-            Modifica los datos del deportista.
+            Modifica los datos del representante legal.
           </p>
         </div>
 
         {/* Form Card */}
         <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-4">
-            <DeportistaForm
-              initialData={athlete}
+          <div className="card-body p-6">
+            <RepresentanteForm
+              initialData={representative}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               loading={saving}
               error={error}
-              isMenor={false}
+              isEdit={true}
             />
           </div>
         </div>
@@ -151,4 +155,4 @@ const EditAthletePage = () => {
   );
 };
 
-export default EditAthletePage;
+export default EditRepresentativePage;

@@ -35,8 +35,8 @@ const LoginPage = () => {
   return (
     <div>
       <PublicNavbar />
-      <div className="min-h-screen flex items-center justify-center bg-base-200 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+      <div className="flex items-center justify-center bg-base-200 py-12 px-4 sm:px-6 lg:px-8 h-[calc(100vh-5rem)]">
+        <div className="max-w-md w-full ">
           {/* Card principal */}
           <div className="bg-base-100 rounded-2xl shadow-xl p-8">
             {/* Header */}
