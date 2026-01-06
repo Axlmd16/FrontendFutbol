@@ -118,7 +118,16 @@ const DeportistaForm = ({
     reset(defaultValues);
   }, [defaultValues, reset]);
 
-  const onValidSubmit = (data) => onSubmit(data);
+  const onValidSubmit = (data) => {
+    // Limpiar datos antes de enviar
+    const cleanedData = {
+      ...data,
+      height: data.height === "" ? null : Number(data.height),
+      weight: data.weight === "" ? null : Number(data.weight),
+      phone: data.phone === "" ? null : data.phone,
+    };
+    onSubmit(cleanedData);
+  };
 
   const typeIdentification = useWatch({ control, name: "type_identification" });
 
@@ -398,7 +407,15 @@ const DeportistaForm = ({
               placeholder="Ej: 1.75"
               error={errors.height?.message}
               disabled={loading}
-              {...register("height")}
+              {...register("height", {
+                validate: (value) => {
+                  if (!value) return true;
+                  return (
+                    (!isNaN(parseFloat(value)) && isFinite(value)) ||
+                    "Número inválido"
+                  );
+                },
+              })}
             />
             <Input
               label="Peso (kg)"
@@ -406,7 +423,15 @@ const DeportistaForm = ({
               placeholder="Ej: 70"
               error={errors.weight?.message}
               disabled={loading}
-              {...register("weight")}
+              {...register("weight", {
+                validate: (value) => {
+                  if (!value) return true;
+                  return (
+                    (!isNaN(parseFloat(value)) && isFinite(value)) ||
+                    "Número inválido"
+                  );
+                },
+              })}
             />
           </div>
         </section>
