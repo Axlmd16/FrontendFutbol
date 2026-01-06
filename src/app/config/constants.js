@@ -309,6 +309,7 @@ export const API_ENDPOINTS = {
     CREATE: "/users/create",
     UPDATE: (id) => `/users/update/${id}`,
     DESACTIVATE: (id) => `/users/desactivate/${id}`,
+    ACTIVATE: (id) => `/users/activate/${id}`,
   },
 
   // Athletes
@@ -348,6 +349,7 @@ export const API_ENDPOINTS = {
     ATTENDANCE: "/statistics/attendance",
     TESTS: "/statistics/tests",
     BY_ATHLETE: (id) => `/statistics/athlete/${id}`,
+    UPDATE_SPORTS_STATS: (id) => `/statistics/athlete/${id}/sports-stats`,
   },
 
   // Attendance

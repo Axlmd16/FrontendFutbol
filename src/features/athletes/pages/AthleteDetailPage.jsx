@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   User,
@@ -16,7 +17,6 @@ import {
   ClipboardList,
   Zap,
   Heart,
-  Dumbbell,
   Target,
   Trophy,
   AlertCircle,
@@ -38,6 +38,9 @@ import {
   formatStatValue,
 } from "@/shared/utils/performanceUtils";
 import StatsHelpModal from "../components/StatsHelpModal";
+import SportsStatsModal from "../components/SportsStatsModal";
+import http from "@/app/config/http";
+import { API_ENDPOINTS } from "@/app/config/constants";
 
 // Hooks de estadísticas con cache
 import {
@@ -71,6 +74,8 @@ function AthleteDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showSportsModal, setShowSportsModal] = useState(false);
+  const [savingStats, setSavingStats] = useState(false);
 
   // Queries con cache (5 minutos)
   const {
@@ -80,10 +85,36 @@ function AthleteDetailPage() {
     error: infoErrorData,
   } = useAthleteInfo(id);
 
-  const { data: stats, isLoading: statsLoading } = useAthleteStats(id);
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    refetch: refetchStats,
+  } = useAthleteStats(id);
 
   const loading = infoLoading || statsLoading;
   const error = infoError ? infoErrorData?.message : null;
+
+  // Handler para guardar estadísticas deportivas
+  const handleSaveSportsStats = async (formData) => {
+    setSavingStats(true);
+    try {
+      await http.patch(
+        API_ENDPOINTS.STATISTICS.UPDATE_SPORTS_STATS(id),
+        formData
+      );
+      toast.success("Estadísticas actualizadas", {
+        description:
+          "Las estadísticas deportivas se han guardado correctamente.",
+      });
+      setShowSportsModal(false);
+      refetchStats(); // Refrescar datos
+    } catch (err) {
+      const message = err.response?.data?.message || err.message;
+      toast.error("Error al guardar", { description: message });
+    } finally {
+      setSavingStats(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -399,7 +430,7 @@ function AthleteDetailPage() {
                       ¿Cómo se calculan?
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     {/* Speed */}
                     <div className="bg-base-200/50 rounded-lg p-3 text-center">
                       <Zap size={20} className="mx-auto mb-1 text-yellow-500" />
@@ -434,26 +465,6 @@ function AthleteDetailPage() {
                         {getPerformanceLevel(stats.stamina).level}
                       </span>
                     </div>
-                    {/* Strength */}
-                    <div className="bg-base-200/50 rounded-lg p-3 text-center">
-                      <Dumbbell
-                        size={20}
-                        className="mx-auto mb-1 text-blue-500"
-                      />
-                      <p className="text-xl font-bold">
-                        {formatStatValue(stats.strength)}
-                      </p>
-                      <p className="text-xs text-base-content/60 mb-1">
-                        Fuerza
-                      </p>
-                      <span
-                        className={`badge ${
-                          getPerformanceLevel(stats.strength).badgeClass
-                        } badge-sm`}
-                      >
-                        {getPerformanceLevel(stats.strength).level}
-                      </span>
-                    </div>
                     {/* Agility */}
                     <div className="bg-base-200/50 rounded-lg p-3 text-center">
                       <Target
@@ -479,10 +490,19 @@ function AthleteDetailPage() {
 
                 {/* Game Stats */}
                 <div>
-                  <h3 className="font-semibold text-base-content/80 mb-3 flex items-center gap-2">
-                    <Trophy size={16} className="text-amber-500" />
-                    Rendimiento Deportivo
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-base-content/80 flex items-center gap-2">
+                      <Trophy size={16} className="text-amber-500" />
+                      Rendimiento Deportivo
+                    </h3>
+                    <button
+                      className="btn btn-ghost btn-xs gap-1"
+                      onClick={() => setShowSportsModal(true)}
+                    >
+                      <Pencil size={14} />
+                      Editar
+                    </button>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center py-2 border-b border-base-200">
                       <span className="text-base-content/70">
@@ -629,6 +649,16 @@ function AthleteDetailPage() {
       <StatsHelpModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
+      />
+
+      {/* Sports Stats Modal */}
+      <SportsStatsModal
+        isOpen={showSportsModal}
+        onClose={() => setShowSportsModal(false)}
+        onSave={handleSaveSportsStats}
+        stats={stats}
+        athleteName={athleteInfo?.full_name || ""}
+        loading={savingStats}
       />
     </>
   );
