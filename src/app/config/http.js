@@ -184,6 +184,17 @@ http.interceptors.response.use(
       return Promise.reject(new Error("El recurso solicitado no existe."));
     }
 
+    // 409 Conflict (Duplicado)
+    if (response?.status === 409) {
+      console.error("[HTTP 409]:", "Conflicto - recurso duplicado");
+      const errorMessage =
+        response?.data?.detail ||
+        response?.data?.message ||
+        "El recurso ya existe.";
+      toast.error(errorMessage);
+      return Promise.reject(new Error(errorMessage));
+    }
+
     // 400 (Bad Request)
     if (response?.status === 400) {
       console.error("[HTTP 400]:", response?.data);
