@@ -266,7 +266,31 @@ const DeportistaForm = ({
             error={errors.birth_date?.message}
             disabled={loading}
             required
-            {...register("birth_date", { required: "Requerido" })}
+            {...register("birth_date", {
+              required: "Requerido",
+              validate: (value) => {
+                if (!value) return "Requerido";
+                const d = new Date(value);
+                if (isNaN(d)) return "Fecha inválida";
+                const today = new Date();
+                const todayMid = new Date(
+                  today.getFullYear(),
+                  today.getMonth(),
+                  today.getDate()
+                );
+                const yesterday = new Date(todayMid);
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                // Calcular edad exacta
+                let age = today.getFullYear() - d.getFullYear();
+                const m = today.getMonth() - d.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+                  age -= 1;
+                }
+                if (d >= yesterday || age <= 16) return "Debe ser mayor de 16 años";
+                return true;
+              },
+            })}
           />
 
           {/* Sexo */}
@@ -421,9 +445,9 @@ const DeportistaForm = ({
                 validate: (value) => {
                   if (!value || value === "") return true; // Opcional
                   const num = parseFloat(value);
-                  if (isNaN(num) || num <= 0) {
-                    return "La altura debe ser mayor a 0";
-                  }
+                  if (isNaN(num)) return "Altura inválida";
+                  if (num < 1.0 || num > 2.5)
+                    return "La altura debe estar entre 1m y 2.5m";
                   return true;
                 },
               })}
@@ -439,9 +463,9 @@ const DeportistaForm = ({
                 validate: (value) => {
                   if (!value || value === "") return true; // Opcional
                   const num = parseFloat(value);
-                  if (isNaN(num) || num <= 0) {
-                    return "El peso debe ser mayor a 0";
-                  }
+                  if (isNaN(num)) return "Peso inválido";
+                  if (num < 18 || num > 200)
+                    return "El peso debe estar entre 18 kg y 200 kg";
                   return true;
                 },
               })}
