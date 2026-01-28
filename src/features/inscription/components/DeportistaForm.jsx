@@ -107,6 +107,7 @@ const DeportistaForm = ({
     register,
     handleSubmit,
     control,
+    watch,
     reset,
     formState: { errors },
   } = useForm({
@@ -246,6 +247,10 @@ const DeportistaForm = ({
             {...register("first_name", {
               required: "Requerido",
               minLength: { value: 3, message: "Mín. 3 caracteres" },
+              pattern: {
+                value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                message: "Solo se permiten letras"
+              }
             })}
           />
           <Input
@@ -258,6 +263,10 @@ const DeportistaForm = ({
             {...register("last_name", {
               required: "Requerido",
               minLength: { value: 3, message: "Mín. 3 caracteres" },
+              pattern: {
+                value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                message: "Solo se permiten letras"
+              }
             })}
           />
           <Input
@@ -297,14 +306,15 @@ const DeportistaForm = ({
           <div className="flex flex-col">
             <label className="py-0.5">
               <span className="label-text text-xs font-medium text-slate-600">
-                Sexo
+                Sexo <span className="text-error">*</span>
               </span>
             </label>
             <select
-              error={errors.sex?.message}
-              className="select w-full select-sm bg-white text-slate-600"
-              required
-              {...register("sex", { required: "Requerido" })}
+              className={`select w-full select-sm bg-white text-slate-600 ${
+                errors.sex ? "border-error" : ""
+           }`}
+           disabled={loading}
+           {...register("sex", { required: "El sexo es obligatorio" })}
             >
               <option value="">Seleccionar...</option>
               {GENDER_OPTIONS.map((option) => (
@@ -313,6 +323,9 @@ const DeportistaForm = ({
                 </option>
               ))}
             </select>
+            {errors.sex && (
+              <span className="text-xs text-error mt-1">{errors.sex.message}</span>
+            )}
           </div>
 
           {/* Tipo de documento */}
@@ -369,7 +382,14 @@ const DeportistaForm = ({
                 disabled={loading}
                 inputMode="numeric"
                 maxLength={10}
-                {...register("phone")}
+                {...register("phone" , {
+                  required: "Requerido",
+                  validate: (value) => {
+                    const v = (value ?? "").toString().trim();
+                if (!/^\d{10}$/.test(v)) return "El teléfono debe tener 10 dígitos numéricos";
+                return true;
+                  },
+                })}
               />
 
               {/* Estamento */}
@@ -419,8 +439,16 @@ const DeportistaForm = ({
                   placeholder="Av. Principal #123"
                   error={errors.direction?.message}
                   disabled={loading}
-                  {...register("direction")}
+                  {...register("direction", {
+                    maxLength: {
+                      value: 20, // límite de caracteres
+                      message: "La dirección no puede superar los 20 caracteres",
+                    },
+                  })}
                 />
+                <span className="text-xs text-slate-400 mt-1">
+                  {watch("direction")?.length || 0}/20 caracteres
+                </span>
               </div>
             </div>
           </section>

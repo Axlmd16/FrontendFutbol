@@ -95,9 +95,15 @@ const reportsApi = {
       );
 
       // Crear URL del blob directamente
-      const blob = new Blob([fileData], {
-        type: fileData.type || "application/octet-stream",
-      });
+      let blob;
+      if (fileData instanceof Blob) {
+        blob = fileData;
+      } else if (fileData instanceof ArrayBuffer) {
+        blob = new Blob([fileData], { type: "application/octet-stream" });
+      } else {
+        // Fallback: envolver en Blob
+        blob = new Blob([fileData], { type: fileData?.type || "application/octet-stream" });
+      }
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -114,7 +120,7 @@ const reportsApi = {
         }
         window.URL.revokeObjectURL(url);
         console.info("[downloadFile] Limpieza completada");
-      }, 150);
+      }, 500);
 
       return true;
     } catch (err) {
