@@ -67,7 +67,14 @@ function HistoryDrawer({
                         : "text-slate-400"
                     }
                   />
-                  <span className="font-medium text-sm">{date}</span>
+                  <span className="font-medium text-sm">
+                    {new Date(date + "T00:00:00").toLocaleDateString("es-EC", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
                 {selectedDate === date && <ChevronRight size={16} />}
               </button>

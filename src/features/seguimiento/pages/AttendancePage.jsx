@@ -64,8 +64,8 @@ function AttendancePage() {
       if (response.status === "success") {
         setHistoryDates(response.data || []);
       }
-    } catch (error) {
-      console.error("Error loading history dates:", error);
+    } catch {
+      // Silenciar error de historial - no es crítico para el flujo principal
     }
   }, []);
 
@@ -134,9 +134,11 @@ function AttendancePage() {
         setAttendanceData(initialAttendance);
       }
     } catch (error) {
-      console.error("Error al cargar datos:", error);
       toast.error("Error al cargar datos", {
-        description: error.message || "Intente nuevamente",
+        description:
+          error?.response?.data?.message ||
+          error.message ||
+          "Intente nuevamente",
       });
     } finally {
       setLoading(false);
@@ -184,15 +186,40 @@ function AttendancePage() {
    * Marcar todos los atletas como presentes
    */
   const handleMarkAllPresent = () => {
-    const updatedData = {};
-    athletes.forEach((athlete) => {
-      updatedData[athlete.id] = {
-        is_present: true,
-        justification: "",
-      };
+    if (athletes.length === 0) return;
+
+    setAttendanceData((prev) => {
+      const updatedData = {};
+      athletes.forEach((athlete) => {
+        updatedData[athlete.id] = {
+          ...prev[athlete.id],
+          is_present: true,
+          justification: "",
+        };
+      });
+      return updatedData;
     });
-    setAttendanceData(updatedData);
-    toast.success("Todos marcados como presentes");
+    toast.success(`${athletes.length} atletas marcados como presentes`);
+  };
+
+  /**
+   * Marcar todos los atletas como ausentes
+   */
+  const handleMarkAllAbsent = () => {
+    if (athletes.length === 0) return;
+
+    setAttendanceData((prev) => {
+      const updatedData = {};
+      athletes.forEach((athlete) => {
+        updatedData[athlete.id] = {
+          ...prev[athlete.id],
+          is_present: false,
+          justification: prev[athlete.id]?.justification || "",
+        };
+      });
+      return updatedData;
+    });
+    toast.info(`${athletes.length} atletas marcados como ausentes`);
   };
 
   // ==========================================
@@ -232,25 +259,40 @@ function AttendancePage() {
       const response = await attendanceApi.createBulk(payload);
 
       if (response.status === "success") {
-        const { created_count, updated_count } = response.data || {};
+        // Contar presentes para el mensaje
+        const presentCount = records.filter((r) => r.is_present).length;
+        const absentCount = records.length - presentCount;
 
-        // Mostrar mensaje con hora usada
-        const timeUsed = new Date().toLocaleTimeString("es-EC", {
-          hour: "2-digit",
-          minute: "2-digit",
+        // Formatear fecha amigable
+        const formattedDate = new Date(date + "T00:00:00").toLocaleDateString(
+          "es-EC",
+          {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          },
+        );
+
+        toast.success("¡Asistencia registrada!", {
+          description: `${formattedDate} — ${presentCount} presentes, ${absentCount} ausentes`,
         });
 
-        toast.success("Asistencia guardada exitosamente", {
-          description: `📅 ${date} ⏰ ${timeUsed} — ${
-            created_count || 0
-          } nuevos, ${updated_count || 0} actualizados`,
-        });
+        // Refrescar historial de fechas
+        fetchHistoryDates();
       }
     } catch (error) {
-      console.error("Error al guardar asistencia:", error);
-      toast.error("Error al guardar asistencia", {
-        description: error.message || "Intente nuevamente",
-      });
+      // El interceptor de http.js ya muestra toast para errores 422 (validación)
+      // Solo mostramos toast para otros errores que no sean de validación
+      const isValidationError = error?.response?.status === 422;
+
+      if (!isValidationError) {
+        toast.error("Error al guardar asistencia", {
+          description:
+            error?.response?.data?.message ||
+            error.message ||
+            "Intente nuevamente",
+        });
+      }
     } finally {
       setSaving(false);
     }
@@ -316,6 +358,7 @@ function AttendancePage() {
           onToggleAttendance={handleToggleAttendance}
           onJustificationChange={handleJustificationChange}
           onMarkAllPresent={handleMarkAllPresent}
+          onMarkAllAbsent={handleMarkAllAbsent}
           loading={loading}
         />
 

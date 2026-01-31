@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CheckCircle, Users } from "lucide-react";
+import { CheckCircle, XCircle, Users } from "lucide-react";
 
 /**
  * Tabla de asistencia modernizada con estilo Dashboard.
@@ -12,6 +12,7 @@ function AttendanceTable({
   onToggleAttendance,
   onJustificationChange,
   onMarkAllPresent,
+  onMarkAllAbsent,
   loading = false,
 }) {
   // Configuración de tipos con colores semánticos
@@ -40,15 +41,6 @@ function AttendanceTable({
     };
     return types[type] || { label: type, class: "badge-ghost" };
   };
-
-  // Contar presentes y ausentes
-  const presentCount = Object.values(attendanceData).filter(
-    (a) => a.is_present
-  ).length;
-  const totalCount = athletes.length;
-  const absentCount = totalCount - presentCount;
-  const attendancePercentage =
-    totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
   if (loading) {
     return (
@@ -90,16 +82,28 @@ function AttendanceTable({
         {/* Table Header Actions */}
         <div className="px-4 py-3 border-b border-base-200 flex justify-between items-center bg-slate-50/50">
           <h3 className="font-semibold text-sm text-slate-700">
-            Listado de Atletas
+            Listado de Atletas ({athletes.length})
           </h3>
-          <button
-            type="button"
-            className="btn btn-xs btn-ghost hover:bg-emerald-50 text-emerald-600 normal-case font-medium"
-            onClick={onMarkAllPresent}
-          >
-            <CheckCircle size={14} />
-            Marcar todos
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn btn-xs btn-ghost hover:bg-red-50 text-red-500 normal-case font-medium"
+              onClick={onMarkAllAbsent}
+              title="Marcar todos como ausentes"
+            >
+              <XCircle size={14} />
+              Ausentes
+            </button>
+            <button
+              type="button"
+              className="btn btn-xs btn-ghost hover:bg-emerald-50 text-emerald-600 normal-case font-medium"
+              onClick={onMarkAllPresent}
+              title="Marcar todos como presentes"
+            >
+              <CheckCircle size={14} />
+              Presentes
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -143,8 +147,8 @@ function AttendanceTable({
                       isPresent
                         ? "hover:bg-slate-50/50"
                         : isJustified
-                        ? "bg-amber-50/40 hover:bg-amber-50/70"
-                        : "hover:bg-slate-50/50"
+                          ? "bg-amber-50/40 hover:bg-amber-50/70"
+                          : "hover:bg-slate-50/50"
                     }`}
                   >
                     {/* Index */}
@@ -194,7 +198,7 @@ function AttendanceTable({
                         <input
                           type="checkbox"
                           className="toggle toggle-sm toggle-success"
-                          checked={isPresent}
+                          checked={isPresent === true}
                           onChange={() =>
                             onToggleAttendance(athlete.id, !isPresent)
                           }
@@ -204,15 +208,15 @@ function AttendanceTable({
                             isPresent
                               ? "text-success"
                               : isJustified
-                              ? "text-warning"
-                              : "text-slate-400"
+                                ? "text-warning"
+                                : "text-slate-400"
                           }`}
                         >
                           {isPresent
                             ? "Presente"
                             : isJustified
-                            ? "Justificado"
-                            : "Ausente"}
+                              ? "Justificado"
+                              : "Ausente"}
                         </span>
                       </div>
                     </td>
@@ -229,13 +233,19 @@ function AttendanceTable({
                           className={`
                             input input-sm input-bordered w-full bg-white text-xs
                             ${isPresent ? "cursor-not-allowed" : ""}
+                            ${!isPresent && !attendance.justification ? "border-amber-300 focus:border-amber-400" : ""}
                           `}
-                          placeholder={isPresent ? "" : "Escribe el motivo..."}
+                          placeholder={
+                            isPresent
+                              ? ""
+                              : "Escribe el motivo de la ausencia..."
+                          }
                           value={attendance.justification || ""}
                           onChange={(e) =>
                             onJustificationChange(athlete.id, e.target.value)
                           }
                           disabled={isPresent}
+                          maxLength={500}
                         />
                       </div>
                     </td>
@@ -257,12 +267,13 @@ AttendanceTable.propTypes = {
       full_name: PropTypes.string.isRequired,
       dni: PropTypes.string.isRequired,
       type_athlete: PropTypes.string,
-    })
+    }),
   ),
   attendanceData: PropTypes.object,
   onToggleAttendance: PropTypes.func.isRequired,
   onJustificationChange: PropTypes.func.isRequired,
   onMarkAllPresent: PropTypes.func.isRequired,
+  onMarkAllAbsent: PropTypes.func.isRequired,
   loading: PropTypes.bool,
 };
 

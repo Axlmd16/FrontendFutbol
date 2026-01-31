@@ -59,9 +59,7 @@ const attendanceApi = {
    * @returns {Promise<Object>} Lista de fechas
    */
   getDates: async () => {
-    const response = await http.get(
-      API_ENDPOINTS.ATTENDANCE.DATES || "/attendances/dates"
-    );
+    const response = await http.get(API_ENDPOINTS.ATTENDANCE.DATES);
     return response.data;
   },
 };

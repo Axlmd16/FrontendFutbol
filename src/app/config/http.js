@@ -327,12 +327,21 @@ http.interceptors.response.use(
       }
 
       const errorMsg = firstError || message || "Error de validación de datos.";
-      // Mostrar el error como toast
-      toast.error(errorMsg);
+
+      // Limpiar prefijos técnicos que no deben ver los usuarios
+      const cleanErrorMsg = errorMsg
+        .replace(/^Value error,?\s*/i, "")
+        .replace(/^Validation error,?\s*/i, "");
+
+      // Mostrar el error de validación como warning (no es un error crítico)
+      toast.warning(cleanErrorMsg);
 
       // Crear un error con la estructura esperada por los hooks
-      const validationError = new Error(errorMsg);
-      validationError.response = { data: { detail: errorMsg } };
+      const validationError = new Error(cleanErrorMsg);
+      validationError.response = {
+        data: { detail: cleanErrorMsg },
+        status: 422,
+      };
       return Promise.reject(validationError);
     }
 

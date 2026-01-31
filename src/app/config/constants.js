@@ -358,6 +358,7 @@ export const API_ENDPOINTS = {
     BULK: "/attendances/bulk",
     BY_DATE: "/attendances/by-date",
     SUMMARY: "/attendances/summary",
+    DATES: "/attendances/dates",
   },
 
   // Representatives
