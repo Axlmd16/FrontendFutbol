@@ -7,11 +7,26 @@
  * - Base URL configurable por variables de entorno
  * - Interceptor para agregar token de autorización
  * - Interceptor para manejar errores 401 con refresh token automático
+ * - Manejo robusto de errores de red y servidor
  */
 
 import axios from "axios";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_TOKEN_KEY } from "./constants";
 import { toast } from "sonner";
+
+// Mensajes de error amigables para el usuario
+const ERROR_MESSAGES = {
+  NETWORK_ERROR:
+    "No se puede conectar con el servidor. Por favor, verifica tu conexión a internet e intenta nuevamente.",
+  SERVER_UNAVAILABLE:
+    "El servidor no está disponible en este momento. Por favor, intenta más tarde.",
+  TIMEOUT:
+    "La solicitud tardó demasiado tiempo. Por favor, intenta nuevamente.",
+  SERVICE_ERROR:
+    "Estamos teniendo problemas con el servicio. Por favor, intenta más tarde.",
+  UNEXPECTED_ERROR:
+    "Ha ocurrido un error inesperado. Por favor, intenta más tarde.",
+};
 
 // Endpoints de auth pública que no deben forzar redirect en 401
 const isPublicAuthPath = (url = "") => {
@@ -21,6 +36,36 @@ const isPublicAuthPath = (url = "") => {
     "/accounts/password-reset/confirm",
     "/accounts/refresh",
   ].some((path) => url.includes(path));
+};
+
+/**
+ * Verifica si el error es de red o conexión
+ * @param {Error} error - Error de Axios
+ * @returns {boolean}
+ */
+const isNetworkError = (error) => {
+  return (
+    !error.response &&
+    (error.code === "ERR_NETWORK" ||
+      error.code === "ECONNREFUSED" ||
+      error.code === "ENOTFOUND" ||
+      error.message === "Network Error" ||
+      error.message.includes("network") ||
+      error.message.includes("Network"))
+  );
+};
+
+/**
+ * Verifica si el error es de timeout
+ * @param {Error} error - Error de Axios
+ * @returns {boolean}
+ */
+const isTimeoutError = (error) => {
+  return (
+    error.code === "ECONNABORTED" ||
+    error.code === "ETIMEDOUT" ||
+    error.message.includes("timeout")
+  );
 };
 
 /**
@@ -68,12 +113,13 @@ http.interceptors.request.use(
   (error) => {
     console.error("[HTTP Request Error]:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
  * Interceptor de RESPONSE
  * Maneja errores globales, especialmente 401 con refresh automático
+ * y errores de red/servidor con mensajes amigables
  */
 http.interceptors.response.use(
   (response) => {
@@ -83,12 +129,41 @@ http.interceptors.response.use(
     const { response, config } = error;
     const originalRequest = config;
 
+    // ========================================
+    // MANEJO DE ERRORES DE RED Y CONEXIÓN
+    // ========================================
+
+    // Error de red (sin respuesta del servidor)
+    if (isNetworkError(error)) {
+      console.error("[HTTP Network Error]:", error.message);
+      toast.error(ERROR_MESSAGES.NETWORK_ERROR);
+      return Promise.reject(new Error(ERROR_MESSAGES.NETWORK_ERROR));
+    }
+
+    // Error de timeout
+    if (isTimeoutError(error)) {
+      console.error("[HTTP Timeout]:", error.message);
+      toast.error(ERROR_MESSAGES.TIMEOUT);
+      return Promise.reject(new Error(ERROR_MESSAGES.TIMEOUT));
+    }
+
+    // Si no hay respuesta y no es error de red conocido
+    if (!response) {
+      console.error("[HTTP Unknown Error]:", error.message);
+      toast.error(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      return Promise.reject(new Error(ERROR_MESSAGES.UNEXPECTED_ERROR));
+    }
+
+    // ========================================
+    // MANEJO DE CÓDIGOS DE ERROR HTTP
+    // ========================================
+
     // 401 (Unauthorized) - Intentar refresh antes de forzar logout
     if (response?.status === 401) {
       // Si es un endpoint público de auth, no intentar refresh
       if (isPublicAuthPath(config?.url)) {
         return Promise.reject(
-          new Error(response?.data?.detail || "Credenciales inválidas")
+          new Error(response?.data?.detail || "Credenciales inválidas"),
         );
       }
 
@@ -98,7 +173,7 @@ http.interceptors.response.use(
         localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
         window.location.href = "/login";
         return Promise.reject(
-          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente."),
         );
       }
 
@@ -125,7 +200,7 @@ http.interceptors.response.use(
         localStorage.removeItem(AUTH_TOKEN_KEY);
         window.location.href = "/login";
         return Promise.reject(
-          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente."),
         );
       }
 
@@ -134,7 +209,7 @@ http.interceptors.response.use(
         const refreshResponse = await axios.post(
           `${http.defaults.baseURL}/accounts/refresh`,
           { refresh_token: refreshToken },
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
 
         const newAccessToken = refreshResponse.data?.data?.access_token;
@@ -163,7 +238,7 @@ http.interceptors.response.use(
         localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
         window.location.href = "/login";
         return Promise.reject(
-          new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
+          new Error("Sesión expirada. Por favor, inicia sesión nuevamente."),
         );
       } finally {
         isRefreshing = false;
@@ -174,7 +249,7 @@ http.interceptors.response.use(
     if (response?.status === 403) {
       console.error("[HTTP 403]:", "Acceso denegado - Permisos insuficientes");
       return Promise.reject(
-        new Error("No tienes permisos para realizar esta acción.")
+        new Error("No tienes permisos para realizar esta acción."),
       );
     }
 
@@ -182,6 +257,17 @@ http.interceptors.response.use(
     if (response?.status === 404) {
       console.error("[HTTP 404]:", "Recurso no encontrado");
       return Promise.reject(new Error("El recurso solicitado no existe."));
+    }
+
+    // 409 Conflict (Duplicado)
+    if (response?.status === 409) {
+      console.error("[HTTP 409]:", "Conflicto - recurso duplicado");
+      const errorMessage =
+        response?.data?.detail ||
+        response?.data?.message ||
+        "El recurso ya existe.";
+      toast.error(errorMessage);
+      return Promise.reject(new Error(errorMessage));
     }
 
     // 400 (Bad Request)
@@ -194,12 +280,22 @@ http.interceptors.response.use(
       return Promise.reject(new Error(errorMessage));
     }
 
-    // 500 (Server Error)
+    // 503 (Service Unavailable) - Servidor no disponible o DB caída
+    if (response?.status === 503) {
+      console.error("[HTTP 503]:", "Servicio no disponible");
+      const errorMessage =
+        response?.data?.message || ERROR_MESSAGES.SERVICE_ERROR;
+      toast.error(errorMessage);
+      return Promise.reject(new Error(errorMessage));
+    }
+
+    // 500 (Server Error) y otros errores 5xx
     if (response?.status >= 500) {
       console.error("[HTTP 5xx]:", "Error del servidor");
-      return Promise.reject(
-        new Error("Error del servidor. Intenta más tarde.")
-      );
+      const errorMessage =
+        response?.data?.message || ERROR_MESSAGES.SERVICE_ERROR;
+      toast.error(errorMessage);
+      return Promise.reject(new Error(errorMessage));
     }
 
     // 422 (Validation Error)
@@ -246,7 +342,7 @@ http.interceptors.response.use(
       response?.data?.detail ||
       "Ocurrió un error inesperado";
     return Promise.reject(new Error(errorMessage));
-  }
+  },
 );
 
 export default http;
