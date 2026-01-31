@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
 import Input from "@/shared/components/Input";
 import Button from "@/shared/components/Button";
-import { Users, Phone, Mail, MapPin, Save } from "lucide-react";
+import { Users, Phone, Save } from "lucide-react";
 import { RELATIONSHIP_TYPE_OPTIONS, VALIDATION } from "@/app/config/constants";
 
 const RepresentanteForm = ({
@@ -179,7 +179,7 @@ const RepresentanteForm = ({
           required
           {...register("first_name", {
             required: "Los nombres son requeridos",
-            minLength: { value: 2, message: "Mínimo 2 caracteres" },
+            minLength: { value: 3, message: "Mínimo 3 caracteres" },
           })}
         />
 
@@ -193,7 +193,7 @@ const RepresentanteForm = ({
           required
           {...register("last_name", {
             required: "Los apellidos son requeridos",
-            minLength: { value: 2, message: "Mínimo 2 caracteres" },
+            minLength: { value: 3, message: "Mínimo 3 caracteres" },
           })}
         />
 
@@ -236,7 +236,12 @@ const RepresentanteForm = ({
           disabled={disabled || loading}
           maxLength={10}
           inputMode="numeric"
-          {...register("phone")}
+          {...register("phone", {
+            pattern: {
+              value: /^0[0-9]{9}$/,
+              message: "El teléfono debe tener 10 dígitos y empezar con 0",
+            },
+          })}
         />
 
         {/* Email */}
