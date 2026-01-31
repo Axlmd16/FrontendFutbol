@@ -28,7 +28,11 @@ const reportsApi = {
 
       return response.data;
     } catch (error) {
-      console.error("[reportsApi] Error en generateAttendanceReport:", error);
+      if (error.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        const parsed = JSON.parse(text);
+        error.message = parsed.message || "Error al generar reporte";
+      }
       throw error;
     }
   },
