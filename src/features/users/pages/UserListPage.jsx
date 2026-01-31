@@ -13,6 +13,13 @@ import { ROUTES, MESSAGES } from "@/app/config/constants";
 import { Search, UserPlus, Users, Filter } from "lucide-react";
 import { ROLE_OPTIONS } from "../../../app/config/roles";
 
+// Opciones de filtro por estado
+const STATUS_FILTER_OPTIONS = [
+  { value: "", label: "Todos" },
+  { value: "true", label: "Activos" },
+  { value: "false", label: "Inactivos" },
+];
+
 const UserListPage = () => {
   // ESTADO
   const [users, setUsers] = useState([]);
@@ -22,6 +29,7 @@ const UserListPage = () => {
   // Búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // Nuevo filtro de estado
 
   // Paginación
   const [pagination, setPagination] = useState({
@@ -30,8 +38,8 @@ const UserListPage = () => {
     total: 0,
   });
 
-  // Modal de confirmación
-  const [deleteModal, setDeleteModal] = useState({
+  // Modal de confirmación de estado
+  const [statusModal, setStatusModal] = useState({
     isOpen: false,
     user: null,
     loading: false,
@@ -59,6 +67,7 @@ const UserListPage = () => {
         limit: pagination.limit,
         search: debouncedSearch || undefined,
         role: roleFilter || undefined,
+        is_active: statusFilter === "" ? undefined : statusFilter === "true",
       };
 
       const response = await usersApi.getAll(params);
@@ -73,7 +82,13 @@ const UserListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, debouncedSearch, roleFilter]);
+  }, [
+    pagination.page,
+    pagination.limit,
+    debouncedSearch,
+    roleFilter,
+    statusFilter,
+  ]);
 
   // Efecto para cargar usuarios
   useEffect(() => {
@@ -87,48 +102,58 @@ const UserListPage = () => {
     navigate(ROUTES.USERS_CREATE);
   };
 
-  // Abre el modal de confirmación para eliminar usuario
-  const handleDeleteClick = (user) => {
+  // Abre el modal de confirmación para cambiar estado
+  const handleStatusClick = (user) => {
     // Validar que no intente desactivarse a sí mismo
-    if (currentUser?.id === user.id) {
+    if (currentUser?.id === user.id && user.is_active) {
       toast.error(MESSAGES.ERROR.USER_SELF_DEACTIVATE, {
         description: MESSAGES.ERROR.USER_SELF_DEACTIVATE_DESC,
       });
       return;
     }
 
-    setDeleteModal({
+    setStatusModal({
       isOpen: true,
       user,
       loading: false,
     });
   };
 
-  // Confirma y ejecuta la eliminación
-  const handleDeleteConfirm = async () => {
-    if (!deleteModal.user) return;
+  // Confirma y ejecuta el cambio de estado
+  const handleStatusConfirm = async () => {
+    if (!statusModal.user) return;
 
-    setDeleteModal((prev) => ({ ...prev, loading: true }));
+    setStatusModal((prev) => ({ ...prev, loading: true }));
+    const isActive = statusModal.user.is_active;
 
     try {
-      await usersApi.desactivate(deleteModal.user.id);
-
-      toast.success(MESSAGES.SUCCESS.USER_DEACTIVATED, {
-        description: MESSAGES.SUCCESS.USER_DEACTIVATED_DESC(
-          deleteModal.user.full_name
-        ),
-      });
+      if (isActive) {
+        await usersApi.desactivate(statusModal.user.id);
+        toast.success(MESSAGES.SUCCESS.USER_DEACTIVATED, {
+          description: MESSAGES.SUCCESS.USER_DEACTIVATED_DESC(
+            statusModal.user.full_name
+          ),
+        });
+      } else {
+        await usersApi.activate(statusModal.user.id);
+        toast.success("Usuario activado", {
+          description: `${statusModal.user.full_name} ha sido activado correctamente.`,
+        });
+      }
 
       // Cerrar modal y recargar lista
-      setDeleteModal({ isOpen: false, user: null, loading: false });
+      setStatusModal({ isOpen: false, user: null, loading: false });
       fetchUsers();
     } catch (err) {
       const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
       setError(errorMessage);
-      toast.error(MESSAGES.ERROR.USER_DEACTIVATE, {
-        description: errorMessage,
-      });
-      setDeleteModal((prev) => ({ ...prev, loading: false }));
+      toast.error(
+        isActive ? MESSAGES.ERROR.USER_DEACTIVATE : "Error al activar usuario",
+        {
+          description: errorMessage,
+        }
+      );
+      setStatusModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -136,11 +161,12 @@ const UserListPage = () => {
   const handleClearFilters = () => {
     setSearchTerm("");
     setRoleFilter("");
+    setStatusFilter("");
   };
 
-  //Cierra el modal de eliminación
-  const handleDeleteCancel = () => {
-    setDeleteModal({ isOpen: false, user: null, loading: false });
+  //Cierra el modal de estado
+  const handleStatusCancel = () => {
+    setStatusModal({ isOpen: false, user: null, loading: false });
   };
 
   // Navega a la página de editar usuario
@@ -208,9 +234,9 @@ const UserListPage = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* Búsqueda */}
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <label className="label py-1">
                   <span className="label-text text-xs">Buscar</span>
                 </label>
@@ -242,10 +268,28 @@ const UserListPage = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Filtro por estado */}
+              <div>
+                <label className="label py-1">
+                  <span className="label-text text-xs">Estado</span>
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="select select-bordered select-sm w-full bg-base-100"
+                >
+                  {STATUS_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Botón limpiar */}
-            {(searchTerm || roleFilter) && (
+            {(searchTerm || roleFilter || statusFilter) && (
               <div className="flex justify-end mt-3">
                 <button
                   onClick={handleClearFilters}
@@ -269,7 +313,7 @@ const UserListPage = () => {
         <UserTable
           users={users}
           onEdit={handleEdit}
-          onDelete={handleDeleteClick}
+          onDelete={handleStatusClick}
           loading={loading}
         />
 
@@ -311,35 +355,38 @@ const UserListPage = () => {
         )}
       </div>
 
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación de estado */}
       <Modal
-        isOpen={deleteModal.isOpen}
-        onClose={handleDeleteCancel}
-        title="Desactivar usuario"
+        isOpen={statusModal.isOpen}
+        onClose={handleStatusCancel}
+        title={
+          statusModal.user?.is_active ? "Desactivar usuario" : "Activar usuario"
+        }
       >
         <p className="text-slate-600">
-          ¿Estás seguro de desactivar al usuario{" "}
+          ¿Estás seguro de{" "}
+          {statusModal.user?.is_active ? "desactivar" : "activar"} al usuario{" "}
           <strong className="text-slate-900">
-            {deleteModal.user?.full_name}
+            {statusModal.user?.full_name}
           </strong>
-          ? Esta acción no se puede deshacer.
+          ?{statusModal.user?.is_active && " Esta acción no se puede deshacer."}
         </p>
 
         <div className="mt-6 flex justify-end gap-3">
           <Button
             variant="ghost"
-            onClick={handleDeleteCancel}
-            disabled={deleteModal.loading}
+            onClick={handleStatusCancel}
+            disabled={statusModal.loading}
           >
             Cancelar
           </Button>
 
           <Button
-            variant="danger"
-            onClick={handleDeleteConfirm}
-            loading={deleteModal.loading}
+            variant={statusModal.user?.is_active ? "danger" : "primary"}
+            onClick={handleStatusConfirm}
+            loading={statusModal.loading}
           >
-            Desactivar
+            {statusModal.user?.is_active ? "Desactivar" : "Activar"}
           </Button>
         </div>
       </Modal>

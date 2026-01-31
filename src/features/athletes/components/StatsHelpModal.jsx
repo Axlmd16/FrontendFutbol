@@ -5,7 +5,7 @@
 
 import PropTypes from "prop-types";
 import Modal from "@/shared/components/Modal";
-import { HelpCircle, Zap, Heart, Dumbbell, Target } from "lucide-react";
+import { HelpCircle, Zap, Heart, Target } from "lucide-react";
 import { PERFORMANCE_SCALE } from "@/shared/utils/performanceUtils";
 
 const StatsHelpModal = ({ isOpen, onClose }) => {
@@ -62,7 +62,7 @@ const StatsHelpModal = ({ isOpen, onClose }) => {
         {/* Stats Explanation */}
         <div>
           <h4 className="font-semibold mb-3">Estadísticas Físicas</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
               <Zap size={20} className="text-yellow-500 shrink-0 mt-0.5" />
               <div>
@@ -79,15 +79,6 @@ const StatsHelpModal = ({ isOpen, onClose }) => {
                 <p className="text-xs text-base-content/60">
                   Basada en tests YoYo y de resistencia. Mayor distancia = mayor
                   puntuación.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-base-200/50 rounded-lg">
-              <Dumbbell size={20} className="text-blue-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-sm">Fuerza</p>
-                <p className="text-xs text-base-content/60">
-                  Basada en pruebas de fuerza y potencia muscular.
                 </p>
               </div>
             </div>
@@ -116,12 +107,8 @@ const StatsHelpModal = ({ isOpen, onClose }) => {
               <span className="text-info">Bueno</span>
             </li>
             <li>
-              • Fuerza <strong>45</strong> →{" "}
+              • Agilidad <strong>45</strong> →{" "}
               <span className="text-warning">Regular</span>
-            </li>
-            <li>
-              • Agilidad <strong>30</strong> →{" "}
-              <span className="text-error">Bajo</span>
             </li>
           </ul>
         </div>

@@ -119,7 +119,16 @@ const DeportistaForm = ({
     reset(defaultValues);
   }, [defaultValues, reset]);
 
-  const onValidSubmit = (data) => onSubmit(data);
+  const onValidSubmit = (data) => {
+    // Limpiar datos antes de enviar
+    const cleanedData = {
+      ...data,
+      height: data.height === "" ? null : Number(data.height),
+      weight: data.weight === "" ? null : Number(data.weight),
+      phone: data.phone === "" ? null : data.phone,
+    };
+    onSubmit(cleanedData);
+  };
 
   const typeIdentification = useWatch({ control, name: "type_identification" });
 

@@ -40,7 +40,7 @@ const TEST_TYPES = [
 ];
 
 const ATHLETE_TYPES = {
-  EXTERNOS: { label: "Escuela", color: "badge-info" },
+  EXTERNOS: { label: "Externos", color: "badge-info" },
   ESTUDIANTES: { label: "Estudiante", color: "badge-secondary" },
   DOCENTES: { label: "Docente", color: "badge-success" },
   TRABAJADORES: { label: "Trabajador", color: "badge-warning" },
@@ -188,7 +188,7 @@ const AddTestsForm = () => {
               className="select select-bordered select-sm w-full bg-white"
             >
               <option value="">Todos los tipos</option>
-              <option value="EXTERNOS">Escuela</option>
+              <option value="EXTERNOS">Externos</option>
               <option value="ESTUDIANTES">Estudiantes</option>
               <option value="DOCENTES">Docentes</option>
               <option value="TRABAJADORES">Trabajadores</option>

@@ -38,7 +38,7 @@ function AthletesSelectionList({
 
   // Configuración de tipos de atleta
   const athleteTypes = {
-    EXTERNOS: { label: "Escuela", color: "bg-info/10 text-info" },
+    EXTERNOS: { label: "Externos", color: "bg-info/10 text-info" },
     ESTUDIANTES: {
       label: "Estudiante",
       color: "bg-secondary/10 text-secondary",
@@ -56,7 +56,7 @@ function AthletesSelectionList({
 
   const typeOptions = [
     { value: "", label: "Todos los tipos" },
-    { value: "EXTERNOS", label: "Escuela" },
+    { value: "EXTERNOS", label: "Externos" },
     { value: "ESTUDIANTES", label: "Estudiante" },
     { value: "DOCENTES", label: "Docente" },
     { value: "TRABAJADORES", label: "Trabajador" },

@@ -18,8 +18,10 @@ import {
   FileSpreadsheet,
   Table,
   FileBarChart,
+  Search,
 } from "lucide-react";
 import { ESTAMENTO_FILTER_OPTIONS } from "@/app/config/constants";
+import AthleteSearchModal from "@/features/seguimiento/components/AthleteSearchModal";
 
 const REPORT_TYPES = [
   {
@@ -59,6 +61,8 @@ const ReportsPage = () => {
     start_date: "",
     end_date: "",
   });
+  const [isAthleteModalOpen, setIsAthleteModalOpen] = useState(false);
+  const [selectedAthleteDisplay, setSelectedAthleteDisplay] = useState("");
 
   // Cargar lista de deportistas
   useEffect(() => {
@@ -139,6 +143,17 @@ const ReportsPage = () => {
     filters.category === ""
       ? athletes
       : athletes.filter((athlete) => athlete.type_athlete === filters.category);
+
+  // Handler para seleccionar atleta desde el modal
+  const handleAthleteSelect = (athlete) => {
+    if (athlete) {
+      handleFilterChange("athlete_id", String(athlete.id));
+      setSelectedAthleteDisplay(athlete.full_name);
+    } else {
+      handleFilterChange("athlete_id", "");
+      setSelectedAthleteDisplay("");
+    }
+  };
 
   if (athletesLoading) {
     return (
@@ -223,28 +238,30 @@ const ReportsPage = () => {
                 </select>
               </div>
 
-              {/* Deportista Específico */}
+              {/* Deportista Específico - Con botón de búsqueda */}
               <div>
                 <label className="label py-1">
                   <span className="label-text text-xs">
                     Deportista Específico
                   </span>
                 </label>
-                <select
-                  value={filters.athlete_id}
-                  onChange={(e) =>
-                    handleFilterChange("athlete_id", e.target.value)
-                  }
-                  disabled={isLoading || filteredAthletes.length === 0}
-                  className="select select-bordered select-sm w-full"
-                >
-                  <option value="">Todos los deportistas</option>
-                  {filteredAthletes.map((athlete) => (
-                    <option key={athlete.id} value={athlete.id}>
-                      {athlete.full_name}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={selectedAthleteDisplay || "Todos los deportistas"}
+                    readOnly
+                    className="input input-bordered input-sm flex-1 bg-base-100 cursor-pointer"
+                    onClick={() => setIsAthleteModalOpen(true)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsAthleteModalOpen(true)}
+                    disabled={isLoading}
+                    className="btn btn-sm btn-primary"
+                  >
+                    <Search size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -305,6 +322,15 @@ const ReportsPage = () => {
           generar tu reporte
         </div>
       </div>
+
+      {/* Modal de búsqueda de atletas */}
+      <AthleteSearchModal
+        isOpen={isAthleteModalOpen}
+        onClose={() => setIsAthleteModalOpen(false)}
+        athletes={filteredAthletes}
+        onSelect={handleAthleteSelect}
+        selectedAthleteId={filters.athlete_id}
+      />
     </div>
   );
 };
