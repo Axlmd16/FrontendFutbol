@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import Input from "@/shared/components/Input";
 import Button from "@/shared/components/Button";
@@ -8,6 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { TYPE_IDENTIFICATION_OPTIONS } from "../../../app/config/constants";
 import { TYPE_STAMENT_OPTIONS } from "../../../app/config/constants";
 import { User, MapPin, Shield, Phone, Mail, IdCard } from "lucide-react";
+import usersApi from "@/features/users/services/users.api";
 
 const UserForm = ({
   initialData = null,
@@ -92,6 +93,9 @@ const UserForm = ({
     defaultValues,
   });
 
+  const [checkingDni, setCheckingDni] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+
   const password = useWatch({ control, name: "password" });
   const typeIdentification = useWatch({ control, name: "type_identification" });
 
@@ -141,15 +145,29 @@ const UserForm = ({
           inputMode: "numeric",
           maxLength: 10,
           placeholder: "10 dígitos",
-          validate: (value) => {
+          validate: async (value) => {
             const v = (value ?? "").toString().trim();
             if (!/^\d{10}$/.test(v))
               return "La cédula debe tener exactamente 10 dígitos";
+            
+            // Validar duplicado
+            setCheckingDni(true);
+            try {
+              const available = await usersApi.checkDniAvailable(v, initialData?.id);
+              setCheckingDni(false);
+              if (!available) {
+                return "Este DNI ya está registrado";
+              }
+            } catch (error) {
+              setCheckingDni(false);
+              console.error("Error verificando DNI:", error);
+            }
+            
             return true;
           },
         };
     }
-  }, [typeIdentification]);
+  }, [typeIdentification, initialData?.id]);
 
   useEffect(() => {
     reset(defaultValues);
@@ -259,12 +277,12 @@ const UserForm = ({
 
           {/* Dni (Obligatorio) */}
           <Input
-            label="Número de identificación"
+            label={checkingDni ? "Verificando DNI..." : "Número de identificación"}
             type="text"
             name="dni"
             placeholder={identificationRules.placeholder}
             error={errors.dni?.message}
-            disabled={loading}
+            disabled={loading || checkingDni}
             required
             inputMode={identificationRules.inputMode}
             maxLength={identificationRules.maxLength}
@@ -285,9 +303,9 @@ const UserForm = ({
             label="Correo electrónico"
             type="email"
             name="email"
-            placeholder="ejemplo@correo.com"
+            placeholder="usuario@unl.edu.ec"
             error={errors.email?.message}
-            disabled={loading}
+            disabled={loading || checkingEmail}
             required
             icon={<Mail size={14} className="text-slate-400" />}
             {...register("email", {
@@ -295,6 +313,27 @@ const UserForm = ({
               pattern: {
                 value: VALIDATION.EMAIL_PATTERN,
                 message: "Ingresa un email válido",
+              },
+              validate: async (value) => {
+                const email = value.toLowerCase().trim();
+                if (!email.endsWith("@unl.edu.ec") && !email.endsWith("@unl.edu")) {
+                  return "El correo debe ser institucional (@unl.edu.ec o @unl.edu)";
+                }
+                
+                // Validar duplicado
+                setCheckingEmail(true);
+                try {
+                  const available = await usersApi.checkEmailAvailable(email, initialData?.id);
+                  setCheckingEmail(false);
+                  if (!available) {
+                    return "Este correo ya está registrado";
+                  }
+                } catch (error) {
+                  setCheckingEmail(false);
+                  console.error("Error verificando email:", error);
+                }
+                
+                return true;
               },
             })}
           />
