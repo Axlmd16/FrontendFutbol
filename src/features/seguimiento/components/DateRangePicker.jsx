@@ -15,21 +15,25 @@ const DateRangePicker = ({ onDateRangeChange, disabled = false }) => {
   });
 
   const handleDateChange = (field, value) => {
-    const newRange = {
-      ...dateRange,
-      [field]: value,
-    };
-    setDateRange(newRange);
+    const newRange = { ...dateRange, [field]: value };
 
-    // Auto-aplicar si ambas fechas están completas
+    // 1. Validar primero
     if (newRange.start_date && newRange.end_date) {
       if (new Date(newRange.start_date) > new Date(newRange.end_date)) {
-        toast.error("La fecha de inicio no puede ser mayor a la fecha de fin");
+        toast.error("Rango de fechas inválido");
+        
+        // 2. Limpiar el estado para que no se quede la fecha mala escrita
+        setDateRange({ ...newRange, [field]: "" }); 
         return;
       }
+    }
+
+    // 3. Si pasó la validación, entonces guardamos y avisamos al padre
+    setDateRange(newRange);
+    
+    if (newRange.start_date && newRange.end_date) {
       onDateRangeChange(newRange);
     } else if (!newRange.start_date && !newRange.end_date) {
-      // Limpiar fechas si ambas están vacías
       onDateRangeChange({ start_date: "", end_date: "" });
     }
   };

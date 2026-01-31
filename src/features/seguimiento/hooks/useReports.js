@@ -42,6 +42,11 @@ export const useReports = () => {
           return false;
         }
       }
+      //Verificamos si el reporte es de tipo estadísticas Y si NO se ha seleccionado un deportista
+      if (reportType === "statistics" && !filters.athlete_id) {
+        toast.error("Seleccione un deportista");
+        return false;
+      }
 
       setIsLoading(true);
       setError(null);

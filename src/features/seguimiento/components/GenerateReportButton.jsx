@@ -19,13 +19,15 @@ const GenerateReportButton = ({
   error = null,
 }) => {
   const handleClick = () => {
-    if (!reportType) {
-      toast.error("Selecciona un tipo de reporte", {
-        description:
-          "Por favor selecciona el tipo de reporte que deseas generar",
-      });
-      return;
-    }
+    if (isLoading) return;
+      if (!reportType){
+        toast.error("Selecciona un tipo de reporte", {
+          description:
+            "Por favor selecciona el tipo de reporte que deseas generar",
+        });
+        return;
+      }
+    
 
     if (!format) {
       toast.error("Selecciona un formato", {

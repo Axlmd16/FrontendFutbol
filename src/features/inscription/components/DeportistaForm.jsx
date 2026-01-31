@@ -107,6 +107,7 @@ const DeportistaForm = ({
     register,
     handleSubmit,
     control,
+    watch,
     reset,
     formState: { errors },
   } = useForm({
@@ -255,6 +256,10 @@ const DeportistaForm = ({
             {...register("first_name", {
               required: "Requerido",
               minLength: { value: 3, message: "Mín. 3 caracteres" },
+              pattern: {
+                value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                message: "Solo se permiten letras"
+              }
             })}
           />
           <Input
@@ -267,6 +272,10 @@ const DeportistaForm = ({
             {...register("last_name", {
               required: "Requerido",
               minLength: { value: 3, message: "Mín. 3 caracteres" },
+              pattern: {
+                value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                message: "Solo se permiten letras"
+              }
             })}
           />
           <Input
@@ -275,21 +284,46 @@ const DeportistaForm = ({
             error={errors.birth_date?.message}
             disabled={loading}
             required
-            {...register("birth_date", { required: "Requerido" })}
+            {...register("birth_date", {
+              required: "Requerido",
+              validate: (value) => {
+                if (!value) return "Requerido";
+                const d = new Date(value);
+                if (isNaN(d)) return "Fecha inválida";
+                const today = new Date();
+                const todayMid = new Date(
+                  today.getFullYear(),
+                  today.getMonth(),
+                  today.getDate()
+                );
+                const yesterday = new Date(todayMid);
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                // Calcular edad exacta
+                let age = today.getFullYear() - d.getFullYear();
+                const m = today.getMonth() - d.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+                  age -= 1;
+                }
+                if (d >= yesterday || age <= 16) return "Debe ser mayor de 16 años";
+                return true;
+              },
+            })}
           />
 
           {/* Sexo */}
           <div className="flex flex-col">
             <label className="py-0.5">
               <span className="label-text text-xs font-medium text-slate-600">
-                Sexo
+                Sexo <span className="text-error">*</span>
               </span>
             </label>
             <select
-              error={errors.sex?.message}
-              className="select w-full select-sm bg-white text-slate-600"
-              required
-              {...register("sex", { required: "Requerido" })}
+              className={`select w-full select-sm bg-white text-slate-600 ${
+                errors.sex ? "border-error" : ""
+           }`}
+           disabled={loading}
+           {...register("sex", { required: "El sexo es obligatorio" })}
             >
               <option value="">Seleccionar...</option>
               {GENDER_OPTIONS.map((option) => (
@@ -298,6 +332,9 @@ const DeportistaForm = ({
                 </option>
               ))}
             </select>
+            {errors.sex && (
+              <span className="text-xs text-error mt-1">{errors.sex.message}</span>
+            )}
           </div>
 
           {/* Tipo de documento */}
@@ -354,21 +391,41 @@ const DeportistaForm = ({
                 disabled={loading}
                 inputMode="numeric"
                 maxLength={10}
-                {...register("phone")}
+                {...register("phone" , {
+                  required: "Requerido",
+                  validate: (value) => {
+                    const v = (value ?? "").toString().trim();
+                if (!/^\d{10}$/.test(v)) return "El teléfono debe tener 10 dígitos numéricos";
+                return true;
+                  },
+                })}
               />
 
               {/* Estamento */}
               <div className="flex flex-col">
                 <label className="py-0.5">
                   <span className="label-text text-xs font-medium text-slate-600">
-                    Estamento
+                    Estamento <span className="text-error">*</span>
                   </span>
                 </label>
                 <select
-                  error={errors.type_stament?.message}
                   className="select w-full select-sm bg-white text-slate-600"
-                  required
-                  {...register("type_stament", { required: "Requerido" })}
+                  {...register("type_stament", {
+                    required: "El estamento es requerido",
+                    validate: (value) => {
+                      const valid = [
+                        "administrativos",
+                        "docentes",
+                        "estudiantes",
+                        "trabajadores",
+                        "externos",
+                      ];
+                      if (!valid.includes(value.toLowerCase())) {
+                        return "El estamento debe pertenecer a la UNL";
+                      }
+                      return true;
+                    },
+                  })}
                 >
                   <option value="">Seleccionar...</option>
                   {TYPE_STAMENT_OPTIONS.map((option) => (
@@ -377,6 +434,11 @@ const DeportistaForm = ({
                     </option>
                   ))}
                 </select>
+                {errors.type_stament && (
+                  <span className="text-xs text-error mt-1">
+                    {errors.type_stament.message}
+                  </span>
+                )}
               </div>
 
               <div className="col-span-2">
@@ -386,8 +448,16 @@ const DeportistaForm = ({
                   placeholder="Av. Principal #123"
                   error={errors.direction?.message}
                   disabled={loading}
-                  {...register("direction")}
+                  {...register("direction", {
+                    maxLength: {
+                      value: 20, // límite de caracteres
+                      message: "La dirección no puede superar los 20 caracteres",
+                    },
+                  })}
                 />
+                <span className="text-xs text-slate-400 mt-1">
+                  {watch("direction")?.length || 0}/20 caracteres
+                </span>
               </div>
             </div>
           </section>
@@ -403,33 +473,37 @@ const DeportistaForm = ({
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Altura (metros)"
-              type="text"
+              type="number"
+              step="0.01"
               placeholder="Ej: 1.75"
               error={errors.height?.message}
               disabled={loading}
               {...register("height", {
                 validate: (value) => {
-                  if (!value) return true;
-                  return (
-                    (!isNaN(parseFloat(value)) && isFinite(value)) ||
-                    "Número inválido"
-                  );
+                  if (!value || value === "") return true; // Opcional
+                  const num = parseFloat(value);
+                  if (isNaN(num)) return "Altura inválida";
+                  if (num < 1.0 || num > 2.5)
+                    return "La altura debe estar entre 1m y 2.5m";
+                  return true;
                 },
               })}
             />
             <Input
               label="Peso (kg)"
-              type="text"
+              type="number"
+              step="0.1"
               placeholder="Ej: 70"
               error={errors.weight?.message}
               disabled={loading}
               {...register("weight", {
                 validate: (value) => {
-                  if (!value) return true;
-                  return (
-                    (!isNaN(parseFloat(value)) && isFinite(value)) ||
-                    "Número inválido"
-                  );
+                  if (!value || value === "") return true; // Opcional
+                  const num = parseFloat(value);
+                  if (isNaN(num)) return "Peso inválido";
+                  if (num < 18 || num > 200)
+                    return "El peso debe estar entre 18 kg y 200 kg";
+                  return true;
                 },
               })}
             />
