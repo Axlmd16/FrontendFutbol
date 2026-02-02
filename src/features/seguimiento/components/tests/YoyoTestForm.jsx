@@ -116,7 +116,9 @@ const YoyoTestForm = ({
       });
       onSuccess();
     } catch (error) {
-      toast.error("Error al guardar");
+      console.error("Error creating yoyo test:", error);
+      const errorMsg = error.response?.data?.detail || "Error al guardar el test Yoyo";
+      toast.error(errorMsg);
     }
   };
 

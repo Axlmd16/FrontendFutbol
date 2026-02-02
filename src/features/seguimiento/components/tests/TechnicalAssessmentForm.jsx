@@ -152,7 +152,9 @@ const TechnicalAssessmentForm = ({
       reset();
       onSuccess();
     } catch (error) {
-      toast.error("Error al guardar");
+      console.error("Error creating technical assessment:", error);
+      const errorMsg = error.response?.data?.detail || "Error al guardar la evaluación técnica";
+      toast.error(errorMsg);
     }
   };
 
