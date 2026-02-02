@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   ClipboardList,
   Activity,
@@ -28,6 +29,7 @@ import {
   Mail,
 } from "lucide-react";
 import PublicNavbar from "../../../shared/components/PublicNavbar";
+import { ROUTES } from "@/app/config/constants";
 
 const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -80,13 +82,13 @@ const LandingPage = () => {
               </p>
 
               <div className="flex flex-wrap gap-4 mb-10">
-                <button className="btn btn-primary btn-lg gap-2 shadow-xl">
+                <Link to={ROUTES.REGISTER} className="btn btn-primary btn-lg gap-2 shadow-xl">
                   Inscribir deportista
                   <ArrowRight className="w-5 h-5" />
-                </button>
-                <button className="btn btn-outline btn-lg gap-2 text-white border-white hover:bg-white hover:text-neutral">
+                </Link>
+                <Link to={ROUTES.LOGIN} className="btn btn-outline btn-lg gap-2 text-white border-white hover:bg-white hover:text-neutral">
                   Iniciar sesión
-                </button>
+                </Link>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-white/70">
