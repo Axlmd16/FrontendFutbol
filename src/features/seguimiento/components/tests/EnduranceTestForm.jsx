@@ -105,7 +105,9 @@ const EnduranceTestForm = ({
       reset({ min_duration: 12, total_distance_m: "", observations: "" });
       onSuccess();
     } catch (error) {
-      toast.error("Error al guardar");
+      console.error("Error creating endurance test:", error);
+      const errorMsg = error.response?.data?.detail || "Error al guardar el test de resistencia";
+      toast.error(errorMsg);
     }
   };
 

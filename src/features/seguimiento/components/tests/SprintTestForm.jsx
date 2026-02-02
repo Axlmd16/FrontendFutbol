@@ -98,7 +98,9 @@ const SprintTestForm = ({
       });
       onSuccess();
     } catch (error) {
-      toast.error("Error al guardar");
+      console.error("Error creating sprint test:", error);
+      const errorMsg = error.response?.data?.detail || "Error al guardar el test de velocidad";
+      toast.error(errorMsg);
     }
   };
 

@@ -49,8 +49,11 @@ const EvaluationForm = ({ isEdit = false }) => {
   const currentUser = getCurrentUser();
   const createEvaluation = useCreateEvaluation();
   const updateEvaluation = useUpdateEvaluation();
-  const { data: evaluationData, isLoading: isLoadingData } =
-    useEvaluationById(id);
+  const {
+    data: evaluationData,
+    isLoading: isLoadingData,
+    error: evaluationError,
+  } = useEvaluationById(id);
 
   useEffect(() => {
     if (isEdit && evaluationData?.data) {
@@ -125,6 +128,35 @@ const EvaluationForm = ({ isEdit = false }) => {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50">
         <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (isEdit && !isLoadingData && (evaluationError || !evaluationData?.data)) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-lg w-full bg-base-100 border border-base-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="text-error shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h2 className="font-semibold text-slate-900">
+                Esta evaluación no existe
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Verifica el identificador o vuelve a la lista de evaluaciones.
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => navigate("/seguimiento/evaluations")}
+            >
+              Volver a evaluaciones
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
