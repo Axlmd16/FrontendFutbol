@@ -95,44 +95,6 @@ const usersApi = {
     const response = await http.get(API_ENDPOINTS.AUTH.ME);
     return response.data;
   },
-
-  /**
-   * Verifica si un DNI ya está registrado
-   * @param {string} dni - DNI a verificar
-   * @param {string|number} excludeId - ID del usuario a excluir (para edición)
-   * @returns {Promise<boolean>} true si está disponible, false si está ocupado
-   */
-  checkDniAvailable: async (dni, excludeId = null) => {
-    try {
-      const params = { dni };
-      if (excludeId) params.exclude_id = excludeId;
-      const response = await http.get(`${API_ENDPOINTS.USERS.BASE}/check-dni`, { params });
-      return response.data?.available ?? true;
-    } catch (error) {
-      // Si el endpoint no existe, asumir disponible para no bloquear
-      console.warn("Endpoint check-dni no disponible:", error);
-      return true;
-    }
-  },
-
-  /**
-   * Verifica si un email ya está registrado
-   * @param {string} email - Email a verificar
-   * @param {string|number} excludeId - ID del usuario a excluir (para edición)
-   * @returns {Promise<boolean>} true si está disponible, false si está ocupado
-   */
-  checkEmailAvailable: async (email, excludeId = null) => {
-    try {
-      const params = { email };
-      if (excludeId) params.exclude_id = excludeId;
-      const response = await http.get(`${API_ENDPOINTS.USERS.BASE}/check-email`, { params });
-      return response.data?.available ?? true;
-    } catch (error) {
-      // Si el endpoint no existe, asumir disponible para no bloquear
-      console.warn("Endpoint check-email no disponible:", error);
-      return true;
-    }
-  },
 };
 
 export default usersApi;

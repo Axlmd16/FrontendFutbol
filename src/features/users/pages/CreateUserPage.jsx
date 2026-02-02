@@ -10,17 +10,14 @@ import Button from "../../../shared/components/Button";
 const CreateUserPage = () => {
   // ESTADO
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
   // Maneja el envío del formulario
   const handleSubmit = async (userData) => {
     setLoading(true);
-    setError(null);
 
     try {
-      console.log("userData to submit:", userData);
       await usersApi.create(userData);
 
       toast.success(MESSAGES.SUCCESS.USER_CREATED, {
@@ -29,12 +26,9 @@ const CreateUserPage = () => {
 
       // Navegar a la lista de usuarios
       navigate(ROUTES.USERS);
-    } catch (err) {
-      const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
-      setError(errorMessage);
-      toast.error(MESSAGES.ERROR.USER_CREATE, {
-        description: errorMessage,
-      });
+    } catch {
+      // El interceptor de http.js ya maneja los toasts para todos los errores
+      // No hacemos nada aquí para evitar toast duplicado
     } finally {
       setLoading(false);
     }
@@ -87,7 +81,6 @@ const CreateUserPage = () => {
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               loading={loading}
-              error={error}
               isEdit={false}
             />
           </div>

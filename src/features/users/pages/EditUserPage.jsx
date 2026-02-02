@@ -12,7 +12,7 @@ const EditUserPage = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
 
   // Obtener ID de la URL
   const { id } = useParams();
@@ -24,13 +24,13 @@ const EditUserPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
-      setError(null);
+      setLoadError(null);
 
       try {
         const response = await usersApi.getById(id);
         setUser(response?.data ?? null);
       } catch (err) {
-        setError(err.message || MESSAGES.ERROR.USER_LOAD);
+        setLoadError(err.message || MESSAGES.ERROR.USER_LOAD);
       } finally {
         setLoading(false);
       }
@@ -46,7 +46,6 @@ const EditUserPage = () => {
    */
   const handleSubmit = async (userData) => {
     setSaving(true);
-    setError(null);
 
     try {
       await usersApi.update(id, userData);
@@ -57,12 +56,9 @@ const EditUserPage = () => {
 
       // Navegar a la lista de usuarios
       navigate(ROUTES.USERS);
-    } catch (err) {
-      const errorMessage = err.message || MESSAGES.ERROR.GENERIC;
-      setError(errorMessage);
-      toast.error(MESSAGES.ERROR.USER_UPDATE, {
-        description: errorMessage,
-      });
+    } catch {
+      // El interceptor de http.js ya maneja los toasts para todos los errores
+      // No hacemos nada aquí para evitar toast duplicado
     } finally {
       setSaving(false);
     }
@@ -99,7 +95,8 @@ const EditUserPage = () => {
                 Usuario no encontrado
               </h2>
               <p className="text-slate-500 mt-2 max-w-sm">
-                {error || "El usuario que buscas no existe o fue eliminado."}
+                {loadError ||
+                  "El usuario que buscas no existe o fue eliminado."}
               </p>
               <button
                 onClick={handleCancel}
@@ -160,7 +157,6 @@ const EditUserPage = () => {
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               loading={saving}
-              error={error}
               isEdit={true}
             />
           </div>
