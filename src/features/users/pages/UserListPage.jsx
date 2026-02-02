@@ -131,7 +131,7 @@ const UserListPage = () => {
         await usersApi.desactivate(statusModal.user.id);
         toast.success(MESSAGES.SUCCESS.USER_DEACTIVATED, {
           description: MESSAGES.SUCCESS.USER_DEACTIVATED_DESC(
-            statusModal.user.full_name
+            statusModal.user.full_name,
           ),
         });
       } else {
@@ -151,7 +151,7 @@ const UserListPage = () => {
         isActive ? MESSAGES.ERROR.USER_DEACTIVATE : "Error al activar usuario",
         {
           description: errorMessage,
-        }
+        },
       );
       setStatusModal((prev) => ({ ...prev, loading: false }));
     }

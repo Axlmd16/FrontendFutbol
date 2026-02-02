@@ -18,8 +18,8 @@ const PasswordStrengthIndicator = ({ password }) => {
     { label: "0-9", valid: /[0-9]/.test(password) },
     { label: "!@#", valid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ];
-  
-  const strength = checks.filter(c => c.valid).length;
+
+  const strength = checks.filter((c) => c.valid).length;
   const strengthColors = {
     0: "bg-slate-200",
     1: "bg-red-500",
@@ -28,7 +28,7 @@ const PasswordStrengthIndicator = ({ password }) => {
     4: "bg-lime-500",
     5: "bg-green-500",
   };
-  
+
   return (
     <div className="space-y-1">
       {/* Barra de progreso */}
@@ -139,7 +139,7 @@ const UserForm = ({
       initialData,
       normalizedTypeIdentification,
       normalizedTypeStament,
-    ]
+    ],
   );
 
   const {

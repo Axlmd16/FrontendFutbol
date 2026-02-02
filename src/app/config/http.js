@@ -340,9 +340,13 @@ http.interceptors.response.use(
         "Error de validación de datos.",
       ];
       const isGenericMessage = genericMessages.some(
-        (gm) => message?.toLowerCase() === gm.toLowerCase()
+        (gm) => message?.toLowerCase() === gm.toLowerCase(),
       );
-      const errorMsg = (!isGenericMessage && message) || firstError || message || "Error de validación de datos.";
+      const errorMsg =
+        (!isGenericMessage && message) ||
+        firstError ||
+        message ||
+        "Error de validación de datos.";
 
       // Limpiar prefijos técnicos que no deben ver los usuarios
       const cleanErrorMsg = errorMsg

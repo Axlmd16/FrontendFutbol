@@ -95,7 +95,8 @@ const EditUserPage = () => {
                 Usuario no encontrado
               </h2>
               <p className="text-slate-500 mt-2 max-w-sm">
-                {loadError || "El usuario que buscas no existe o fue eliminado."}
+                {loadError ||
+                  "El usuario que buscas no existe o fue eliminado."}
               </p>
               <button
                 onClick={handleCancel}
