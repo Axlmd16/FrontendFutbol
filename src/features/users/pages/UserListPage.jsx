@@ -131,7 +131,7 @@ const UserListPage = () => {
         await usersApi.desactivate(statusModal.user.id);
         toast.success(MESSAGES.SUCCESS.USER_DEACTIVATED, {
           description: MESSAGES.SUCCESS.USER_DEACTIVATED_DESC(
-            statusModal.user.full_name
+            statusModal.user.full_name,
           ),
         });
       } else {
@@ -151,7 +151,7 @@ const UserListPage = () => {
         isActive ? MESSAGES.ERROR.USER_DEACTIVATE : "Error al activar usuario",
         {
           description: errorMessage,
-        }
+        },
       );
       setStatusModal((prev) => ({ ...prev, loading: false }));
     }
@@ -304,8 +304,16 @@ const UserListPage = () => {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
+          <div className="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg flex items-center justify-between">
             <p>{error}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchUsers}
+              className="text-error hover:bg-error/10"
+            >
+              Reintentar
+            </Button>
           </div>
         )}
 

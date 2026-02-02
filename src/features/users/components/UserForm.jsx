@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import Input from "@/shared/components/Input";
 import Button from "@/shared/components/Button";
@@ -7,15 +7,75 @@ import { VALIDATION } from "@/app/config/constants";
 import { useForm, useWatch } from "react-hook-form";
 import { TYPE_IDENTIFICATION_OPTIONS } from "../../../app/config/constants";
 import { TYPE_STAMENT_OPTIONS } from "../../../app/config/constants";
-import { User, MapPin, Shield, Phone, Mail, IdCard } from "lucide-react";
-import usersApi from "@/features/users/services/users.api";
+import { User, MapPin, Shield, Phone, Mail, Check, X } from "lucide-react";
+
+// Componente para mostrar la fortaleza de la contraseña
+const PasswordStrengthIndicator = ({ password }) => {
+  const checks = [
+    { label: "8+", valid: password.length >= 8 },
+    { label: "A-Z", valid: /[A-Z]/.test(password) },
+    { label: "a-z", valid: /[a-z]/.test(password) },
+    { label: "0-9", valid: /[0-9]/.test(password) },
+    { label: "!@#", valid: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+  ];
+
+  const strength = checks.filter((c) => c.valid).length;
+  const strengthColors = {
+    0: "bg-slate-200",
+    1: "bg-red-500",
+    2: "bg-orange-500",
+    3: "bg-yellow-500",
+    4: "bg-lime-500",
+    5: "bg-green-500",
+  };
+
+  return (
+    <div className="space-y-1">
+      {/* Barra de progreso */}
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className={`h-1 w-6 rounded-full transition-colors ${
+              i <= strength ? strengthColors[strength] : "bg-slate-200"
+            }`}
+          />
+        ))}
+      </div>
+      {/* Lista de requisitos compacta */}
+      <div className="flex gap-1.5 text-[9px]">
+        {checks.map((check) => (
+          <span
+            key={check.label}
+            className={`flex items-center ${
+              check.valid ? "text-green-600" : "text-slate-400"
+            }`}
+          >
+            {check.valid ? <Check size={8} /> : <X size={8} />}
+            {check.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Componente para encabezados de sección
+// eslint-disable-next-line no-unused-vars
+const SectionHeader = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-2 mb-2 pb-1 border-b border-base-200">
+    <div className="bg-primary/10 p-1 rounded-md">
+      <Icon size={12} className="text-primary" />
+    </div>
+    <h3 className="text-xs font-semibold text-slate-700">{title}</h3>
+  </div>
+);
 
 const UserForm = ({
   initialData = null,
   onSubmit,
   onCancel,
   loading = false,
-  error = null,
   isEdit = false,
 }) => {
   const defaultRole = ROLE_OPTIONS?.[0]?.value ?? "Administrador";
@@ -79,7 +139,7 @@ const UserForm = ({
       initialData,
       normalizedTypeIdentification,
       normalizedTypeStament,
-    ]
+    ],
   );
 
   const {
@@ -92,9 +152,6 @@ const UserForm = ({
     mode: "onChange",
     defaultValues,
   });
-
-  const [checkingDni, setCheckingDni] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const password = useWatch({ control, name: "password" });
   const typeIdentification = useWatch({ control, name: "type_identification" });
@@ -145,29 +202,15 @@ const UserForm = ({
           inputMode: "numeric",
           maxLength: 10,
           placeholder: "10 dígitos",
-          validate: async (value) => {
+          validate: (value) => {
             const v = (value ?? "").toString().trim();
             if (!/^\d{10}$/.test(v))
               return "La cédula debe tener exactamente 10 dígitos";
-            
-            // Validar duplicado
-            setCheckingDni(true);
-            try {
-              const available = await usersApi.checkDniAvailable(v, initialData?.id);
-              setCheckingDni(false);
-              if (!available) {
-                return "Este DNI ya está registrado";
-              }
-            } catch (error) {
-              setCheckingDni(false);
-              console.error("Error verificando DNI:", error);
-            }
-            
             return true;
           },
         };
     }
-  }, [typeIdentification, initialData?.id]);
+  }, [typeIdentification]);
 
   useEffect(() => {
     reset(defaultValues);
@@ -187,16 +230,6 @@ const UserForm = ({
     onSubmit(dataToSubmit);
   };
 
-  // Componente para sección
-  const SectionHeader = ({ icon: Icon, title }) => (
-    <div className="flex items-center gap-2 mb-2 pb-1 border-b border-base-200">
-      <div className="bg-primary/10 p-1 rounded-md">
-        <Icon size={12} className="text-primary" />
-      </div>
-      <h3 className="text-xs font-semibold text-slate-700">{title}</h3>
-    </div>
-  );
-
   // ==============================================
   // RENDER
   // ==============================================
@@ -207,13 +240,6 @@ const UserForm = ({
       className="space-y-4"
       noValidate
     >
-      {/* Error del servidor */}
-      {error && (
-        <div className="bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
-
       {/* Sección: Datos Personales */}
       <div>
         <SectionHeader icon={User} title="Datos Personales" />
@@ -277,12 +303,12 @@ const UserForm = ({
 
           {/* Dni (Obligatorio) */}
           <Input
-            label={checkingDni ? "Verificando DNI..." : "Número de identificación"}
+            label="Número de identificación"
             type="text"
             name="dni"
             placeholder={identificationRules.placeholder}
             error={errors.dni?.message}
-            disabled={loading || checkingDni}
+            disabled={loading}
             required
             inputMode={identificationRules.inputMode}
             maxLength={identificationRules.maxLength}
@@ -305,7 +331,7 @@ const UserForm = ({
             name="email"
             placeholder="usuario@unl.edu.ec"
             error={errors.email?.message}
-            disabled={loading || checkingEmail}
+            disabled={loading}
             required
             icon={<Mail size={14} className="text-slate-400" />}
             {...register("email", {
@@ -313,27 +339,6 @@ const UserForm = ({
               pattern: {
                 value: VALIDATION.EMAIL_PATTERN,
                 message: "Ingresa un email válido",
-              },
-              validate: async (value) => {
-                const email = value.toLowerCase().trim();
-                if (!email.endsWith("@unl.edu.ec") && !email.endsWith("@unl.edu")) {
-                  return "El correo debe ser institucional (@unl.edu.ec o @unl.edu)";
-                }
-                
-                // Validar duplicado
-                setCheckingEmail(true);
-                try {
-                  const available = await usersApi.checkEmailAvailable(email, initialData?.id);
-                  setCheckingEmail(false);
-                  if (!available) {
-                    return "Este correo ya está registrado";
-                  }
-                } catch (error) {
-                  setCheckingEmail(false);
-                  console.error("Error verificando email:", error);
-                }
-                
-                return true;
               },
             })}
           />
@@ -431,25 +436,41 @@ const UserForm = ({
           </div>
 
           {/* Contraseña */}
-          <Input
-            label={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            disabled={loading}
-            required={!isEdit}
-            {...register("password", {
-              required: isEdit ? false : "La contraseña es requerida",
-              validate: (value) => {
-                if (!value) return true;
-                return (
-                  value.length >= VALIDATION.PASSWORD_MIN_LENGTH ||
-                  `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`
-                );
-              },
-            })}
-          />
+          <div className="space-y-1">
+            <Input
+              label={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+              disabled={loading}
+              required={!isEdit}
+              {...register("password", {
+                required: isEdit ? false : "La contraseña es requerida",
+                validate: (value) => {
+                  if (!value) return true;
+                  if (value.length < VALIDATION.PASSWORD_MIN_LENGTH) {
+                    return `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`;
+                  }
+                  if (!/[A-Z]/.test(value)) {
+                    return "Debe contener al menos una mayúscula";
+                  }
+                  if (!/[a-z]/.test(value)) {
+                    return "Debe contener al menos una minúscula";
+                  }
+                  if (!/[0-9]/.test(value)) {
+                    return "Debe contener al menos un número";
+                  }
+                  if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+                    return "Debe contener al menos un carácter especial (!@#$%^&*)";
+                  }
+                  return true;
+                },
+              })}
+            />
+            {/* Indicador de seguridad de contraseña */}
+            {password && <PasswordStrengthIndicator password={password} />}
+          </div>
 
           {/* Confirmar contraseña */}
           <Input
@@ -502,7 +523,6 @@ UserForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   loading: PropTypes.bool,
-  error: PropTypes.string,
   isEdit: PropTypes.bool,
 };
 
