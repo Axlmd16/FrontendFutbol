@@ -304,8 +304,16 @@ const UserListPage = () => {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg">
+          <div className="mb-6 bg-error/10 border border-error/30 text-error px-4 py-3 rounded-lg flex items-center justify-between">
             <p>{error}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchUsers}
+              className="text-error hover:bg-error/10"
+            >
+              Reintentar
+            </Button>
           </div>
         )}
 
