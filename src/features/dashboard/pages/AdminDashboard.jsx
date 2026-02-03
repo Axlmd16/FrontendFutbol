@@ -1,72 +1,101 @@
-import { Link } from "react-router-dom";
-import { ROUTES } from "@/app/config/constants";
+/**
+ * AdminDashboard - Dashboard para Administradores
+ * Acceso completo a todas las funcionalidades
+ */
 
-const Card = ({ title, description, to, cta }) => (
-  <div className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
-    <div className="text-base font-semibold text-base-content">{title}</div>
-    <div className="mt-1 text-sm text-base-content/70">{description}</div>
-    {to && (
-      <div className="mt-4">
-        <Link
-          to={to}
-          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/90"
-        >
-          {cta || "Abrir"}
-        </Link>
-      </div>
-    )}
-  </div>
-);
+import { ROUTES } from "@/app/config/constants";
+import useAuth from "@/features/auth/hooks/useAuth";
+import { DashboardCard, WelcomeHeader, QuickActions } from "../components";
+import {
+  Users,
+  UserPlus,
+  ClipboardCheck,
+  BarChart3,
+  FileText,
+  Settings,
+  UserCog,
+} from "lucide-react";
 
 const AdminDashboard = () => {
-  return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold text-base-content">
-          Dashboard Administrador
-        </h1>
-        <p className="mt-1 text-sm text-base-content/70">
-          Acceso completo a usuarios, inscripciones y seguimiento.
-        </p>
-      </div>
+  const { user } = useAuth();
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Card
-          title="Usuarios"
-          description="Crear, editar y administrar usuarios del sistema."
-          to={ROUTES.USERS}
-          cta="Gestionar"
-        />
-        <Card
-          title="Inscripciones"
-          description="Registrar deportistas y menores (escuela/club)."
-          to={ROUTES.INSCRIPTION_DEPORTISTA}
-          cta="Registrar"
-        />
-        <Card
-          title="Evaluaciones"
-          description="Crear y administrar evaluaciones deportivas."
-          to={ROUTES.EVALUATIONS}
-          cta="Ver"
-        />
-        <Card
-          title="Estadísticas"
-          description="Consultar métricas y rendimiento."
-          to={ROUTES.STATISTICS}
-          cta="Abrir"
-        />
-        <Card
-          title="Reportes"
-          description="Exportar reportes y ver resúmenes."
-          to={ROUTES.REPORTS}
-          cta="Abrir"
-        />
-        <Card
-          title="Configuración"
-          description="Ajustes generales del sistema."
-          to={ROUTES.SETTINGS}
-          cta="Abrir"
-        />
+  const quickActions = [
+    { label: "Nuevo Usuario", icon: UserCog, to: ROUTES.USERS_CREATE },
+    {
+      label: "Inscribir Deportista",
+      icon: UserPlus,
+      to: ROUTES.INSCRIPTION_DEPORTISTA,
+    },
+    {
+      label: "Nueva Evaluación",
+      icon: ClipboardCheck,
+      to: `${ROUTES.EVALUATIONS}/create`,
+    },
+    { label: "Generar Reporte", icon: FileText, to: ROUTES.REPORTS },
+  ];
+
+  const modules = [
+    {
+      title: "Gestión de Usuarios",
+      description:
+        "Crear, editar y administrar usuarios del sistema. Gestiona permisos y accesos.",
+      icon: UserCog,
+      to: ROUTES.USERS,
+      color: "primary",
+      badge: "Admin",
+    },
+    {
+      title: "Inscripciones",
+      description:
+        "Registrar deportistas adultos y menores. Gestiona representantes y documentos.",
+      icon: UserPlus,
+      to: ROUTES.INSCRIPTION,
+      color: "secondary",
+    },
+    {
+      title: "Evaluaciones",
+      description:
+        "Crear y administrar evaluaciones deportivas: tests físicos, técnicos y yo-yo.",
+      icon: ClipboardCheck,
+      to: ROUTES.EVALUATIONS,
+      color: "accent",
+    },
+    {
+      title: "Estadísticas",
+      description:
+        "Consulta métricas de rendimiento, asistencia y progreso de los deportistas.",
+      icon: BarChart3,
+      to: ROUTES.STATISTICS,
+      color: "info",
+    },
+    {
+      title: "Reportes",
+      description:
+        "Genera y exporta reportes en PDF, CSV y XLSX con datos de asistencia y evaluaciones.",
+      icon: FileText,
+      to: ROUTES.REPORTS,
+      color: "success",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 pb-8">
+      {/* Header de bienvenida */}
+      <WelcomeHeader user={user} />
+
+      {/* Acciones rápidas */}
+      <QuickActions actions={quickActions} />
+
+      {/* Módulos principales */}
+      <div>
+        <h2 className="text-lg font-semibold text-base-content mb-4">
+          Módulos del Sistema
+        </h2>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {modules.map((module, index) => (
+            <DashboardCard key={index} {...module} />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -302,7 +302,7 @@ http.interceptors.response.use(
     if (response?.status === 422) {
       const data = response?.data;
 
-      // 1) Nuestro backend (ResponseSchema)
+      // 1) Nuestro backend (ResponseSchema) - el message ahora contiene el error específico
       const message = typeof data?.message === "string" ? data.message : null;
 
       // errors puede venir como dict {field:[msg]} o lista [{field,message,...}]
@@ -310,11 +310,17 @@ http.interceptors.response.use(
       let firstError = null;
 
       if (Array.isArray(errors) && errors.length > 0) {
-        firstError = errors[0]?.message || null;
+        firstError = errors[0]?.message || errors[0]?.msg || null;
       } else if (errors && typeof errors === "object") {
-        const firstKey = Object.keys(errors)[0];
-        const val = firstKey ? errors[firstKey] : null;
-        firstError = Array.isArray(val) ? val[0] : val;
+        // Buscar el primer error, priorizando __root__ si existe
+        const rootError = errors["__root__"];
+        if (rootError) {
+          firstError = Array.isArray(rootError) ? rootError[0] : rootError;
+        } else {
+          const firstKey = Object.keys(errors)[0];
+          const val = firstKey ? errors[firstKey] : null;
+          firstError = Array.isArray(val) ? val[0] : val;
+        }
       }
 
       // 2) FastAPI default (detail)
@@ -326,7 +332,21 @@ http.interceptors.response.use(
         firstError = detail;
       }
 
-      const errorMsg = firstError || message || "Error de validación de datos.";
+      // Usar message del backend si es específico (no genérico)
+      const genericMessages = [
+        "Error de validación. Revisa los campos enviados.",
+        "Error de validación",
+        "Error de validacion de datos.",
+        "Error de validación de datos.",
+      ];
+      const isGenericMessage = genericMessages.some(
+        (gm) => message?.toLowerCase() === gm.toLowerCase(),
+      );
+      const errorMsg =
+        (!isGenericMessage && message) ||
+        firstError ||
+        message ||
+        "Error de validación de datos.";
 
       // Limpiar prefijos técnicos que no deben ver los usuarios
       const cleanErrorMsg = errorMsg

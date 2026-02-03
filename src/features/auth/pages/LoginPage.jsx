@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
 import useAuth from "../hooks/useAuth";
 import { ROUTES } from "@/app/config/constants";
-import PublicNavbar from "@/shared/components/PublicNavbar";
+import { Activity, Shield, Users, ArrowLeft, Home } from "lucide-react";
 
 const LoginPage = () => {
   // HOOKS
@@ -33,48 +33,132 @@ const LoginPage = () => {
   };
 
   return (
-    <div>
-      <PublicNavbar />
-      <div className="flex items-center justify-center bg-base-200 py-12 px-4 sm:px-6 lg:px-8 h-[calc(100vh-5rem)]">
-        <div className="max-w-md w-full ">
-          {/* Card principal */}
-          <div className="bg-base-100 rounded-2xl shadow-xl p-8">
-            {/* Header */}
-            <div className="text-center mb-8">
-              {/* Logo */}
-              <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
-                <svg
-                  className="h-10 w-10 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+    <div className="min-h-screen flex">
+      {/* Panel izquierdo - Decorativo (solo desktop) */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-neutral overflow-hidden">
+        {/* Botón volver - Desktop */}
+        <Link
+          to={ROUTES.LANDING}
+          className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm text-white/80 hover:bg-white/20 hover:text-white transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Volver al inicio</span>
+        </Link>
+
+        {/* Imagen de fondo */}
+        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1920')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-neutral via-neutral/90 to-primary/30" />
+        </div>
+
+        {/* Contenido decorativo */}
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+          <div className="max-w-lg">
+            {/* Logo grande */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30">
+                <span className="text-primary-content font-bold text-3xl">
+                  K
+                </span>
+              </div>
+              <div>
+                <h2 className="text-white text-2xl font-bold">Kallpa UNL</h2>
+                <p className="text-white/60 text-sm">
+                  Sistema de Gestión Deportiva
+                </p>
+              </div>
+            </div>
+
+            {/* Título */}
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white mb-6 leading-tight">
+              Gestiona tu escuela de{" "}
+              <span className="text-primary">fútbol</span> de forma inteligente
+            </h1>
+
+            <p className="text-white/70 text-lg mb-10 leading-relaxed">
+              Accede a tu cuenta para administrar deportistas, registrar
+              asistencias, aplicar evaluaciones y generar reportes
+              profesionales.
+            </p>
+
+            {/* Features mini */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+                <span className="text-lg">Gestión completa de deportistas</span>
+              </div>
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <span className="text-lg">
+                  Tests físicos y evaluaciones técnicas
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-white/80">
+                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <span className="text-lg">Datos seguros y respaldados</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Panel derecho - Formulario */}
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col bg-base-100">
+        {/* Botón volver - Móvil */}
+        <div className="lg:hidden p-4">
+          <Link
+            to={ROUTES.LANDING}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-base-200 text-base-content/70 hover:bg-base-300 hover:text-base-content transition-all"
+          >
+            <Home className="w-4 h-4" />
+            <span className="text-sm font-medium">Ir al inicio</span>
+          </Link>
+        </div>
+
+        {/* Contenedor del formulario */}
+        <div className="flex-1 flex items-center justify-center px-6 py-8 lg:py-12">
+          <div className="w-full max-w-md">
+            {/* Header del formulario */}
+            <div className="text-center mb-10">
+              {/* Logo móvil */}
+              <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-xl shadow-primary/20">
+                  <span className="text-primary-content font-bold text-2xl">
+                    K
+                  </span>
+                </div>
               </div>
 
-              {/* Título */}
-              <h1 className="text-3xl font-bold text-base-content">
-                Kallpa UNL
+              <h1 className="text-3xl lg:text-4xl font-extrabold text-base-content mb-3">
+                Bienvenido
               </h1>
-              <p className="mt-2 text-base-content/70">
-                Sistema de Gestión Deportiva
+              <p className="text-base-content/60 text-lg">
+                Ingresa a tu cuenta para continuar
               </p>
             </div>
 
-            {/* Mensaje de estado  */}
+            {/* Mensaje de estado */}
             {location.state?.message && (
-              <div className="mb-6 bg-success/10 border border-success/30 text-success px-4 py-3 rounded-lg">
+              <div className="mb-6 bg-success/10 border border-success/20 text-success px-4 py-3 rounded-xl">
                 <p className="text-sm">{location.state.message}</p>
               </div>
             )}
 
-            {/* Formulario de login */}
+            {/* Formulario */}
             <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
           </div>
         </div>

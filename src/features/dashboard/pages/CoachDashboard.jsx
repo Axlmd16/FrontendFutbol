@@ -1,60 +1,136 @@
+/**
+ * CoachDashboard - Dashboard para Entrenadores
+ * Acceso a inscripciones, asistencias, evaluaciones, estadísticas y reportes
+ */
+
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/app/config/constants";
-
-const Card = ({ title, description, to, cta }) => (
-  <div className="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
-    <div className="text-base font-semibold text-base-content">{title}</div>
-    <div className="mt-1 text-sm text-base-content/70">{description}</div>
-    {to && (
-      <div className="mt-4">
-        <Link
-          to={to}
-          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content hover:bg-primary/90"
-        >
-          {cta || "Abrir"}
-        </Link>
-      </div>
-    )}
-  </div>
-);
+import useAuth from "@/features/auth/hooks/useAuth";
+import { DashboardCard, WelcomeHeader, QuickActions } from "../components";
+import {
+  UserPlus,
+  ClipboardCheck,
+  BarChart3,
+  FileText,
+  CalendarCheck,
+  Clock,
+  X,
+} from "lucide-react";
 
 const CoachDashboard = () => {
-  return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold text-base-content">
-          Dashboard Entrenador
-        </h1>
-        <p className="mt-1 text-sm text-base-content/70">
-          Acceso a inscripciones, evaluaciones, estadísticas y reportes.
-        </p>
-      </div>
+  const { user } = useAuth();
+  const [showReminder, setShowReminder] = useState(true);
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Card
-          title="Inscripciones"
-          description="Registrar deportistas y menores."
-          to={ROUTES.INSCRIPTION_DEPORTISTA}
-          cta="Registrar"
-        />
-        <Card
-          title="Evaluaciones"
-          description="Crear y editar evaluaciones."
-          to={ROUTES.EVALUATIONS}
-          cta="Ver"
-        />
-        <Card
-          title="Estadísticas"
-          description="Consultar métricas de rendimiento."
-          to={ROUTES.STATISTICS}
-          cta="Abrir"
-        />
-        <Card
-          title="Reportes"
-          description="Ver y exportar reportes."
-          to={ROUTES.REPORTS}
-          cta="Abrir"
-        />
+  const quickActions = [
+    { label: "Tomar Asistencia", icon: CalendarCheck, to: ROUTES.ATTENDANCE },
+    {
+      label: "Inscribir Deportista",
+      icon: UserPlus,
+      to: ROUTES.INSCRIPTION_DEPORTISTA,
+    },
+    {
+      label: "Nueva Evaluación",
+      icon: ClipboardCheck,
+      to: `${ROUTES.EVALUATIONS}/create`,
+    },
+    { label: "Generar Reporte", icon: FileText, to: ROUTES.REPORTS },
+  ];
+
+  const modules = [
+    {
+      title: "Asistencias",
+      description:
+        "Registra la asistencia diaria de los deportistas y consulta el historial.",
+      icon: CalendarCheck,
+      to: ROUTES.ATTENDANCE,
+      color: "primary",
+      badge: "Hoy",
+    },
+    {
+      title: "Inscripciones",
+      description:
+        "Registrar deportistas adultos y menores con sus respectivos datos.",
+      icon: UserPlus,
+      to: ROUTES.INSCRIPTION,
+      color: "secondary",
+    },
+    {
+      title: "Evaluaciones",
+      description:
+        "Crea y gestiona evaluaciones: tests de sprint, resistencia, yo-yo y técnicos.",
+      icon: ClipboardCheck,
+      to: ROUTES.EVALUATIONS,
+      color: "accent",
+    },
+    {
+      title: "Estadísticas",
+      description:
+        "Visualiza métricas de rendimiento y progreso de tus deportistas.",
+      icon: BarChart3,
+      to: ROUTES.STATISTICS,
+      color: "info",
+    },
+    {
+      title: "Reportes",
+      description:
+        "Genera reportes de asistencia, evaluaciones y estadísticas en múltiples formatos.",
+      icon: FileText,
+      to: ROUTES.REPORTS,
+      color: "success",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 pb-8">
+      {/* Header de bienvenida */}
+      <WelcomeHeader user={user} />
+
+      {/* Acciones rápidas */}
+      <QuickActions actions={quickActions} />
+
+      {/* Recordatorio de asistencia */}
+      {showReminder && (
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl border border-primary/20 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-primary text-primary-content flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-base-content text-sm">
+              Recordatorio de Asistencia
+            </h3>
+            <p className="text-xs text-base-content/60">
+              No olvides registrar la asistencia del día de hoy.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to={ROUTES.ATTENDANCE}
+              className="px-3 py-1.5 rounded-lg bg-primary text-primary-content text-xs font-medium hover:bg-primary/90 transition-colors whitespace-nowrap"
+            >
+              Ir a Asistencias
+            </Link>
+            <button
+              onClick={() => setShowReminder(false)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-base-content/40 hover:text-base-content hover:bg-base-200 transition-all"
+              aria-label="Cerrar recordatorio"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Módulos principales */}
+      <div>
+        <h2 className="text-lg font-semibold text-base-content mb-4">
+          Mis Herramientas
+        </h2>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {modules.map((module, index) => (
+            <DashboardCard key={index} {...module} />
+          ))}
+        </div>
       </div>
     </div>
   );
