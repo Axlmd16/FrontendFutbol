@@ -305,8 +305,13 @@ const DeportistaForm = ({
                   age -= 1;
                 }
 
-                if (age < 10) return "Debe tener al menos 10 años";
-                if (age > 17) return "Debe ser menor o igual a 17 años";
+                if (isMenor) {
+                  if (age < 10) return "Debe tener al menos 10 años";
+                  if (age > 17) return "Debe ser menor o igual a 17 años";
+                } else {
+                  if (age < 18) return "Debe tener 18 años o más";
+                  if (age > 80) return "Edad inválida"; // guarda un techo razonable
+                }
                 return true;
               },
             })}
