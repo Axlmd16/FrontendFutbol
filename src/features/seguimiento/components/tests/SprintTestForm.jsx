@@ -141,8 +141,13 @@ const SprintTestForm = ({
             <div className="flex items-center gap-3">
               <input
                 type="number"
-                {...register("distance_meters", { required: true, min: 1 })}
-                className="input input-bordered bg-white w-32"
+                {...register("distance_meters", {
+                  required: "La distancia es obligatoria",
+                  min: { value: 1, message: "La distancia debe ser mayor a 0" },
+                })}
+                className={`input input-bordered bg-white w-32 ${
+                  errors.distance_meters ? "input-error" : ""
+                }`}
               />
               <span className="text-sm text-slate-600">metros</span>
               <div className="flex-1"></div>
@@ -151,6 +156,11 @@ const SprintTestForm = ({
                 <span>Estándar: 30m</span>
               </div>
             </div>
+            {errors.distance_meters && (
+              <p className="mt-2 text-xs text-error">
+                {errors.distance_meters.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -181,11 +191,21 @@ const SprintTestForm = ({
                   type="number"
                   step="0.01"
                   placeholder="1.85"
-                  {...register("time_0_10_s", { required: true, min: 0.01 })}
-                  className="input input-bordered bg-white flex-1"
+                  {...register("time_0_10_s", {
+                    required: "El tiempo es obligatorio",
+                    min: { value: 0.01, message: "El tiempo debe ser mayor a 0" },
+                  })}
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.time_0_10_s ? "input-error" : ""
+                  }`}
                 />
                 <span className="text-sm text-slate-600 w-12">seg</span>
               </div>
+              {errors.time_0_10_s && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.time_0_10_s.message}
+                </p>
+              )}
             </div>
 
             {/* Time 0-30m */}
@@ -206,11 +226,21 @@ const SprintTestForm = ({
                   type="number"
                   step="0.01"
                   placeholder="3.95"
-                  {...register("time_0_30_s", { required: true, min: 0.01 })}
-                  className="input input-bordered bg-white flex-1"
+                  {...register("time_0_30_s", {
+                    required: "El tiempo es obligatorio",
+                    min: { value: 0.01, message: "El tiempo debe ser mayor a 0" },
+                  })}
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.time_0_30_s ? "input-error" : ""
+                  }`}
                 />
                 <span className="text-sm text-slate-600 w-12">seg</span>
               </div>
+              {errors.time_0_30_s && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.time_0_30_s.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
