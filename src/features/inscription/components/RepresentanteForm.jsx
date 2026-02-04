@@ -53,6 +53,7 @@ const RepresentanteForm = ({
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     mode: "onChange",
     defaultValues,
@@ -64,6 +65,14 @@ const RepresentanteForm = ({
       reset(defaultValues);
     }
   }, [initialData, defaultValues, reset]);
+
+  // Actualizar valores sin reset completo cuando llegan campos nuevos (para autocompletar)
+  useEffect(() => {
+    if (!initialData) return;
+    Object.entries(defaultValues).forEach(([key, val]) => {
+      if (val !== undefined) setValue(key, val);
+    });
+  }, [defaultValues, initialData, setValue]);
 
   // Suscribirse a cambios del formulario usando watch callback (solo en modo no-edición)
   useEffect(() => {

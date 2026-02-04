@@ -51,8 +51,8 @@ const UserListPage = () => {
   // Usuario actual logueado
   const { user: currentUser } = useAuth();
 
-  // Debounce para búsqueda
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  // Debounce para búsqueda (800ms para dar tiempo a escribir)
+  const debouncedSearch = useDebounce(searchTerm, 800);
 
   // ==============================================
 
@@ -94,6 +94,14 @@ const UserListPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Resetear a página 1 cuando cambia el término de búsqueda (después del debounce)
+  useEffect(() => {
+    if (pagination.page !== 1) {
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, roleFilter, statusFilter]);
 
   // ==============================================
 
@@ -242,7 +250,7 @@ const UserListPage = () => {
                 </label>
                 <Input
                   type="text"
-                  placeholder="Buscar por nombre, email o usuario..."
+                  placeholder="Buscar por nombre, dni o email"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   icon={<Search size={16} className="text-slate-400" />}

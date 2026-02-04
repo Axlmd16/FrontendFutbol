@@ -8,7 +8,7 @@
  * Flujo de 2 pasos: Representante → Deportista (menor).
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import PublicNavbar from "@/shared/components/PublicNavbar";
@@ -44,6 +44,7 @@ const RegisterSchoolPage = () => {
 
   const [representanteData, setRepresentanteData] = useState({});
   const [representanteErrors, setRepresentanteErrors] = useState({});
+  const [lastRepLookupDni, setLastRepLookupDni] = useState(null);
   const [athleteData, setAthleteData] = useState(null);
 
   const stepTitle = useMemo(() => {
@@ -108,34 +109,173 @@ const RegisterSchoolPage = () => {
     setStep(2);
   };
 
+  // Autocompletar datos del representante si la cédula ya existe
+  useEffect(() => {
+    const dni = (representanteData?.dni || "").trim();
+    if (dni.length !== 10 || !VALIDATION.CI_PATTERN.test(dni)) return;
+    if (dni === lastRepLookupDni) return; // evitar refetch si ya se cargó
+
+    let cancelled = false;
+    const fetchRep = async () => {
+      try {
+        const res = await inscriptionApi.getRepresentativeByDni(dni);
+        const rep = res?.data?.data || res?.data || res; // ResponseSchema<data> o payload directo
+        if (!rep || cancelled) return;
+
+        // Derivar nombres si solo viene full_name: usar último par de tokens como apellidos
+        let firstName = rep.first_name || rep.firstName || "";
+        let lastName = rep.last_name || rep.lastName || "";
+        // Si falta cualquiera de los dos, intentar derivar desde full_name
+        if ((!firstName || !lastName) && rep.full_name) {
+          const parts = rep.full_name.trim().split(/\s+/);
+          if (parts.length >= 4) {
+            lastName = lastName || parts.slice(-2).join(" ");
+            firstName = firstName || parts.slice(0, -2).join(" ");
+          } else if (parts.length === 3) {
+            lastName = lastName || parts.slice(-2).join(" ");
+            firstName = firstName || parts[0];
+          } else if (parts.length === 2) {
+            if (!firstName && !lastName) {
+              [firstName, lastName] = parts;
+            } else if (!firstName) {
+              firstName = parts[0];
+            } else if (!lastName) {
+              lastName = parts[1];
+            }
+          } else if (!firstName) {
+            firstName = rep.full_name;
+          }
+        }
+
+        // Parentesco: admite varios alias y normaliza a uppercase
+        const relationshipRaw =
+          rep.relationship_type ||
+          rep.relationship_type?.value ||
+          rep.relationshipType ||
+          rep.relationship ||
+          rep.parentesco ||
+          rep.tipo_parentesco ||
+          rep.relation ||
+          rep.kinship ||
+          rep.parentesco_nombre ||
+          rep.relationship_name ||
+          "";
+
+        // Normalizar parentesco: quitar prefijos como "Relationship.", reemplazar separadores y upper-case
+        const relationshipUpper = relationshipRaw
+          .toString()
+          .trim()
+          .replace(/^RELATIONSHIP\./i, "")
+          .replace(/-/g, "_")
+          .replace(/\s+/g, "_")
+          .toUpperCase();
+
+        const relationship = (() => {
+          if (!relationshipUpper) return "";
+          if (["PADRE", "PAPA", "FATHER"].includes(relationshipUpper)) return "FATHER";
+          if (["MADRE", "MAMA", "MOTHER"].includes(relationshipUpper)) return "MOTHER";
+          if (["TUTOR", "LEGAL_GUARDIAN", "TUTOR_LEGAL", "TUTOR LEGAL", "ACUDIENTE"].includes(relationshipUpper))
+            return "LEGAL_GUARDIAN";
+          return relationshipUpper; // fallback
+        })();
+
+        // Dirección: intentar alias conocidos, si no dejar previa o vacío
+        const direction =
+          rep.direction ||
+          rep.address ||
+          rep.direccion ||
+          rep.address_line ||
+          rep.addressLine ||
+          rep.address_line1 ||
+          rep.address_line_1 ||
+          rep.address_line_2 ||
+          rep.address1 ||
+          rep.address2 ||
+          rep.residence ||
+          rep.domicilio ||
+          rep.dir ||
+          rep.location ||
+          rep.city ||
+          rep.parish ||
+          rep.province ||
+          "";
+
+        setRepresentanteData((prev) => ({
+          ...prev,
+          first_name: firstName || prev.first_name || "",
+          last_name: lastName || prev.last_name || "",
+          dni: rep.dni || dni,
+          phone: rep.phone || prev.phone || "",
+          email: rep.email || prev.email || "",
+          direction: direction || prev.direction || "",
+          relationship_type: relationship || prev.relationship_type || "",
+        }));
+        setLastRepLookupDni(dni);
+        toast.success("Datos del representante cargados automáticamente");
+      } catch (err) {
+        // Si es 404, ignoramos; otros errores se notifican
+        const status = err?.response?.status;
+        if (status === 404) return;
+        const msg =
+          err?.response?.data?.detail || err?.message || "No se pudo verificar la cédula";
+        toast.error(msg);
+      }
+    };
+
+    fetchRep();
+    return () => {
+      cancelled = true;
+    };
+  }, [representanteData?.dni, lastRepLookupDni]);
+
   const handleSubmitSchool = async (athletePayload) => {
     setLoading(true);
     setError(null);
 
+    // Declarar fuera del try para usarlos en el catch
+    let cleanAthlete = null;
+    let cleanRepresentative = null;
+
     try {
       // Filtrar solo los campos que el backend espera para atletas menores
       // El backend NO acepta: type_stament, type_identification (los fija internamente)
-      const minorAthleteData = {
-        first_name: athletePayload.first_name,
-        last_name: athletePayload.last_name,
-        dni: athletePayload.dni,
+      cleanAthlete = {
+        first_name: athletePayload.first_name?.trim() || "",
+        last_name: athletePayload.last_name?.trim() || "",
+        dni: athletePayload.dni?.trim() || "",
         birth_date: athletePayload.birth_date,
         sex: athletePayload.sex,
-        height: athletePayload.height
-          ? parseFloat(athletePayload.height)
-          : null,
-        weight: athletePayload.weight
-          ? parseFloat(athletePayload.weight)
-          : null,
-        direction: athletePayload.direction || "S/N",
-        phone: athletePayload.phone || "S/N",
+        height: athletePayload.height ? parseFloat(athletePayload.height) : null,
+        weight: athletePayload.weight ? parseFloat(athletePayload.weight) : null,
+        direction: athletePayload.direction?.trim() || "S/N",
+        phone: athletePayload.phone?.trim() || "S/N",
       };
 
-      setAthleteData(minorAthleteData);
+      cleanRepresentative = {
+        ...representanteData,
+        first_name: representanteData.first_name?.trim() || "",
+        last_name: representanteData.last_name?.trim() || "",
+        dni: representanteData.dni?.trim() || "",
+        phone: representanteData.phone?.trim() || "",
+        email: representanteData.email?.trim() || "",
+        direction: representanteData.direction?.trim() || "",
+      };
+
+      if (
+        cleanAthlete.dni &&
+        cleanRepresentative.dni &&
+        cleanAthlete.dni === cleanRepresentative.dni
+      ) {
+        throw new Error(
+          "La cédula del deportista y del representante no pueden ser la misma. Usa datos distintos."
+        );
+      }
+
+      setAthleteData(cleanAthlete);
 
       await inscriptionApi.registerMenor({
-        athlete: minorAthleteData,
-        representative: representanteData,
+        athlete: cleanAthlete,
+        representative: cleanRepresentative,
       });
 
       setAthleteName(
@@ -152,8 +292,18 @@ const RegisterSchoolPage = () => {
 
       setRegistrationSuccess(true);
     } catch (err) {
-      const errorMessage =
+      let errorMessage =
         err?.response?.data?.detail || err?.message || MESSAGES.ERROR.GENERIC;
+
+      // Si el backend rechaza porque la cédula del representante ya existe como deportista
+      if (
+        cleanRepresentative?.dni &&
+        typeof errorMessage === "string" &&
+        errorMessage.includes(cleanRepresentative.dni)
+      ) {
+        errorMessage =
+          "La cédula del representante ya está registrada como deportista. Usa otro representante o una cédula distinta.";
+      }
       toast.error("Error en el registro", {
         description: errorMessage,
       });
@@ -369,7 +519,7 @@ const RegisterSchoolPage = () => {
                 {step === 1 && (
                   <>
                     <RepresentanteForm
-                      data={representanteData}
+                      initialData={representanteData}
                       onChange={(data) => {
                         setRepresentanteData(data);
                         if (Object.keys(representanteErrors).length)

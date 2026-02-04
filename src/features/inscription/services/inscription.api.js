@@ -10,7 +10,8 @@ const inscriptionApi = {
   registerDeportista: async (athletePayload) => {
     const response = await http.post(
       API_ENDPOINTS.ATHLETES.CREATE,
-      athletePayload
+      athletePayload,
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -23,7 +24,8 @@ const inscriptionApi = {
   registerMenor: async (payload) => {
     const response = await http.post(
       API_ENDPOINTS.ATHLETES.REGISTER_MINOR,
-      payload
+      payload,
+      { skipErrorToast: true }
     );
     return response.data;
   },
