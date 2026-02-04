@@ -29,6 +29,12 @@ const EnduranceTestForm = ({
 }) => {
   const [selectedAthlete, setSelectedAthlete] = useState(null);
 
+  // Límites razonables para evitar basura y overflow en backend
+  const MAX_DURATION_MIN = 240; // 4 horas como tope alto
+  const MAX_DISTANCE_M = 50000; // 50 km como tope alto
+  const MIN_DURATION_MIN = 30; // mínimo aceptable solicitado
+  const MIN_DISTANCE_M = 2000; // mínimo razonable para 30 minutos (ritmo caminata rápida)
+
   const {
     register,
     handleSubmit,
@@ -37,6 +43,8 @@ const EnduranceTestForm = ({
     setValue,
     watch,
   } = useForm({
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       min_duration: isEdit ? testData?.min_duration : 12,
       total_distance_m: isEdit ? testData?.total_distance_m : "",
@@ -48,14 +56,21 @@ const EnduranceTestForm = ({
   const distance = watch("total_distance_m");
   const MAX_SPEED_KMH = 15; // ritmo mínimo aceptable: ~4 min/km
 
-  const validatePositive = (value, { min = 0, emptyMsg, invalidMsg, minMsg }) => {
+  const validatePositive = (
+    value,
+    { min = 0, max, emptyMsg, invalidMsg, minMsg, maxMsg, maxDigits = 9 }
+  ) => {
     const normalized = String(value ?? "").trim();
     if (!normalized) return emptyMsg || "Este campo es obligatorio";
+    if (normalized.replace(".", "").length > maxDigits)
+      return maxMsg || "Valor demasiado grande";
     if (!/^[-+]?\d+(\.\d+)?$/.test(normalized))
       return invalidMsg || "Ingresa solo números";
     const num = parseFloat(normalized);
     if (!Number.isFinite(num)) return invalidMsg || "Ingresa un número válido";
-    if (num <= min) return minMsg || `Debe ser mayor a ${min}`;
+    if (num < min) return minMsg || `Debe ser mayor o igual a ${min}`;
+    if (typeof max === "number" && num > max)
+      return maxMsg || `Debe ser menor o igual a ${max}`;
     return true;
   };
 
@@ -103,8 +118,24 @@ const EnduranceTestForm = ({
       toast.error("La duración debe ser un número mayor a 0");
       return;
     }
+    if (durationValue < MIN_DURATION_MIN) {
+      toast.error(`La duración debe ser al menos ${MIN_DURATION_MIN} minutos`);
+      return;
+    }
+    if (durationValue > MAX_DURATION_MIN) {
+      toast.error(`La duración no puede superar ${MAX_DURATION_MIN} minutos`);
+      return;
+    }
     if (!Number.isFinite(distanceValue) || distanceValue <= 0) {
       toast.error("La distancia debe ser un número mayor a 0");
+      return;
+    }
+    if (distanceValue < MIN_DISTANCE_M) {
+      toast.error(`La distancia debe ser al menos ${MIN_DISTANCE_M} metros`);
+      return;
+    }
+    if (distanceValue > MAX_DISTANCE_M) {
+      toast.error(`La distancia no puede superar ${MAX_DISTANCE_M} metros`);
       return;
     }
     const km = distanceValue / 1000;
@@ -184,10 +215,13 @@ const EnduranceTestForm = ({
                   {...register("min_duration", {
                     validate: (v) =>
                       validatePositive(v, {
-                        min: 0,
+                        min: MIN_DURATION_MIN,
+                        max: MAX_DURATION_MIN,
+                        maxDigits: 4,
                         emptyMsg: "La duración es obligatoria",
                         invalidMsg: "Formato inválido, usa solo números",
-                        minMsg: "La duración debe ser mayor a 0",
+                        minMsg: `La duración debe ser al menos ${MIN_DURATION_MIN} minutos`,
+                        maxMsg: `La duración no puede superar ${MAX_DURATION_MIN} minutos`,
                       }),
                   })}
                   className={`input input-bordered bg-white flex-1 ${
@@ -223,10 +257,13 @@ const EnduranceTestForm = ({
                   {...register("total_distance_m", {
                     validate: (v) =>
                       validatePositive(v, {
-                        min: 0,
+                        min: MIN_DISTANCE_M,
+                        max: MAX_DISTANCE_M,
+                        maxDigits: 6,
                         emptyMsg: "La distancia es obligatoria",
                         invalidMsg: "Formato inválido, usa solo números",
-                        minMsg: "La distancia debe ser mayor a 0",
+                        minMsg: `La distancia debe ser al menos ${MIN_DISTANCE_M} m`,
+                        maxMsg: `La distancia no puede superar ${MAX_DISTANCE_M} m`,
                       }),
                   })}
                   className={`input input-bordered bg-white flex-1 ${

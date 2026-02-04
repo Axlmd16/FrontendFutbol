@@ -65,7 +65,8 @@ const SprintTestForm = ({
   const validatePositiveNumber = (
     value,
     invalidMessage = "Formato inválido, usa solo números",
-    emptyMessage = "El valor es obligatorio"
+    emptyMessage = "El valor es obligatorio",
+    { maxDigits } = {}
   ) => {
     if (value === undefined || value === null || String(value).trim() === "") {
       return emptyMessage;
@@ -73,18 +74,22 @@ const SprintTestForm = ({
     if (!isNumericString(value)) return invalidMessage;
     const num = parseFloat(value);
     if (!Number.isFinite(num)) return invalidMessage;
+    if (maxDigits && String(value).replace(".", "").length > maxDigits)
+      return "Valor demasiado grande";
     if (num <= 0) return "El valor debe ser mayor a 0";
     return true;
   };
 
   const MAX_SPRINT_SPEED_MS_TOTAL = 12.0; // velocidad máxima razonable para el tramo completo
   const MAX_SPRINT_SPEED_MS_SHORT = 12.0; // mismo tope para tramos cortos (0-10 m)
+  const MIN_SPRINT_SPEED_MS = 2.22; // velocidad mínima aceptable (~2.22 m/s)
 
   const validateTimeForDistance = (value, distance) => {
     const baseValidation = validatePositiveNumber(
       value,
       "Formato inválido, ingresa solo números",
-      "El tiempo es obligatorio"
+      "El tiempo es obligatorio",
+      { maxDigits: 6 }
     );
     if (baseValidation !== true) return baseValidation;
 
@@ -101,6 +106,8 @@ const SprintTestForm = ({
     const speed = dist / num;
     const maxSpeed = dist <= 15 ? MAX_SPRINT_SPEED_MS_SHORT : MAX_SPRINT_SPEED_MS_TOTAL;
     const minTime = dist / maxSpeed;
+    const maxTime = dist / MIN_SPRINT_SPEED_MS;
+    const tolerance = 0.01; // permitir ligera variación por redondeo
 
     if (speed > maxSpeed) {
       return `Tiempo demasiado bajo para ${dist} m (velocidad ${speed.toFixed(
@@ -109,6 +116,9 @@ const SprintTestForm = ({
     }
     if (num < minTime) {
       return `El tiempo mínimo para ${dist} m es ${minTime.toFixed(2)} s`;
+    }
+    if (num - maxTime > tolerance) {
+      return `El tiempo máximo para ${dist} m es ${maxTime.toFixed(2)} s`;
     }
     return true;
   };

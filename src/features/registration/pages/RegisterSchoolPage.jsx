@@ -8,7 +8,7 @@
  * Flujo de 2 pasos: Representante → Deportista (menor).
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import PublicNavbar from "@/shared/components/PublicNavbar";
@@ -44,6 +44,7 @@ const RegisterSchoolPage = () => {
 
   const [representanteData, setRepresentanteData] = useState({});
   const [representanteErrors, setRepresentanteErrors] = useState({});
+  const [lastRepLookupDni, setLastRepLookupDni] = useState(null);
   const [athleteData, setAthleteData] = useState(null);
 
   const stepTitle = useMemo(() => {
@@ -107,6 +108,125 @@ const RegisterSchoolPage = () => {
     if (!validateRepresentante()) return;
     setStep(2);
   };
+
+  // Autocompletar datos del representante si la cédula ya existe
+  useEffect(() => {
+    const dni = (representanteData?.dni || "").trim();
+    if (dni.length !== 10 || !VALIDATION.CI_PATTERN.test(dni)) return;
+    if (dni === lastRepLookupDni) return; // evitar refetch si ya se cargó
+
+    let cancelled = false;
+    const fetchRep = async () => {
+      try {
+        const res = await inscriptionApi.getRepresentativeByDni(dni);
+        const rep = res?.data?.data || res?.data || res; // ResponseSchema<data> o payload directo
+        if (!rep || cancelled) return;
+
+        // Derivar nombres si solo viene full_name: usar último par de tokens como apellidos
+        let firstName = rep.first_name || rep.firstName || "";
+        let lastName = rep.last_name || rep.lastName || "";
+        // Si falta cualquiera de los dos, intentar derivar desde full_name
+        if ((!firstName || !lastName) && rep.full_name) {
+          const parts = rep.full_name.trim().split(/\s+/);
+          if (parts.length >= 4) {
+            lastName = lastName || parts.slice(-2).join(" ");
+            firstName = firstName || parts.slice(0, -2).join(" ");
+          } else if (parts.length === 3) {
+            lastName = lastName || parts.slice(-2).join(" ");
+            firstName = firstName || parts[0];
+          } else if (parts.length === 2) {
+            if (!firstName && !lastName) {
+              [firstName, lastName] = parts;
+            } else if (!firstName) {
+              firstName = parts[0];
+            } else if (!lastName) {
+              lastName = parts[1];
+            }
+          } else if (!firstName) {
+            firstName = rep.full_name;
+          }
+        }
+
+        // Parentesco: admite varios alias y normaliza a uppercase
+        const relationshipRaw =
+          rep.relationship_type ||
+          rep.relationship_type?.value ||
+          rep.relationshipType ||
+          rep.relationship ||
+          rep.parentesco ||
+          rep.tipo_parentesco ||
+          rep.relation ||
+          rep.kinship ||
+          rep.parentesco_nombre ||
+          rep.relationship_name ||
+          "";
+
+        // Normalizar parentesco: quitar prefijos como "Relationship.", reemplazar separadores y upper-case
+        const relationshipUpper = relationshipRaw
+          .toString()
+          .trim()
+          .replace(/^RELATIONSHIP\./i, "")
+          .replace(/-/g, "_")
+          .replace(/\s+/g, "_")
+          .toUpperCase();
+
+        const relationship = (() => {
+          if (!relationshipUpper) return "";
+          if (["PADRE", "PAPA", "FATHER"].includes(relationshipUpper)) return "FATHER";
+          if (["MADRE", "MAMA", "MOTHER"].includes(relationshipUpper)) return "MOTHER";
+          if (["TUTOR", "LEGAL_GUARDIAN", "TUTOR_LEGAL", "TUTOR LEGAL", "ACUDIENTE"].includes(relationshipUpper))
+            return "LEGAL_GUARDIAN";
+          return relationshipUpper; // fallback
+        })();
+
+        // Dirección: intentar alias conocidos, si no dejar previa o vacío
+        const direction =
+          rep.direction ||
+          rep.address ||
+          rep.direccion ||
+          rep.address_line ||
+          rep.addressLine ||
+          rep.address_line1 ||
+          rep.address_line_1 ||
+          rep.address_line_2 ||
+          rep.address1 ||
+          rep.address2 ||
+          rep.residence ||
+          rep.domicilio ||
+          rep.dir ||
+          rep.location ||
+          rep.city ||
+          rep.parish ||
+          rep.province ||
+          "";
+
+        setRepresentanteData((prev) => ({
+          ...prev,
+          first_name: firstName || prev.first_name || "",
+          last_name: lastName || prev.last_name || "",
+          dni: rep.dni || dni,
+          phone: rep.phone || prev.phone || "",
+          email: rep.email || prev.email || "",
+          direction: direction || prev.direction || "",
+          relationship_type: relationship || prev.relationship_type || "",
+        }));
+        setLastRepLookupDni(dni);
+        toast.success("Datos del representante cargados automáticamente");
+      } catch (err) {
+        // Si es 404, ignoramos; otros errores se notifican
+        const status = err?.response?.status;
+        if (status === 404) return;
+        const msg =
+          err?.response?.data?.detail || err?.message || "No se pudo verificar la cédula";
+        toast.error(msg);
+      }
+    };
+
+    fetchRep();
+    return () => {
+      cancelled = true;
+    };
+  }, [representanteData?.dni, lastRepLookupDni]);
 
   const handleSubmitSchool = async (athletePayload) => {
     setLoading(true);
@@ -399,7 +519,7 @@ const RegisterSchoolPage = () => {
                 {step === 1 && (
                   <>
                     <RepresentanteForm
-                      data={representanteData}
+                      initialData={representanteData}
                       onChange={(data) => {
                         setRepresentanteData(data);
                         if (Object.keys(representanteErrors).length)
