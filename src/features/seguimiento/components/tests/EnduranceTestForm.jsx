@@ -46,6 +46,18 @@ const EnduranceTestForm = ({
 
   const duration = watch("min_duration");
   const distance = watch("total_distance_m");
+  const MAX_SPEED_KMH = 15; // ritmo mínimo aceptable: ~4 min/km
+
+  const validatePositive = (value, { min = 0, emptyMsg, invalidMsg, minMsg }) => {
+    const normalized = String(value ?? "").trim();
+    if (!normalized) return emptyMsg || "Este campo es obligatorio";
+    if (!/^[-+]?\d+(\.\d+)?$/.test(normalized))
+      return invalidMsg || "Ingresa solo números";
+    const num = parseFloat(normalized);
+    if (!Number.isFinite(num)) return invalidMsg || "Ingresa un número válido";
+    if (num <= min) return minMsg || `Debe ser mayor a ${min}`;
+    return true;
+  };
 
   const metrics = (() => {
     const dur = parseFloat(duration);
@@ -56,6 +68,7 @@ const EnduranceTestForm = ({
     const pace = dur / km;
     return {
       speed: speed.toFixed(1),
+      rawSpeed: speed,
       pace: `${Math.floor(pace)}:${Math.round((pace % 1) * 60)
         .toString()
         .padStart(2, "0")}`,
@@ -84,11 +97,31 @@ const EnduranceTestForm = ({
       toast.error("Selecciona un atleta");
       return;
     }
+    const durationValue = Number(formData.min_duration);
+    const distanceValue = Number(formData.total_distance_m);
+    if (!Number.isFinite(durationValue) || durationValue <= 0) {
+      toast.error("La duración debe ser un número mayor a 0");
+      return;
+    }
+    if (!Number.isFinite(distanceValue) || distanceValue <= 0) {
+      toast.error("La distancia debe ser un número mayor a 0");
+      return;
+    }
+    const km = distanceValue / 1000;
+    const speedKmh = (km / durationValue) * 60;
+    if (speedKmh > MAX_SPEED_KMH) {
+      toast.error(
+        `Los valores ingresados generan una velocidad irreal (${speedKmh.toFixed(
+          1,
+        )} km/h). Verifica distancia y duración.`,
+      );
+      return;
+    }
     try {
       const payload = {
         athlete_id: selectedAthlete.id,
-        min_duration: parseInt(formData.min_duration),
-        total_distance_m: parseFloat(formData.total_distance_m),
+        min_duration: durationValue,
+        total_distance_m: distanceValue,
         observations: formData.observations,
       };
       if (isEdit) {
@@ -106,8 +139,7 @@ const EnduranceTestForm = ({
       onSuccess();
     } catch (error) {
       console.error("Error creating endurance test:", error);
-      const errorMsg = error.response?.data?.detail || "Error al guardar el test de resistencia";
-      toast.error(errorMsg);
+      // El toast se maneja en onError del hook useCreateEnduranceTest
     }
   };
 
@@ -126,7 +158,7 @@ const EnduranceTestForm = ({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="p-5 space-y-6">
         {/* Test Parameters */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -146,10 +178,21 @@ const EnduranceTestForm = ({
               </div>
               <div className="flex items-center gap-3">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="12"
-                  {...register("min_duration", { required: true, min: 1 })}
-                  className="input input-bordered bg-white flex-1"
+                  {...register("min_duration", {
+                    validate: (v) =>
+                      validatePositive(v, {
+                        min: 0,
+                        emptyMsg: "La duración es obligatoria",
+                        invalidMsg: "Formato inválido, usa solo números",
+                        minMsg: "La duración debe ser mayor a 0",
+                      }),
+                  })}
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.min_duration ? "input-error" : ""
+                  }`}
                 />
                 <span className="text-sm text-slate-600">minutos</span>
               </div>
@@ -157,6 +200,11 @@ const EnduranceTestForm = ({
                 <Info size={12} />
                 <span>Test Cooper estándar: 12 minutos</span>
               </div>
+              {errors.min_duration && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.min_duration.message}
+                </p>
+              )}
             </div>
 
             {/* Distance */}
@@ -169,13 +217,21 @@ const EnduranceTestForm = ({
               </div>
               <div className="flex items-center gap-3">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="2500"
                   {...register("total_distance_m", {
-                    required: true,
-                    min: 100,
+                    validate: (v) =>
+                      validatePositive(v, {
+                        min: 0,
+                        emptyMsg: "La distancia es obligatoria",
+                        invalidMsg: "Formato inválido, usa solo números",
+                        minMsg: "La distancia debe ser mayor a 0",
+                      }),
                   })}
-                  className="input input-bordered bg-white flex-1"
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.total_distance_m ? "input-error" : ""
+                  }`}
                 />
                 <span className="text-sm text-slate-600">metros</span>
               </div>
@@ -183,6 +239,11 @@ const EnduranceTestForm = ({
                 <div className="text-xs text-success mt-2 font-medium">
                   = {metrics.km} kilómetros
                 </div>
+              )}
+              {errors.total_distance_m && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.total_distance_m.message}
+                </p>
               )}
             </div>
           </div>
@@ -197,6 +258,15 @@ const EnduranceTestForm = ({
                 Métricas Calculadas
               </span>
             </div>
+            {metrics?.rawSpeed > MAX_SPEED_KMH && (
+              <div className="alert alert-warning mb-3 text-sm">
+                <div>
+                  <span>
+                    El ritmo calculado ({metrics.speed} km/h) es demasiado alto. Verifica que la distancia y duración sean correctas (mínimo ~4 min/km).
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-success/5 border border-success/20 rounded-lg p-4 flex items-center gap-4">
                 <div className="bg-success/10 p-2 rounded-lg">

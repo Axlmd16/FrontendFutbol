@@ -153,8 +153,7 @@ const TechnicalAssessmentForm = ({
       onSuccess();
     } catch (error) {
       console.error("Error creating technical assessment:", error);
-      const errorMsg = error.response?.data?.detail || "Error al guardar la evaluación técnica";
-      toast.error(errorMsg);
+      // El toast ya se maneja en onError del hook useCreateTechnicalAssessment
     }
   };
 

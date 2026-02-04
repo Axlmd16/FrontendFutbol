@@ -128,6 +128,7 @@ http.interceptors.response.use(
   async (error) => {
     const { response, config } = error;
     const originalRequest = config;
+    const skipToast = config?.skipErrorToast;
 
     // ========================================
     // MANEJO DE ERRORES DE RED Y CONEXIÓN
@@ -136,21 +137,21 @@ http.interceptors.response.use(
     // Error de red (sin respuesta del servidor)
     if (isNetworkError(error)) {
       console.error("[HTTP Network Error]:", error.message);
-      toast.error(ERROR_MESSAGES.NETWORK_ERROR);
+      if (!skipToast) toast.error(ERROR_MESSAGES.NETWORK_ERROR);
       return Promise.reject(new Error(ERROR_MESSAGES.NETWORK_ERROR));
     }
 
     // Error de timeout
     if (isTimeoutError(error)) {
       console.error("[HTTP Timeout]:", error.message);
-      toast.error(ERROR_MESSAGES.TIMEOUT);
+      if (!skipToast) toast.error(ERROR_MESSAGES.TIMEOUT);
       return Promise.reject(new Error(ERROR_MESSAGES.TIMEOUT));
     }
 
     // Si no hay respuesta y no es error de red conocido
     if (!response) {
       console.error("[HTTP Unknown Error]:", error.message);
-      toast.error(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      if (!skipToast) toast.error(ERROR_MESSAGES.UNEXPECTED_ERROR);
       return Promise.reject(new Error(ERROR_MESSAGES.UNEXPECTED_ERROR));
     }
 
@@ -266,7 +267,7 @@ http.interceptors.response.use(
         response?.data?.detail ||
         response?.data?.message ||
         "El recurso ya existe.";
-      toast.error(errorMessage);
+      if (!skipToast) toast.error(errorMessage);
       return Promise.reject(new Error(errorMessage));
     }
 
@@ -285,7 +286,7 @@ http.interceptors.response.use(
       console.error("[HTTP 503]:", "Servicio no disponible");
       const errorMessage =
         response?.data?.message || ERROR_MESSAGES.SERVICE_ERROR;
-      toast.error(errorMessage);
+      if (!skipToast) toast.error(errorMessage);
       return Promise.reject(new Error(errorMessage));
     }
 
@@ -294,7 +295,7 @@ http.interceptors.response.use(
       console.error("[HTTP 5xx]:", "Error del servidor");
       const errorMessage =
         response?.data?.message || ERROR_MESSAGES.SERVICE_ERROR;
-      toast.error(errorMessage);
+      if (!skipToast) toast.error(errorMessage);
       return Promise.reject(new Error(errorMessage));
     }
 
@@ -354,7 +355,7 @@ http.interceptors.response.use(
         .replace(/^Validation error,?\s*/i, "");
 
       // Mostrar el error de validación como warning (no es un error crítico)
-      toast.warning(cleanErrorMsg);
+      if (!skipToast) toast.warning(cleanErrorMsg);
 
       // Crear un error con la estructura esperada por los hooks
       const validationError = new Error(cleanErrorMsg);

@@ -25,7 +25,10 @@ const evaluationsApi = {
    * @returns {Promise<Object>} Lista paginada de evaluaciones con total
    */
   getAll: async (params = { page: 1, limit: 20 }) => {
-    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BASE, { params });
+    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BASE, {
+      params,
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -35,7 +38,9 @@ const evaluationsApi = {
    * @returns {Promise<Object>} Datos de la evaluación
    */
   getById: async (id) => {
-    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BY_ID(id));
+    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BY_ID(id), {
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -45,7 +50,9 @@ const evaluationsApi = {
    * @returns {Promise<Object>} Evaluaciones del usuario
    */
   getByUser: async (userId) => {
-    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BY_USER(userId));
+    const response = await http.get(API_ENDPOINTS.EVALUATIONS.BY_USER(userId), {
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -63,7 +70,8 @@ const evaluationsApi = {
   create: async (evaluationData) => {
     const response = await http.post(
       API_ENDPOINTS.EVALUATIONS.CREATE,
-      evaluationData
+      evaluationData,
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -77,7 +85,8 @@ const evaluationsApi = {
   update: async (id, updateData) => {
     const response = await http.put(
       API_ENDPOINTS.EVALUATIONS.UPDATE(id),
-      updateData
+      updateData,
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -89,7 +98,8 @@ const evaluationsApi = {
    */
   delete: async (id) => {
     const response = await http.delete(
-      API_ENDPOINTS.EVALUATIONS.DELETE(id)
+      API_ENDPOINTS.EVALUATIONS.DELETE(id),
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -111,7 +121,9 @@ const evaluationsApi = {
    * @returns {Promise<Object>} Test creado
    */
   createSprintTest: async (testData) => {
-    const response = await http.post(API_ENDPOINTS.TESTS.SPRINT, testData);
+    const response = await http.post(API_ENDPOINTS.TESTS.SPRINT, testData, {
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -132,7 +144,9 @@ const evaluationsApi = {
    * @returns {Promise<Object>} Test creado
    */
   createYoyoTest: async (testData) => {
-    const response = await http.post(API_ENDPOINTS.TESTS.YOYO, testData);
+    const response = await http.post(API_ENDPOINTS.TESTS.YOYO, testData, {
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -154,7 +168,8 @@ const evaluationsApi = {
   createEnduranceTest: async (testData) => {
     const response = await http.post(
       API_ENDPOINTS.TESTS.ENDURANCE,
-      testData
+      testData,
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -180,7 +195,8 @@ const evaluationsApi = {
   createTechnicalAssessment: async (testData) => {
     const response = await http.post(
       API_ENDPOINTS.TESTS.TECHNICAL,
-      testData
+      testData,
+      { skipErrorToast: true }
     );
     return response.data;
   },
@@ -200,7 +216,10 @@ const evaluationsApi = {
    * @returns {Promise<Object>} { items: [], total: number }
    */
   getSprintTests: async (params = { page: 1, limit: 10 }) => {
-    const response = await http.get(API_ENDPOINTS.TESTS.SPRINT, { params });
+    const response = await http.get(API_ENDPOINTS.TESTS.SPRINT, {
+      params,
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -215,7 +234,10 @@ const evaluationsApi = {
    * @returns {Promise<Object>} { items: [], total: number }
    */
   getYoyoTests: async (params = { page: 1, limit: 10 }) => {
-    const response = await http.get(API_ENDPOINTS.TESTS.YOYO, { params });
+    const response = await http.get(API_ENDPOINTS.TESTS.YOYO, {
+      params,
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -230,7 +252,10 @@ const evaluationsApi = {
    * @returns {Promise<Object>} { items: [], total: number }
    */
   getEnduranceTests: async (params = { page: 1, limit: 10 }) => {
-    const response = await http.get(API_ENDPOINTS.TESTS.ENDURANCE, { params });
+    const response = await http.get(API_ENDPOINTS.TESTS.ENDURANCE, {
+      params,
+      skipErrorToast: true,
+    });
     return response.data;
   },
 
@@ -245,7 +270,10 @@ const evaluationsApi = {
    * @returns {Promise<Object>} { items: [], total: number }
    */
   getTechnicalAssessments: async (params = { page: 1, limit: 10 }) => {
-    const response = await http.get(API_ENDPOINTS.TESTS.TECHNICAL, { params });
+    const response = await http.get(API_ENDPOINTS.TESTS.TECHNICAL, {
+      params,
+      skipErrorToast: true,
+    });
     return response.data;
   },
 

@@ -131,8 +131,7 @@ const SprintTestForm = ({
       onSuccess();
     } catch (error) {
       console.error("Error creating sprint test:", error);
-      const errorMsg = error.response?.data?.detail || "Error al guardar el test de velocidad";
-      toast.error(errorMsg);
+      // El toast ya se maneja en onError del hook useCreateSprintTest
     }
   };
 

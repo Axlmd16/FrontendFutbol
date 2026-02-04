@@ -54,6 +54,7 @@ export const useCreateEvaluation = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.create,
+    retry: false,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
       toast.success("Evaluación creada exitosamente");
@@ -74,6 +75,7 @@ export const useUpdateEvaluation = () => {
 
   return useMutation({
     mutationFn: ({ id, data }) => evaluationsApi.update(id, data),
+    retry: false,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
       queryClient.invalidateQueries({ queryKey: ["evaluation", variables.id] });
@@ -95,6 +97,7 @@ export const useDeleteEvaluation = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.delete,
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
       toast.success("Evaluación eliminada exitosamente");
@@ -118,6 +121,7 @@ export const useCreateSprintTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.createSprintTest,
+    retry: false,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
@@ -150,6 +154,7 @@ export const useCreateYoyoTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.createYoyoTest,
+    retry: false,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
@@ -182,6 +187,7 @@ export const useCreateEnduranceTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.createEnduranceTest,
+    retry: false,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
@@ -214,6 +220,7 @@ export const useCreateTechnicalAssessment = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.createTechnicalAssessment,
+    retry: false,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["evaluation", variables.evaluation_id],
@@ -251,6 +258,7 @@ export const useUpdateSprintTest = () => {
   return useMutation({
     mutationFn: ({ testId, data }) =>
       evaluationsApi.updateSprintTest(testId, data),
+    retry: false,
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
@@ -278,6 +286,7 @@ export const useUpdateYoyoTest = () => {
   return useMutation({
     mutationFn: ({ testId, data }) =>
       evaluationsApi.updateYoyoTest(testId, data),
+    retry: false,
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
@@ -305,6 +314,7 @@ export const useUpdateEnduranceTest = () => {
   return useMutation({
     mutationFn: ({ testId, data }) =>
       evaluationsApi.updateEnduranceTest(testId, data),
+    retry: false,
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
@@ -332,6 +342,7 @@ export const useUpdateTechnicalAssessment = () => {
   return useMutation({
     mutationFn: ({ testId, data }) =>
       evaluationsApi.updateTechnicalAssessment(testId, data),
+    retry: false,
     onSuccess: (data, variables) => {
       const evaluationId = data.data?.evaluation_id;
       if (evaluationId) {
@@ -362,6 +373,7 @@ export const useDeleteSprintTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.deleteSprintTest,
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
@@ -382,6 +394,7 @@ export const useDeleteYoyoTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.deleteYoyoTest,
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
@@ -402,6 +415,7 @@ export const useDeleteEnduranceTest = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.deleteEnduranceTest,
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
@@ -422,6 +436,7 @@ export const useDeleteTechnicalAssessment = () => {
 
   return useMutation({
     mutationFn: evaluationsApi.deleteTechnicalAssessment,
+    retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });

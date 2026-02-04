@@ -146,8 +146,7 @@ const YoyoTestForm = ({
       onSuccess();
     } catch (error) {
       console.error("Error creating yoyo test:", error);
-      const errorMsg = error.response?.data?.detail || "Error al guardar el test Yoyo";
-      toast.error(errorMsg);
+      // El toast ya se maneja en onError del hook useCreateYoyoTest
     }
   };
 
