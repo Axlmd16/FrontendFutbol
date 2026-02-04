@@ -350,6 +350,7 @@ export const API_ENDPOINTS = {
     TESTS: "/statistics/tests",
     BY_ATHLETE: (id) => `/statistics/athlete/${id}`,
     UPDATE_SPORTS_STATS: (id) => `/statistics/athlete/${id}/sports-stats`,
+    TESTS_HISTORY: (id) => `/statistics/athlete/${id}/tests-history`,
   },
 
   // Attendance

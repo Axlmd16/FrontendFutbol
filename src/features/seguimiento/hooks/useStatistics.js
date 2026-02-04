@@ -9,6 +9,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import statisticsApi from "../services/statistics.api";
 // Import from athletes feature (has getStats method)
 import athletesApi from "@/features/athletes/services/athletes.api";
+import http from "@/app/config/http";
+import { API_ENDPOINTS } from "@/app/config/constants";
 
 // Query keys centralizados para invalidación consistente
 export const STATISTICS_KEYS = {
@@ -17,6 +19,7 @@ export const STATISTICS_KEYS = {
   attendance: (filters) => ["statistics", "attendance", filters],
   tests: (filters) => ["statistics", "tests", filters],
   athlete: (id) => ["statistics", "athlete", id],
+  athleteTestsHistory: (id) => ["statistics", "athlete", id, "tests-history"],
 };
 
 // Configuración de cache común
@@ -33,7 +36,7 @@ const CACHE_CONFIG = {
 export const useClubOverview = (filters = {}) => {
   // Limpiar filtros vacíos para keys consistentes
   const cleanFilters = Object.fromEntries(
-    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined)
+    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined),
   );
 
   return useQuery({
@@ -51,7 +54,7 @@ export const useClubOverview = (filters = {}) => {
  */
 export const useAttendanceStats = (filters = {}) => {
   const cleanFilters = Object.fromEntries(
-    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined)
+    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined),
   );
 
   return useQuery({
@@ -69,7 +72,7 @@ export const useAttendanceStats = (filters = {}) => {
  */
 export const useTestPerformance = (filters = {}) => {
   const cleanFilters = Object.fromEntries(
-    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined)
+    Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined),
   );
 
   return useQuery({
@@ -107,6 +110,26 @@ export const useAthleteInfo = (athleteId) => {
     ...CACHE_CONFIG,
     enabled: !!athleteId,
     select: (response) => response?.data || null,
+  });
+};
+
+/**
+ * Hook para obtener historial de tests de un atleta
+ * @param {string|number} athleteId - ID del atleta
+ */
+export const useAthleteTestsHistory = (athleteId) => {
+  return useQuery({
+    queryKey: STATISTICS_KEYS.athleteTestsHistory(athleteId),
+    queryFn: async () => {
+      const response = await http.get(
+        API_ENDPOINTS.STATISTICS.TESTS_HISTORY(athleteId),
+      );
+      return response.data;
+    },
+    ...CACHE_CONFIG,
+    enabled: !!athleteId,
+    select: (response) =>
+      response?.status === "success" ? response.data : null,
   });
 };
 

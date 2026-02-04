@@ -131,6 +131,9 @@ export const useCreateSprintTest = () => {
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
         refetchType: "active",
       });
+      // Invalidar estadísticas generales de tests
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       if (variables.athlete_id) {
         queryClient.invalidateQueries({
           queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
@@ -164,6 +167,9 @@ export const useCreateYoyoTest = () => {
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
         refetchType: "active",
       });
+      // Invalidar estadísticas generales de tests
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       if (variables.athlete_id) {
         queryClient.invalidateQueries({
           queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
@@ -197,6 +203,9 @@ export const useCreateEnduranceTest = () => {
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
         refetchType: "active",
       });
+      // Invalidar estadísticas generales de tests
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       if (variables.athlete_id) {
         queryClient.invalidateQueries({
           queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
@@ -230,6 +239,9 @@ export const useCreateTechnicalAssessment = () => {
         queryKey: ["tests-by-evaluation", variables.evaluation_id],
         refetchType: "active",
       });
+      // Invalidar estadísticas generales de tests
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       if (variables.athlete_id) {
         queryClient.invalidateQueries({
           queryKey: STATISTICS_KEYS.athlete(variables.athlete_id),
@@ -267,6 +279,9 @@ export const useUpdateSprintTest = () => {
           refetchType: "active",
         });
       }
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test de velocidad actualizado exitosamente");
       return data;
     },
@@ -295,6 +310,9 @@ export const useUpdateYoyoTest = () => {
           refetchType: "active",
         });
       }
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test Yoyo actualizado exitosamente");
       return data;
     },
@@ -323,6 +341,9 @@ export const useUpdateEnduranceTest = () => {
           refetchType: "active",
         });
       }
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test de resistencia actualizado exitosamente");
       return data;
     },
@@ -351,6 +372,9 @@ export const useUpdateTechnicalAssessment = () => {
           refetchType: "active",
         });
       }
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Evaluación técnica actualizada exitosamente");
       return data;
     },
@@ -377,6 +401,9 @@ export const useDeleteSprintTest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test de velocidad eliminado exitosamente");
     },
     onError: (error) => {
@@ -398,6 +425,9 @@ export const useDeleteYoyoTest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test Yoyo eliminado exitosamente");
     },
     onError: (error) => {
@@ -419,6 +449,9 @@ export const useDeleteEnduranceTest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Test de resistencia eliminado exitosamente");
     },
     onError: (error) => {
@@ -440,6 +473,9 @@ export const useDeleteTechnicalAssessment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests-by-evaluation"] });
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
+      // Invalidar estadísticas generales
+      queryClient.invalidateQueries({ queryKey: ["statistics", "tests"] });
+      queryClient.invalidateQueries({ queryKey: ["statistics", "overview"] });
       toast.success("Evaluación técnica eliminada exitosamente");
     },
     onError: (error) => {

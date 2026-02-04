@@ -2,11 +2,11 @@
  * AthleteDetailPage
  *
  * Página de detalle de deportista con estadísticas individuales,
- * asistencia y tests realizados.
+ * asistencia, tests realizados y gráficos de progreso.
  * Usa TanStack Query para cache de datos.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -27,7 +27,28 @@ import {
   Phone,
   Mail,
   Pencil,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BarChart3,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  AreaChart,
+  Area,
+} from "recharts";
 import {
   ROUTES,
   GENDER_OPTIONS,
@@ -46,7 +67,33 @@ import { API_ENDPOINTS } from "@/app/config/constants";
 import {
   useAthleteInfo,
   useAthleteStats,
+  useAthleteTestsHistory,
 } from "@/features/seguimiento/hooks/useStatistics";
+
+// Colores para los gráficos
+const CHART_COLORS = {
+  "Sprint Test": "#f59e0b",
+  "YoYo Test": "#ef4444",
+  "Endurance Test": "#3b82f6",
+  "Technical Assessment": "#10b981",
+};
+
+// Tooltip personalizado para los gráficos
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-base-100 shadow-lg rounded-lg p-3 border border-base-300">
+        <p className="font-semibold text-sm mb-1">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-xs" style={{ color: entry.color }}>
+            {entry.name}: <span className="font-bold">{entry.value}</span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 // Helper functions
 const getGenderLabel = (sex) => {
@@ -76,6 +123,7 @@ function AthleteDetailPage() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showSportsModal, setShowSportsModal] = useState(false);
   const [savingStats, setSavingStats] = useState(false);
+  const [selectedTestType, setSelectedTestType] = useState("all");
 
   // Queries con cache (5 minutos)
   const {
@@ -91,8 +139,75 @@ function AthleteDetailPage() {
     refetch: refetchStats,
   } = useAthleteStats(id);
 
+  // Historial de tests para gráficos de progreso
+  const { data: testsHistory, isLoading: testsHistoryLoading } =
+    useAthleteTestsHistory(id);
+
   const loading = infoLoading || statsLoading;
   const error = infoError ? infoErrorData?.message : null;
+
+  // Preparar datos para gráficos
+  const { progressData, radarData, testTypes } = useMemo(() => {
+    if (!testsHistory?.tests_history?.length) {
+      return { progressData: [], radarData: [], testTypes: [] };
+    }
+
+    // Tipos de test disponibles
+    const availableTypes = [
+      ...new Set(testsHistory.tests_history.map((t) => t.test_type)),
+    ];
+
+    // Datos para gráfico de progreso temporal (LineChart)
+    // Agrupar por fecha y tipo de test
+    const byDate = {};
+    testsHistory.tests_history.forEach((test) => {
+      const dateKey = test.date;
+      if (!byDate[dateKey]) {
+        byDate[dateKey] = { date: dateKey };
+      }
+      byDate[dateKey][test.test_type] = test.score;
+    });
+    const progressChartData = Object.values(byDate).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
+
+    // Datos para RadarChart (último puntaje por tipo)
+    const summaryData = testsHistory.summary_by_type || {};
+    const radarChartData = Object.entries(summaryData).map(([type, data]) => ({
+      type: type.replace(" Test", "").replace(" Assessment", ""),
+      score: data.last_score || 0,
+      fullMark: 100,
+    }));
+
+    return {
+      progressData: progressChartData,
+      radarData: radarChartData,
+      testTypes: availableTypes,
+    };
+  }, [testsHistory]);
+
+  // Función para obtener icono de tendencia
+  const getTrendIcon = (trend) => {
+    switch (trend) {
+      case "improving":
+        return <TrendingUp size={16} className="text-success" />;
+      case "declining":
+        return <TrendingDown size={16} className="text-error" />;
+      default:
+        return <Minus size={16} className="text-base-content/50" />;
+    }
+  };
+
+  const getTrendLabel = (trend) => {
+    switch (trend) {
+      case "improving":
+        return "Mejorando";
+      case "declining":
+        return "Bajando";
+      default:
+        return "Estable";
+    }
+  };
 
   // Handler para guardar estadísticas deportivas
   const handleSaveSportsStats = async (formData) => {
@@ -100,7 +215,7 @@ function AthleteDetailPage() {
     try {
       await http.patch(
         API_ENDPOINTS.STATISTICS.UPDATE_SPORTS_STATS(id),
-        formData
+        formData,
       );
       toast.success("Estadísticas actualizadas", {
         description:
@@ -342,8 +457,8 @@ function AthleteDetailPage() {
                       navigate(
                         ROUTES.REPRESENTATIVE_EDIT.replace(
                           ":id",
-                          athleteInfo.representative_id
-                        )
+                          athleteInfo.representative_id,
+                        ),
                       )
                     }
                     className="btn btn-ghost btn-xs gap-1"
@@ -376,7 +491,7 @@ function AthleteDetailPage() {
                     </p>
                     <span className="badge badge-secondary badge-sm">
                       {getRelationshipLabel(
-                        athleteInfo.representative_relationship
+                        athleteInfo.representative_relationship,
                       )}
                     </span>
                   </div>
@@ -588,57 +703,343 @@ function AthleteDetailPage() {
           </div>
         )}
 
-        {/* Section 4: Tests */}
+        {/* Section 4: Tests y Evaluaciones con Gráficos de Progreso */}
         {stats && (
           <div className="card bg-base-100 shadow-sm border border-base-300">
             <div className="card-body p-5">
-              <h2 className="card-title text-lg flex items-center gap-2 mb-4">
-                <ClipboardList size={20} className="text-secondary" />
-                Tests y Evaluaciones
-              </h2>
-
-              <div className="mb-4">
-                <div className="bg-secondary/10 rounded-lg p-4 inline-block">
-                  <p className="text-3xl font-bold text-secondary">
-                    {stats.tests_completed}
-                  </p>
-                  <p className="text-sm text-base-content/60">
-                    Tests completados
-                  </p>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="card-title text-lg flex items-center gap-2">
+                  <ClipboardList size={20} className="text-secondary" />
+                  Tests y Evaluaciones
+                </h2>
+                <div className="flex items-center gap-2">
+                  <BarChart3 size={16} className="text-base-content/50" />
+                  <span className="text-sm text-base-content/60">
+                    Progreso del deportista
+                  </span>
                 </div>
               </div>
 
-              {stats.tests_by_type?.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="table table-sm">
-                    <thead>
-                      <tr className="text-base-content/60">
-                        <th>Tipo de Test</th>
-                        <th className="text-right">Cantidad</th>
-                        <th className="text-right">Promedio</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.tests_by_type.map((test, index) => (
-                        <tr key={index} className="hover:bg-base-200/50">
-                          <td className="font-medium">
-                            {getTestLabel(test.test_type)}
-                          </td>
-                          <td className="text-right font-semibold text-primary">
-                            {test.count}
-                          </td>
-                          <td className="text-right">
-                            {test.avg_score !== null ? test.avg_score : "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {/* KPIs de Tests */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="bg-secondary/10 rounded-lg p-4 text-center">
+                  <p className="text-3xl font-bold text-secondary">
+                    {stats.tests_completed}
+                  </p>
+                  <p className="text-xs text-base-content/60">
+                    Tests completados
+                  </p>
+                </div>
+                {testsHistory?.summary_by_type &&
+                  Object.entries(testsHistory.summary_by_type)
+                    .slice(0, 3)
+                    .map(([type, data]) => (
+                      <div
+                        key={type}
+                        className="bg-base-200/50 rounded-lg p-4 text-center"
+                      >
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                          <p
+                            className="text-2xl font-bold"
+                            style={{ color: CHART_COLORS[type] || "#6b7280" }}
+                          >
+                            {data.last_score}
+                          </p>
+                          {getTrendIcon(data.trend)}
+                        </div>
+                        <p className="text-xs text-base-content/60">
+                          {type.replace(" Test", "").replace(" Assessment", "")}
+                        </p>
+                        <p className="text-[10px] text-base-content/40">
+                          {getTrendLabel(data.trend)}
+                        </p>
+                      </div>
+                    ))}
+              </div>
+
+              {testsHistory?.tests_history?.length > 0 ? (
+                <>
+                  {/* Gráficos de Progreso */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Gráfico de Progreso Temporal */}
+                    <div className="bg-base-200/30 rounded-xl p-4">
+                      <h3 className="font-semibold text-base-content/80 mb-3 flex items-center gap-2">
+                        <TrendingUp size={16} className="text-primary" />
+                        Progreso en el Tiempo
+                      </h3>
+                      {/* Filtro de tipo de test */}
+                      <div className="flex gap-2 mb-3 flex-wrap">
+                        <button
+                          className={`btn btn-xs ${
+                            selectedTestType === "all"
+                              ? "btn-primary"
+                              : "btn-ghost"
+                          }`}
+                          onClick={() => setSelectedTestType("all")}
+                        >
+                          Todos
+                        </button>
+                        {testTypes.map((type) => (
+                          <button
+                            key={type}
+                            className={`btn btn-xs ${
+                              selectedTestType === type
+                                ? "btn-primary"
+                                : "btn-ghost"
+                            }`}
+                            onClick={() => setSelectedTestType(type)}
+                            style={
+                              selectedTestType === type
+                                ? { backgroundColor: CHART_COLORS[type] }
+                                : {}
+                            }
+                          >
+                            {type
+                              .replace(" Test", "")
+                              .replace(" Assessment", "")}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={progressData}>
+                            <defs>
+                              {testTypes.map((type) => (
+                                <linearGradient
+                                  key={type}
+                                  id={`gradient-${type.replace(/\s+/g, "-")}`}
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor={CHART_COLORS[type]}
+                                    stopOpacity={0.3}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor={CHART_COLORS[type]}
+                                    stopOpacity={0}
+                                  />
+                                </linearGradient>
+                              ))}
+                            </defs>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              className="opacity-30"
+                            />
+                            <XAxis
+                              dataKey="date"
+                              tick={{ fontSize: 10 }}
+                              tickFormatter={(v) =>
+                                new Date(v).toLocaleDateString("es", {
+                                  month: "short",
+                                  day: "numeric",
+                                })
+                              }
+                            />
+                            <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                            <Tooltip content={<CustomTooltip />} />
+                            {testTypes
+                              .filter(
+                                (type) =>
+                                  selectedTestType === "all" ||
+                                  selectedTestType === type,
+                              )
+                              .map((type) => (
+                                <Area
+                                  key={type}
+                                  type="monotone"
+                                  dataKey={type}
+                                  name={type
+                                    .replace(" Test", "")
+                                    .replace(" Assessment", "")}
+                                  stroke={CHART_COLORS[type]}
+                                  fill={`url(#gradient-${type.replace(/\s+/g, "-")})`}
+                                  strokeWidth={2}
+                                  dot={{ r: 4 }}
+                                  connectNulls
+                                />
+                              ))}
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Radar Chart de Habilidades */}
+                    {radarData.length >= 3 && (
+                      <div className="bg-base-200/30 rounded-xl p-4">
+                        <h3 className="font-semibold text-base-content/80 mb-3 flex items-center gap-2">
+                          <Target size={16} className="text-success" />
+                          Perfil de Habilidades
+                        </h3>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart data={radarData}>
+                              <PolarGrid />
+                              <PolarAngleAxis
+                                dataKey="type"
+                                tick={{ fontSize: 11 }}
+                              />
+                              <PolarRadiusAxis
+                                angle={30}
+                                domain={[0, 100]}
+                                tick={{ fontSize: 9 }}
+                              />
+                              <Radar
+                                name="Último Puntaje"
+                                dataKey="score"
+                                stroke="#8b5cf6"
+                                fill="#8b5cf6"
+                                fillOpacity={0.4}
+                                strokeWidth={2}
+                              />
+                              <Tooltip content={<CustomTooltip />} />
+                            </RadarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Si hay menos de 3 tipos de test, mostrar resumen alternativo */}
+                    {radarData.length < 3 && radarData.length > 0 && (
+                      <div className="bg-base-200/30 rounded-xl p-4">
+                        <h3 className="font-semibold text-base-content/80 mb-3 flex items-center gap-2">
+                          <Activity size={16} className="text-info" />
+                          Resumen de Rendimiento
+                        </h3>
+                        <div className="space-y-4 mt-4">
+                          {Object.entries(testsHistory.summary_by_type).map(
+                            ([type, data]) => (
+                              <div key={type} className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium">{type}</span>
+                                  <span className="flex items-center gap-2">
+                                    {getTrendIcon(data.trend)}
+                                    <span className="font-bold">
+                                      {data.last_score}/100
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="w-full bg-base-300 rounded-full h-3">
+                                  <div
+                                    className="h-3 rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${data.last_score}%`,
+                                      backgroundColor: CHART_COLORS[type],
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-xs text-base-content/50">
+                                  <span>Promedio: {data.avg_score}</span>
+                                  <span>Mejor: {data.best_score}</span>
+                                  <span>Tests: {data.count}</span>
+                                </div>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tabla de detalle de tests */}
+                  <div className="bg-base-200/30 rounded-xl p-4">
+                    <h3 className="font-semibold text-base-content/80 mb-3 flex items-center gap-2">
+                      <ClipboardList size={16} className="text-secondary" />
+                      Historial de Tests
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="table table-sm">
+                        <thead>
+                          <tr className="text-base-content/60">
+                            <th>Fecha</th>
+                            <th>Tipo de Test</th>
+                            <th className="text-right">Valor</th>
+                            <th className="text-right">Puntaje</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {testsHistory.tests_history
+                            .slice()
+                            .reverse()
+                            .slice(0, 10)
+                            .map((test, index) => (
+                              <tr key={index} className="hover:bg-base-200/50">
+                                <td className="text-xs">
+                                  {new Date(test.date).toLocaleDateString(
+                                    "es",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )}
+                                </td>
+                                <td>
+                                  <span
+                                    className="badge badge-sm"
+                                    style={{
+                                      backgroundColor:
+                                        CHART_COLORS[test.test_type] + "20",
+                                      color: CHART_COLORS[test.test_type],
+                                      borderColor: CHART_COLORS[test.test_type],
+                                    }}
+                                  >
+                                    {test.test_type
+                                      .replace(" Test", "")
+                                      .replace(" Assessment", "")}
+                                  </span>
+                                </td>
+                                <td className="text-right font-mono text-sm">
+                                  {test.raw_value} {test.raw_unit}
+                                </td>
+                                <td className="text-right">
+                                  <span
+                                    className="font-bold"
+                                    style={{
+                                      color: CHART_COLORS[test.test_type],
+                                    }}
+                                  >
+                                    {test.score}
+                                  </span>
+                                  <span className="text-xs text-base-content/50">
+                                    /100
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {testsHistory.tests_history.length > 10 && (
+                      <p className="text-xs text-base-content/50 text-center mt-2">
+                        Mostrando los 10 tests más recientes de{" "}
+                        {testsHistory.tests_history.length} totales
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : testsHistoryLoading ? (
+                <div className="flex justify-center py-8">
+                  <span className="loading loading-spinner loading-md text-secondary" />
                 </div>
               ) : (
-                <p className="text-base-content/50 text-center py-4">
-                  No hay tests registrados
-                </p>
+                <div className="text-center py-8">
+                  <ClipboardList
+                    size={48}
+                    className="mx-auto text-base-content/20 mb-3"
+                  />
+                  <p className="text-base-content/50">
+                    No hay tests registrados para este deportista
+                  </p>
+                  <p className="text-xs text-base-content/40 mt-1">
+                    Los gráficos de progreso aparecerán cuando se registren
+                    tests
+                  </p>
+                </div>
               )}
             </div>
           </div>
