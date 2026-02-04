@@ -78,17 +78,57 @@ const CHART_COLORS = {
   "Technical Assessment": "#10b981",
 };
 
+// Función para formatear fecha legible
+const formatDateLabel = (dateStr) => {
+  if (!dateStr) return "Sin fecha";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("es", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
 // Tooltip personalizado para los gráficos
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-base-100 shadow-lg rounded-lg p-3 border border-base-300">
-        <p className="font-semibold text-sm mb-1">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="text-xs" style={{ color: entry.color }}>
-            {entry.name}: <span className="font-bold">{entry.value}</span>
-          </p>
-        ))}
+      <div className="bg-base-100 shadow-xl rounded-xl p-4 border border-base-300 min-w-[180px]">
+        <p className="font-semibold text-sm mb-2 text-base-content border-b border-base-200 pb-2">
+          📅 {formatDateLabel(label)}
+        </p>
+        <div className="space-y-1.5">
+          {payload.map((entry, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-xs text-base-content/70">
+                  {entry.name}
+                </span>
+              </div>
+              <span
+                className="text-sm font-bold"
+                style={{ color: entry.color }}
+              >
+                {entry.value}
+                <span className="text-xs font-normal text-base-content/50">
+                  /100
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
