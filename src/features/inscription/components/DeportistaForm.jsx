@@ -296,8 +296,7 @@ const DeportistaForm = ({
                   today.getMonth(),
                   today.getDate()
                 );
-                const yesterday = new Date(todayMid);
-                yesterday.setDate(yesterday.getDate() - 1);
+                if (d >= todayMid) return "La fecha debe ser anterior a hoy";
 
                 // Calcular edad exacta
                 let age = today.getFullYear() - d.getFullYear();
@@ -305,7 +304,9 @@ const DeportistaForm = ({
                 if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
                   age -= 1;
                 }
-                if (d >= yesterday || age <= 16) return "Debe ser mayor de 16 años";
+
+                if (age < 10) return "Debe tener al menos 10 años";
+                if (age > 17) return "Debe ser menor o igual a 17 años";
                 return true;
               },
             })}

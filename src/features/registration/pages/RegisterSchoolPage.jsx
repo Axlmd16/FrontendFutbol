@@ -112,30 +112,50 @@ const RegisterSchoolPage = () => {
     setLoading(true);
     setError(null);
 
+    // Declarar fuera del try para usarlos en el catch
+    let cleanAthlete = null;
+    let cleanRepresentative = null;
+
     try {
       // Filtrar solo los campos que el backend espera para atletas menores
       // El backend NO acepta: type_stament, type_identification (los fija internamente)
-      const minorAthleteData = {
-        first_name: athletePayload.first_name,
-        last_name: athletePayload.last_name,
-        dni: athletePayload.dni,
+      cleanAthlete = {
+        first_name: athletePayload.first_name?.trim() || "",
+        last_name: athletePayload.last_name?.trim() || "",
+        dni: athletePayload.dni?.trim() || "",
         birth_date: athletePayload.birth_date,
         sex: athletePayload.sex,
-        height: athletePayload.height
-          ? parseFloat(athletePayload.height)
-          : null,
-        weight: athletePayload.weight
-          ? parseFloat(athletePayload.weight)
-          : null,
-        direction: athletePayload.direction || "S/N",
-        phone: athletePayload.phone || "S/N",
+        height: athletePayload.height ? parseFloat(athletePayload.height) : null,
+        weight: athletePayload.weight ? parseFloat(athletePayload.weight) : null,
+        direction: athletePayload.direction?.trim() || "S/N",
+        phone: athletePayload.phone?.trim() || "S/N",
       };
 
-      setAthleteData(minorAthleteData);
+      cleanRepresentative = {
+        ...representanteData,
+        first_name: representanteData.first_name?.trim() || "",
+        last_name: representanteData.last_name?.trim() || "",
+        dni: representanteData.dni?.trim() || "",
+        phone: representanteData.phone?.trim() || "",
+        email: representanteData.email?.trim() || "",
+        direction: representanteData.direction?.trim() || "",
+      };
+
+      if (
+        cleanAthlete.dni &&
+        cleanRepresentative.dni &&
+        cleanAthlete.dni === cleanRepresentative.dni
+      ) {
+        throw new Error(
+          "La cédula del deportista y del representante no pueden ser la misma. Usa datos distintos."
+        );
+      }
+
+      setAthleteData(cleanAthlete);
 
       await inscriptionApi.registerMenor({
-        athlete: minorAthleteData,
-        representative: representanteData,
+        athlete: cleanAthlete,
+        representative: cleanRepresentative,
       });
 
       setAthleteName(
@@ -152,8 +172,18 @@ const RegisterSchoolPage = () => {
 
       setRegistrationSuccess(true);
     } catch (err) {
-      const errorMessage =
+      let errorMessage =
         err?.response?.data?.detail || err?.message || MESSAGES.ERROR.GENERIC;
+
+      // Si el backend rechaza porque la cédula del representante ya existe como deportista
+      if (
+        cleanRepresentative?.dni &&
+        typeof errorMessage === "string" &&
+        errorMessage.includes(cleanRepresentative.dni)
+      ) {
+        errorMessage =
+          "La cédula del representante ya está registrada como deportista. Usa otro representante o una cédula distinta.";
+      }
       toast.error("Error en el registro", {
         description: errorMessage,
       });
