@@ -44,10 +44,42 @@ const SprintTestForm = ({
     },
   });
 
+  const distanceValue = watch("distance_meters");
   const time10 = watch("time_0_10_s");
   const time30 = watch("time_0_30_s");
-  const speed10m = time10 > 0 ? (10 / parseFloat(time10)).toFixed(2) : null;
-  const speed30m = time30 > 0 ? (30 / parseFloat(time30)).toFixed(2) : null;
+  const totalDistance = parseFloat(distanceValue);
+  const totalDistanceLabel =
+    Number.isFinite(totalDistance) && totalDistance > 0 ? totalDistance : 30;
+  const partialDistanceLabel = totalDistanceLabel >= 10 ? 10 : totalDistanceLabel;
+
+  const isNumericString = (value) => {
+    const normalized = String(value ?? "").trim();
+    return normalized.length > 0 && /^\d+(\.\d+)?$/.test(normalized);
+  };
+
+  const validatePositiveNumber = (
+    value,
+    invalidMessage = "Formato inválido, usa solo números",
+    emptyMessage = "El valor es obligatorio"
+  ) => {
+    if (value === undefined || value === null || String(value).trim() === "") {
+      return emptyMessage;
+    }
+    if (!isNumericString(value)) return invalidMessage;
+    const num = parseFloat(value);
+    if (!Number.isFinite(num)) return invalidMessage;
+    if (num <= 0) return "El valor debe ser mayor a 0";
+    return true;
+  };
+
+  const speed10m =
+    time10 > 0 && partialDistanceLabel > 0
+      ? (partialDistanceLabel / parseFloat(time10)).toFixed(2)
+      : null;
+  const speedTotal =
+    time30 > 0 && totalDistanceLabel > 0
+      ? (totalDistanceLabel / parseFloat(time30)).toFixed(2)
+      : null;
 
   useEffect(() => {
     if (isEdit && testData) {
@@ -115,7 +147,7 @@ const SprintTestForm = ({
           <h3 className="font-semibold text-slate-900">Test de Velocidad</h3>
           <p className="text-sm text-slate-500">{selectedAthlete?.full_name}</p>
         </div>
-        {(speed10m || speed30m) && (
+        {(speed10m || speedTotal) && (
           <div className="text-right">
             <div className="flex items-center gap-1 text-success">
               <TrendingUp size={14} />
@@ -125,7 +157,11 @@ const SprintTestForm = ({
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="p-5 space-y-6"
+      >
         {/* Distance Section */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -143,7 +179,12 @@ const SprintTestForm = ({
                 type="number"
                 {...register("distance_meters", {
                   required: "La distancia es obligatoria",
-                  min: { value: 1, message: "La distancia debe ser mayor a 0" },
+                  validate: (v) =>
+                    validatePositiveNumber(
+                      v,
+                      "Formato inválido, ingresa solo números",
+                      "La distancia es obligatoria"
+                    ),
                 })}
                 className={`input input-bordered bg-white w-32 ${
                   errors.distance_meters ? "input-error" : ""
@@ -177,7 +218,7 @@ const SprintTestForm = ({
             <div className="bg-slate-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs text-slate-500">
-                  Parcial 0 - 10 metros
+                  Parcial 0 - {partialDistanceLabel} metros
                 </label>
                 {speed10m && (
                   <span className="badge badge-success badge-sm gap-1">
@@ -193,7 +234,12 @@ const SprintTestForm = ({
                   placeholder="1.85"
                   {...register("time_0_10_s", {
                     required: "El tiempo es obligatorio",
-                    min: { value: 0.01, message: "El tiempo debe ser mayor a 0" },
+                    validate: (v) =>
+                      validatePositiveNumber(
+                        v,
+                        "Formato inválido, ingresa solo números",
+                        "El tiempo es obligatorio"
+                      ),
                   })}
                   className={`input input-bordered bg-white flex-1 ${
                     errors.time_0_10_s ? "input-error" : ""
@@ -212,12 +258,12 @@ const SprintTestForm = ({
             <div className="bg-slate-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs text-slate-500">
-                  Total 0 - 30 metros
+                  Total 0 - {totalDistanceLabel} metros
                 </label>
-                {speed30m && (
+                {speedTotal && (
                   <span className="badge badge-success badge-sm gap-1">
                     <TrendingUp size={10} />
-                    {speed30m} m/s
+                    {speedTotal} m/s
                   </span>
                 )}
               </div>
@@ -228,7 +274,12 @@ const SprintTestForm = ({
                   placeholder="3.95"
                   {...register("time_0_30_s", {
                     required: "El tiempo es obligatorio",
-                    min: { value: 0.01, message: "El tiempo debe ser mayor a 0" },
+                    validate: (v) =>
+                      validatePositiveNumber(
+                        v,
+                        "Formato inválido, ingresa solo números",
+                        "El tiempo es obligatorio"
+                      ),
                   })}
                   className={`input input-bordered bg-white flex-1 ${
                     errors.time_0_30_s ? "input-error" : ""

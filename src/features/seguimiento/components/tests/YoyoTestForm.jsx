@@ -64,8 +64,32 @@ const YoyoTestForm = ({
 
   const finalLevel = watch("final_level");
   const shuttles = watch("shuttle_count");
+
+  const parsedShuttles = Number(shuttles);
+  const isValidShuttlesDistance =
+    Number.isFinite(parsedShuttles) && parsedShuttles > 0 && parsedShuttles <= 1000;
+
   const vo2 = VO2_TABLE[finalLevel] || null;
-  const distance = shuttles ? parseInt(shuttles) * 40 : null;
+  const distance = isValidShuttlesDistance ? parsedShuttles * 40 : null;
+
+  const validateFinalLevel = (value) => {
+    const normalized = String(value ?? "").trim();
+    if (!normalized) return "El nivel final es obligatorio";
+    const isValidFormat = /^\d{1,2}\.\d$/.test(normalized);
+    if (!isValidFormat)
+      return "Nivel final: formato inválido. Usa XX.Y (ej: 16.3, 18.2)";
+    return true;
+  };
+
+  const validateShuttles = (value) => {
+    const normalized = String(value ?? "").trim();
+    if (!normalized) return "Los shuttles son obligatorios";
+    if (!/^\d+$/.test(normalized)) return "Ingresa solo números";
+    const num = parseInt(normalized, 10);
+    if (num <= 0) return "Debe ser mayor a 0";
+    if (num > 1000) return "Máximo permitido: 1000 shuttles";
+    return true;
+  };
 
   useEffect(() => {
     if (isEdit && testData) {
@@ -89,10 +113,15 @@ const YoyoTestForm = ({
       toast.error("Selecciona un atleta");
       return;
     }
+    const shuttlesValue = Number(formData.shuttle_count);
+    if (!Number.isFinite(shuttlesValue) || shuttlesValue <= 0 || shuttlesValue > 1000) {
+      toast.error("Shuttles debe ser un número entre 1 y 1000");
+      return;
+    }
     try {
       const payload = {
         athlete_id: selectedAthlete.id,
-        shuttle_count: parseInt(formData.shuttle_count),
+        shuttle_count: shuttlesValue,
         final_level: formData.final_level,
         failures: parseInt(formData.failures),
         observations: formData.observations,
@@ -143,7 +172,7 @@ const YoyoTestForm = ({
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="p-5 space-y-6">
         {/* Performance Data */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -169,14 +198,23 @@ const YoyoTestForm = ({
                 <input
                   type="number"
                   placeholder="47"
-                  {...register("shuttle_count", { required: true, min: 1 })}
-                  className="input input-bordered bg-white flex-1"
+                  {...register("shuttle_count", {
+                    validate: validateShuttles,
+                  })}
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.shuttle_count ? "input-error" : ""
+                  }`}
                 />
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
                   <Info size={12} />
                   <span>×40m cada uno</span>
                 </div>
               </div>
+              {errors.shuttle_count && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.shuttle_count.message}
+                </p>
+              )}
             </div>
 
             {/* Level */}
@@ -191,14 +229,23 @@ const YoyoTestForm = ({
                 <input
                   type="text"
                   placeholder="16.3"
-                  {...register("final_level", { required: true })}
-                  className="input input-bordered bg-white flex-1"
+                  {...register("final_level", {
+                    validate: validateFinalLevel,
+                  })}
+                  className={`input input-bordered bg-white flex-1 ${
+                    errors.final_level ? "input-error" : ""
+                  }`}
                 />
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
                   <Info size={12} />
                   <span>Ej: 16.3</span>
                 </div>
               </div>
+              {errors.final_level && (
+                <p className="mt-2 text-xs text-error">
+                  {errors.final_level.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
