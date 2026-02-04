@@ -20,6 +20,7 @@ const DeportistaForm = ({
   loading = false,
   error = null,
   isMenor = false,
+  isEdit = false,
 }) => {
   // Valores por defecto
   const defaultTypeId = TYPE_IDENTIFICATION_OPTIONS?.[0]?.value ?? "dni";
@@ -127,6 +128,13 @@ const DeportistaForm = ({
       weight: data.weight === "" ? null : Number(data.weight),
       phone: data.phone === "" ? null : data.phone,
     };
+    
+    // En modo edición, no enviar campos que no se pueden modificar
+    if (isEdit) {
+      delete cleanedData.dni;
+      delete cleanedData.type_identification;
+    }
+    
     onSubmit(cleanedData);
   };
 
@@ -352,9 +360,10 @@ const DeportistaForm = ({
             </label>
             <select
               error={errors.type_identification?.message}
-              className="select w-full select-sm bg-white text-slate-600"
-              required
-              {...register("type_identification", { required: "Requerido" })}
+              className={`select w-full select-sm ${isEdit ? "bg-slate-100 text-slate-600 cursor-not-allowed" : "bg-white text-slate-600"}`}
+              required={!isEdit}
+              disabled={loading || isEdit}
+              {...register("type_identification", { required: !isEdit && "Requerido" })}
             >
               <option value="">Seleccionar...</option>
               {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
@@ -363,22 +372,34 @@ const DeportistaForm = ({
                 </option>
               ))}
             </select>
+            {isEdit && (
+              <span className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </span>
+            )}
           </div>
 
-          <Input
-            label="Nº Documento"
-            type="text"
-            placeholder={identificationRules.placeholder}
-            error={errors.dni?.message}
-            disabled={loading}
-            required
-            inputMode={identificationRules.inputMode}
-            maxLength={identificationRules.maxLength}
-            {...register("dni", {
-              required: "Requerido",
-              validate: identificationRules.validate,
-            })}
-          />
+          <div>
+            <Input
+              label="Nº Documento"
+              type="text"
+              placeholder={identificationRules.placeholder}
+              error={errors.dni?.message}
+              disabled={loading || isEdit}
+              required={!isEdit}
+              inputMode={identificationRules.inputMode}
+              maxLength={identificationRules.maxLength}
+              {...register("dni", {
+                required: !isEdit && "Requerido",
+                validate: !isEdit ? identificationRules.validate : undefined,
+              })}
+            />
+            {isEdit && (
+              <span className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </span>
+            )}
+          </div>
         </div>
       </section>
 
@@ -456,13 +477,13 @@ const DeportistaForm = ({
                   disabled={loading}
                   {...register("direction", {
                     maxLength: {
-                      value: 20, // límite de caracteres
-                      message: "La dirección no puede superar los 20 caracteres",
+                      value: 100,
+                      message: "La dirección no puede superar los 100 caracteres",
                     },
                   })}
                 />
                 <span className="text-xs text-slate-400 mt-1">
-                  {watch("direction")?.length || 0}/20 caracteres
+                  {watch("direction")?.length || 0}/100 caracteres
                 </span>
               </div>
             </div>
@@ -549,6 +570,7 @@ DeportistaForm.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   isMenor: PropTypes.bool,
+  isEdit: PropTypes.bool,
 };
 
 export default DeportistaForm;

@@ -222,9 +222,17 @@ const UserForm = ({
     // Campo solo de UI (confirmación), nunca se envía al backend
     delete dataToSubmit.passwordConfirmation;
 
-    // En edición, omitir contraseña si está vacía
-    if (isEdit && !dataToSubmit.password) {
-      delete dataToSubmit.password;
+    // En edición, omitir campos que no se pueden modificar
+    if (isEdit) {
+      delete dataToSubmit.dni;
+      delete dataToSubmit.type_identification;
+      delete dataToSubmit.email;
+      delete dataToSubmit.role;
+
+      // También omitir contraseña si está vacía
+      if (!dataToSubmit.password) {
+        delete dataToSubmit.password;
+      }
     }
 
     onSubmit(dataToSubmit);
@@ -285,8 +293,8 @@ const UserForm = ({
               {...register("type_identification", {
                 required: "Selecciona un tipo de identificación",
               })}
-              disabled={loading}
-              className="select select-bordered select-sm w-full bg-white"
+              disabled={loading || isEdit}
+              className={`select select-bordered select-sm w-full ${isEdit ? "bg-slate-100 text-slate-600 cursor-not-allowed" : "bg-white"}`}
             >
               {TYPE_IDENTIFICATION_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -299,24 +307,36 @@ const UserForm = ({
                 {errors.type_identification.message}
               </p>
             ) : null}
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </p>
+            )}
           </div>
 
           {/* Dni (Obligatorio) */}
-          <Input
-            label="Número de identificación"
-            type="text"
-            name="dni"
-            placeholder={identificationRules.placeholder}
-            error={errors.dni?.message}
-            disabled={loading}
-            required
-            inputMode={identificationRules.inputMode}
-            maxLength={identificationRules.maxLength}
-            {...register("dni", {
-              required: "El número de identificación es requerido",
-              validate: identificationRules.validate,
-            })}
-          />
+          <div>
+            <Input
+              label="Número de identificación"
+              type="text"
+              name="dni"
+              placeholder={identificationRules.placeholder}
+              error={errors.dni?.message}
+              disabled={loading || isEdit}
+              required={!isEdit}
+              inputMode={identificationRules.inputMode}
+              maxLength={identificationRules.maxLength}
+              {...register("dni", {
+                required: !isEdit && "El número de identificación es requerido",
+                validate: !isEdit ? identificationRules.validate : undefined,
+              })}
+            />
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -325,23 +345,32 @@ const UserForm = ({
         <SectionHeader icon={MapPin} title="Información de Contacto" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Email */}
-          <Input
-            label="Correo electrónico"
-            type="email"
-            name="email"
-            placeholder="usuario@unl.edu.ec"
-            error={errors.email?.message}
-            disabled={loading}
-            required
-            icon={<Mail size={14} className="text-slate-400" />}
-            {...register("email", {
-              required: "El email es requerido",
-              pattern: {
-                value: VALIDATION.EMAIL_PATTERN,
-                message: "Ingresa un email válido",
-              },
-            })}
-          />
+          <div>
+            <Input
+              label="Correo electrónico"
+              type="email"
+              name="email"
+              placeholder="usuario@unl.edu.ec"
+              error={errors.email?.message}
+              disabled={loading || isEdit}
+              required={!isEdit}
+              icon={<Mail size={14} className="text-slate-400" />}
+              {...register("email", {
+                required: !isEdit && "El email es requerido",
+                pattern: !isEdit
+                  ? {
+                      value: VALIDATION.EMAIL_PATTERN,
+                      message: "Ingresa un email válido",
+                    }
+                  : undefined,
+              })}
+            />
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </p>
+            )}
+          </div>
 
           {/* Teléfono (Opcional) */}
           <Input
@@ -421,8 +450,8 @@ const UserForm = ({
             </label>
             <select
               {...register("role", { required: "Selecciona un rol" })}
-              disabled={loading}
-              className="select select-bordered select-sm w-full bg-white"
+              disabled={loading || isEdit}
+              className={`select select-bordered select-sm w-full ${isEdit ? "bg-slate-100 text-slate-600 cursor-not-allowed" : "bg-white"}`}
             >
               {ROLE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -433,63 +462,72 @@ const UserForm = ({
             {errors.role?.message ? (
               <p className="mt-1 text-xs text-error">{errors.role.message}</p>
             ) : null}
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Este campo no se puede modificar
+              </p>
+            )}
           </div>
 
-          {/* Contraseña */}
-          <div className="space-y-1">
+          {/* Contraseña - Solo mostrar en creación */}
+          {!isEdit && (
+            <div className="space-y-1">
+              <Input
+                label="Contraseña"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                error={errors.password?.message}
+                disabled={loading}
+                required
+                {...register("password", {
+                  required: "La contraseña es requerida",
+                  validate: (value) => {
+                    if (!value) return true;
+                    if (value.length < VALIDATION.PASSWORD_MIN_LENGTH) {
+                      return `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`;
+                    }
+                    if (!/[A-Z]/.test(value)) {
+                      return "Debe contener al menos una mayúscula";
+                    }
+                    if (!/[a-z]/.test(value)) {
+                      return "Debe contener al menos una minúscula";
+                    }
+                    if (!/[0-9]/.test(value)) {
+                      return "Debe contener al menos un número";
+                    }
+                    if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+                      return "Debe contener al menos un carácter especial (!@#$%^&*)";
+                    }
+                    return true;
+                  },
+                })}
+              />
+              {/* Indicador de seguridad de contraseña */}
+              {password && <PasswordStrengthIndicator password={password} />}
+            </div>
+          )}
+
+          {/* Confirmar contraseña - Solo mostrar en creación */}
+          {!isEdit && (
             <Input
-              label={isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}
+              label="Confirmar contraseña"
               type="password"
-              name="password"
+              name="passwordConfirmation"
               placeholder="••••••••"
-              error={errors.password?.message}
+              error={errors.passwordConfirmation?.message}
               disabled={loading}
-              required={!isEdit}
-              {...register("password", {
-                required: isEdit ? false : "La contraseña es requerida",
+              required={!!password}
+              {...register("passwordConfirmation", {
                 validate: (value) => {
-                  if (!value) return true;
-                  if (value.length < VALIDATION.PASSWORD_MIN_LENGTH) {
-                    return `Mínimo ${VALIDATION.PASSWORD_MIN_LENGTH} caracteres`;
-                  }
-                  if (!/[A-Z]/.test(value)) {
-                    return "Debe contener al menos una mayúscula";
-                  }
-                  if (!/[a-z]/.test(value)) {
-                    return "Debe contener al menos una minúscula";
-                  }
-                  if (!/[0-9]/.test(value)) {
-                    return "Debe contener al menos un número";
-                  }
-                  if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
-                    return "Debe contener al menos un carácter especial (!@#$%^&*)";
-                  }
+                  if (!password && !value) return true;
+                  if (password && !value) return "Confirma la contraseña";
+                  if (value !== password) return "Las contraseñas no coinciden";
                   return true;
                 },
               })}
             />
-            {/* Indicador de seguridad de contraseña */}
-            {password && <PasswordStrengthIndicator password={password} />}
-          </div>
-
-          {/* Confirmar contraseña */}
-          <Input
-            label="Confirmar contraseña"
-            type="password"
-            name="passwordConfirmation"
-            placeholder="••••••••"
-            error={errors.passwordConfirmation?.message}
-            disabled={loading}
-            required={!isEdit && !!password}
-            {...register("passwordConfirmation", {
-              validate: (value) => {
-                if (!password && !value) return true;
-                if (password && !value) return "Confirma la contraseña";
-                if (value !== password) return "Las contraseñas no coinciden";
-                return true;
-              },
-            })}
-          />
+          )}
         </div>
       </div>
 
