@@ -57,6 +57,7 @@ export const getSidebarItems = (role) => {
         to: ROUTES.INSCRIPTION,
         icon: "inscription",
       },
+      { label: "Asistencias", to: ROUTES.ATTENDANCE, icon: "attendance" },
       { label: "Evaluaciones", to: ROUTES.EVALUATIONS, icon: "evaluations" },
       { label: "Estadísticas", to: ROUTES.STATISTICS, icon: "statistics" },
       { label: "Reportes", to: ROUTES.REPORTS, icon: "reports" },

@@ -27,6 +27,9 @@ export const ROLE_PERMISSIONS = {
     canViewStatistics: true,
     canExportData: true,
     canManageSettings: true,
+    canTakeAttendance: true,
+    canEditAttendance: true,
+    canViewAttendance: true,
   },
   [ROLES.ENTRENADOR]: {
     canManageUsers: false,
@@ -72,6 +75,8 @@ export const ROLE_ROUTES = {
     "/seguimiento/evaluations",
     "/seguimiento/statistics",
     "/seguimiento/reports",
+    "/seguimiento/attendance",
+
     "/settings",
   ],
   [ROLES.ENTRENADOR]: [

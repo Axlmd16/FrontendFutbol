@@ -11,7 +11,15 @@
 
 import PropTypes from "prop-types";
 
-const Input = ({ label, error, icon, className = "", id, ...props }) => {
+const Input = ({
+  label,
+  error,
+  icon,
+  className = "",
+  id,
+  disabled,
+  ...props
+}) => {
   const inputId = id || props.name;
 
   return (
@@ -34,8 +42,12 @@ const Input = ({ label, error, icon, className = "", id, ...props }) => {
 
         <input
           id={inputId}
+          disabled={disabled}
           className={[
-            "input input-bordered input-sm w-full bg-white",
+            "input input-bordered input-sm w-full",
+            disabled
+              ? "bg-slate-100 text-slate-600 cursor-not-allowed"
+              : "bg-white",
             icon ? "pl-10" : "",
             error ? "border-red-300" : "border-gray-300",
             className,
@@ -56,6 +68,7 @@ Input.propTypes = {
   className: PropTypes.string,
   id: PropTypes.string,
   name: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 export default Input;

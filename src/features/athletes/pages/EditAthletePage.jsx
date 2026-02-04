@@ -143,6 +143,7 @@ const EditAthletePage = () => {
               loading={saving}
               error={error}
               isMenor={false}
+              isEdit={true}
             />
           </div>
         </div>
