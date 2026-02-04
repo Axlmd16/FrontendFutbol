@@ -36,6 +36,7 @@ const SprintTestForm = ({
     setValue,
     watch,
   } = useForm({
+    mode: "onChange",
     defaultValues: {
       distance_meters: isEdit ? testData?.distance_meters : 30,
       time_0_10_s: isEdit ? testData?.time_0_10_s : "",
@@ -47,10 +48,14 @@ const SprintTestForm = ({
   const distanceValue = watch("distance_meters");
   const time10 = watch("time_0_10_s");
   const time30 = watch("time_0_30_s");
-  const totalDistance = parseFloat(distanceValue);
-  const totalDistanceLabel =
-    Number.isFinite(totalDistance) && totalDistance > 0 ? totalDistance : 30;
-  const partialDistanceLabel = totalDistanceLabel >= 10 ? 10 : totalDistanceLabel;
+
+  const totalDistanceNumeric = parseFloat(distanceValue);
+  const hasValidDistance =
+    Number.isFinite(totalDistanceNumeric) && totalDistanceNumeric > 0;
+  const totalDistanceLabel = hasValidDistance ? totalDistanceNumeric : 30;
+  const partialDistanceLabel = hasValidDistance
+    ? Math.min(10, totalDistanceNumeric)
+    : 10;
 
   const isNumericString = (value) => {
     const normalized = String(value ?? "").trim();
@@ -69,6 +74,42 @@ const SprintTestForm = ({
     const num = parseFloat(value);
     if (!Number.isFinite(num)) return invalidMessage;
     if (num <= 0) return "El valor debe ser mayor a 0";
+    return true;
+  };
+
+  const MAX_SPRINT_SPEED_MS_TOTAL = 12.0; // velocidad máxima razonable para el tramo completo
+  const MAX_SPRINT_SPEED_MS_SHORT = 12.0; // mismo tope para tramos cortos (0-10 m)
+
+  const validateTimeForDistance = (value, distance) => {
+    const baseValidation = validatePositiveNumber(
+      value,
+      "Formato inválido, ingresa solo números",
+      "El tiempo es obligatorio"
+    );
+    if (baseValidation !== true) return baseValidation;
+
+    const num = parseFloat(value);
+    const dist = Number(distance);
+    if (!Number.isFinite(dist) || dist <= 0) {
+      return "Ingresa una distancia válida";
+    }
+    // Min override para parciales muy cortos (<=10 m): al menos 1s
+    if (dist <= 10 && num < 1) {
+      return `El tiempo mínimo para ${dist} m es 1.00 s`;
+    }
+
+    const speed = dist / num;
+    const maxSpeed = dist <= 15 ? MAX_SPRINT_SPEED_MS_SHORT : MAX_SPRINT_SPEED_MS_TOTAL;
+    const minTime = dist / maxSpeed;
+
+    if (speed > maxSpeed) {
+      return `Tiempo demasiado bajo para ${dist} m (velocidad ${speed.toFixed(
+        1
+      )} m/s, mínimo ${minTime.toFixed(2)} s)`;
+    }
+    if (num < minTime) {
+      return `El tiempo mínimo para ${dist} m es ${minTime.toFixed(2)} s`;
+    }
     return true;
   };
 
@@ -178,16 +219,23 @@ const SprintTestForm = ({
                 type="number"
                 {...register("distance_meters", {
                   required: "La distancia es obligatoria",
-                  validate: (v) =>
-                    validatePositiveNumber(
+                  validate: (v) => {
+                    const base = validatePositiveNumber(
                       v,
                       "Formato inválido, ingresa solo números",
                       "La distancia es obligatoria"
-                    ),
+                    );
+                    if (base !== true) return base;
+                    const num = parseFloat(v);
+                    if (num > 60) return "La distancia máxima para sprint es 60 metros";
+                    return true;
+                  },
                 })}
                 className={`input input-bordered bg-white w-32 ${
                   errors.distance_meters ? "input-error" : ""
                 }`}
+                max="60"
+                min="1"
               />
               <span className="text-sm text-slate-600">metros</span>
               <div className="flex-1"></div>
@@ -234,10 +282,9 @@ const SprintTestForm = ({
                   {...register("time_0_10_s", {
                     required: "El tiempo es obligatorio",
                     validate: (v) =>
-                      validatePositiveNumber(
+                      validateTimeForDistance(
                         v,
-                        "Formato inválido, ingresa solo números",
-                        "El tiempo es obligatorio"
+                        partialDistanceLabel
                       ),
                   })}
                   className={`input input-bordered bg-white flex-1 ${
@@ -273,12 +320,25 @@ const SprintTestForm = ({
                   placeholder="3.95"
                   {...register("time_0_30_s", {
                     required: "El tiempo es obligatorio",
-                    validate: (v) =>
-                      validatePositiveNumber(
+                    validate: (v) => {
+                      const base = validateTimeForDistance(
                         v,
-                        "Formato inválido, ingresa solo números",
-                        "El tiempo es obligatorio"
-                      ),
+                        totalDistanceLabel
+                      );
+                      if (base !== true) return base;
+
+                      const t10 = parseFloat(time10);
+                      const t30 = parseFloat(v);
+                      if (
+                        Number.isFinite(t10) &&
+                        Number.isFinite(t30) &&
+                        t30 < t10
+                      ) {
+                        return "El tiempo total debe ser mayor o igual al parcial 0-10 m";
+                      }
+
+                      return true;
+                    },
                   })}
                   className={`input input-bordered bg-white flex-1 ${
                     errors.time_0_30_s ? "input-error" : ""
