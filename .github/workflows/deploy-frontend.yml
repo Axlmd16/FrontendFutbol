@@ -1,0 +1,27 @@
+name: Build and Push Frontend Image
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: axlmd/frontend-futbol:${{ github.sha }},axlmd/frontend-futbol:latest
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
